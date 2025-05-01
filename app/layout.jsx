@@ -1,5 +1,5 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Inter, Montserrat } from 'next/font/google'
 import ClientLayout from '@/components/ClientLayout'
 import { Toaster } from '@/components/ui/toaster'
 import LiveTournamentNotification from '@/components/live-tournament-notification'
@@ -9,6 +9,10 @@ import { Toaster as HotToaster } from 'react-hot-toast'
 import Footer from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
+const montserrat = Montserrat({ 
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const viewport = {
   width: 'device-width',
@@ -43,13 +47,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es" className={montserrat.className}>
       <head>
         <link rel="icon" href="/images/logo/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/images/logo/favicon.png" />
         <meta name="theme-color" content="#000000" />
       </head>
-      <body className={inter.className}>
+      <body className={montserrat.className}>
         <ClientLayout>
           <main className="pt-32">
             {children}

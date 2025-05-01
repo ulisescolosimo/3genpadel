@@ -142,12 +142,12 @@ export default function Home() {
               <Link href="/torneos">
                 <Button
                   size="lg"
-                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-white border-2 border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-white group-hover:text-black transition-colors duration-300" />
+                    <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
                     Ver torneos
-                    <ArrowRight className="h-4 w-4 text-white group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
@@ -556,12 +556,12 @@ export default function Home() {
               <Link href="/torneos">
                 <Button
                   size="lg"
-                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-white border-2 border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-white group-hover:text-black transition-colors duration-300" />
+                    <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
                     Ver torneos
-                    <ArrowRight className="h-4 w-4 text-white group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
