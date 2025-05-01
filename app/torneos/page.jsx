@@ -141,7 +141,7 @@ export default function Torneos() {
           {filteredTournaments.map((tournament) => (
             <Card
               key={tournament.id}
-              className="bg-gray-900/50 border-gray-800 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-xl backdrop-blur-sm group cursor-pointer overflow-hidden"
+              className="bg-gray-900/50 border-gray-800 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-xl backdrop-blur-sm group cursor-pointer overflow-hidden flex flex-col h-full"
               onClick={() => router.push(`/torneos/${tournament.id}`)}
             >
               <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
@@ -174,7 +174,7 @@ export default function Torneos() {
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
+              <CardContent className="p-4 sm:p-6 pt-0 flex-grow">
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-gray-300 bg-gray-800/30 p-3 rounded-lg group-hover:bg-gray-800/50 transition-colors">
                     <div className="p-2 bg-gray-800/50 rounded-lg">
@@ -206,7 +206,7 @@ export default function Torneos() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="p-4 sm:p-6 pt-0">
+              <CardFooter className="p-4 sm:p-6 pt-0 mt-auto">
                 <Button
                   className="w-full rounded-lg bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10 text-sm font-medium group-hover:scale-[1.02] transition-transform flex items-center justify-between"
                   onClick={(e) => {
