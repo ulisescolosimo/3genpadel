@@ -67,35 +67,45 @@ export default function Torneos() {
   const handleFilterChange = (filters) => {
     let filtered = [...tournaments];
 
+    // Filtro por búsqueda (nombre o descripción)
     if (filters.search) {
       filtered = filtered.filter(
         (tournament) =>
-          tournament.nombre
-            .toLowerCase()
-            .includes(filters.search.toLowerCase()) ||
-          tournament.descripcion
-            ?.toLowerCase()
-            .includes(filters.search.toLowerCase())
+          tournament.nombre?.toLowerCase().includes(filters.search.toLowerCase()) ||
+          tournament.descripcion?.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
 
-    if (filters.estado) {
+    // Filtro por estado
+    if (filters.estado && filters.estado !== 'todos') {
       filtered = filtered.filter(
         (tournament) => tournament.estado === filters.estado
       );
     }
 
-    if (filters.categoria) {
+    // Filtro por categoría
+    if (filters.categoria && filters.categoria !== 'todos') {
       filtered = filtered.filter(
         (tournament) => tournament.categoria === filters.categoria
       );
     }
 
-    if (filters.ubicacion) {
+    // Filtro por ubicación
+    if (filters.ubicacion && filters.ubicacion !== 'todos') {
       filtered = filtered.filter(
         (tournament) => tournament.ubicacion === filters.ubicacion
       );
     }
+
+    // Filtro por disponibilidad
+    if (filters.disponibilidad === 'disponibles') {
+      filtered = filtered.filter(
+        (tournament) => tournament.plazas_disponibles > 0
+      );
+    }
+
+    // Ordenar por fecha de inicio
+    filtered.sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio));
 
     setFilteredTournaments(filtered);
   };

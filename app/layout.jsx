@@ -55,7 +55,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={montserrat.className}>
         <ClientLayout>
-          <main className="pt-32">
+          <main>
             {children}
           </main>
           <Footer />

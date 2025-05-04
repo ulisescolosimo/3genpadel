@@ -7,7 +7,7 @@ export default function FloatingRankingsButton() {
   return (
     <Link
       href="/rankings"
-      className="fixed bottom-6 left-6 z-50 group"
+      className="fixed bottom-6 left-6 z-50 group hidden md:block"
     >
       <div className="relative">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/50 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>

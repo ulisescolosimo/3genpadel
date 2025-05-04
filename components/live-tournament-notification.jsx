@@ -15,7 +15,7 @@ export default function LiveTournamentNotification() {
       { nombre: "Jugador 2", apellido: "Academia", ranking: "Top 30" }
     ],
     ubicacion: "Madrid, España",
-    fecha: "15-17 Marzo 2024",
+    fecha: "15-17 Marzo 2025",
     categoria: "Open",
     resultado: "1-0",
     siguientePartido: "Cuartos de Final",
@@ -27,7 +27,7 @@ export default function LiveTournamentNotification() {
       <div 
         className={`bg-gray-900/90 backdrop-blur-sm border border-[#E2FF1B]/20 rounded-xl shadow-lg transition-all duration-300 ${
           isMinimized 
-            ? 'p-2.5 sm:p-3 w-[140px] sm:w-[180px] cursor-pointer hover:bg-gray-800/90 border-[#E2FF1B]/40 group touch-manipulation' 
+            ? 'p-2.5 sm:p-3 w-[180px] sm:w-[200px] cursor-pointer hover:bg-gray-800/90 border-[#E2FF1B]/40 group touch-manipulation' 
             : 'p-3 sm:p-4 w-[calc(100vw-2rem)] sm:w-[400px] md:max-w-sm'
         }`}
         onClick={() => isMinimized && setIsMinimized(false)}
@@ -51,7 +51,7 @@ export default function LiveTournamentNotification() {
                     <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500 animate-[pulse_6s_ease-in-out_infinite]" />
                     <span className="text-[10px] sm:text-xs text-red-500 font-medium">LIVE</span>
                   </div>
-                  <span className="hidden sm:block text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">Click para ver más</span>
+                  <span className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">Click para ver más</span>
                 </div>
               )}
             </div>

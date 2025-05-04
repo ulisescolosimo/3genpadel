@@ -103,33 +103,33 @@ export default function Rankings() {
     <div className="min-h-screen bg-black">
       <Header />
       
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Rankings</h1>
-          <p className="text-gray-400">Los mejores jugadores de 3gen Padel</p>
+      <main className="container mx-auto px-4 pb-8 max-w-4xl">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Rankings</h1>
+          <p className="text-sm sm:text-base text-gray-400">Los mejores jugadores de 3gen Padel</p>
         </div>
 
         <div className="bg-gray-900/50 rounded-xl border border-gray-800 overflow-hidden">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2 mb-4 sm:mb-6">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-[#E2FF1B]" />
-                <h2 className="text-xl font-semibold text-white">Clasificación General</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-white">Clasificación General</h2>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
                 <Users className="w-4 h-4" />
                 <span>{rankings.length} Jugadores</span>
               </div>
             </div>
 
             {/* Filtros */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-400 mb-2">Género</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1 sm:mb-2">Género</label>
                 <select
                   value={selectedGender}
                   onChange={(e) => setSelectedGender(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#E2FF1B]"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#E2FF1B]"
                 >
                   <option value="todos">Todos</option>
                   <option value="hombre">Hombres</option>
@@ -138,11 +138,11 @@ export default function Rankings() {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-400 mb-2">Nivel</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1 sm:mb-2">Nivel</label>
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#E2FF1B]"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#E2FF1B]"
                 >
                   <option value="todos">Todos</option>
                   <option value="Avanzado">Avanzado</option>
@@ -152,22 +152,22 @@ export default function Rankings() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {rankings.map((jugador) => (
                 <div
                   key={jugador.id}
-                  className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors"
+                  className="flex items-center justify-between p-3 sm:p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-700 text-white font-bold">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-700 text-white text-sm sm:text-base font-bold">
                       {jugador.posicion}
                     </div>
                     <div>
-                      <h3 className="text-white font-medium">{jugador.nombre}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <h3 className="text-sm sm:text-base text-white font-medium">{jugador.nombre}</h3>
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-400">
                         <span>{jugador.puntos} pts</span>
                         {jugador.cambio !== 0 && (
-                          <span className={`flex items-center gap-1 ${
+                          <span className={`flex items-center gap-0.5 sm:gap-1 ${
                             jugador.cambio > 0 ? 'text-green-400' : 'text-red-400'
                           }`}>
                             {jugador.cambio > 0 ? (
@@ -178,14 +178,14 @@ export default function Rankings() {
                             {Math.abs(jugador.cambio)}
                           </span>
                         )}
-                        <span className="text-xs bg-gray-700 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] sm:text-xs bg-gray-700 px-1.5 sm:px-2 py-0.5 rounded-full">
                           {jugador.nivel}
                         </span>
                       </div>
                     </div>
                   </div>
                   {jugador.posicion <= 3 && (
-                    <Medal className={`w-6 h-6 ${
+                    <Medal className={`w-5 h-5 sm:w-6 sm:h-6 ${
                       jugador.posicion === 1 ? 'text-yellow-400' :
                       jugador.posicion === 2 ? 'text-gray-300' :
                       'text-amber-600'
@@ -196,7 +196,7 @@ export default function Rankings() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 } 

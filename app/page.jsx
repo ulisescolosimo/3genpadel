@@ -95,7 +95,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-black">
 
       {/* Hero Section */}
-      <section className="relative flex w-full min-h-[70vh] items-center justify-center overflow-hidden">
+      <section className="relative flex w-full min-h-[100vh] items-center justify-center overflow-hidden">
         {/* Imagen de fondo */}
         <div className="absolute inset-0">
           <img

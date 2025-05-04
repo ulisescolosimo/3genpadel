@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -55,7 +55,7 @@ export default function Header() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${pathname}`
+          redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?redirectTo=${pathname}`
         }
       })
       if (error) throw error
@@ -291,6 +291,14 @@ export default function Header() {
               >
                 <Trophy className="w-4 h-4" />
                 Torneos
+              </Link>
+              <Link 
+                href="/rankings" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                onClick={closeMenu}
+              >
+                <Medal className="w-4 h-4" />
+                Rankings
               </Link>
               <Link 
                 href="/merchandising" 

@@ -67,7 +67,7 @@ export default function ClientLayout({ children }) {
   return (
     <div className="min-h-screen bg-black">
       <Header />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pt-28 sm:pt-32">{children}</main>
     </div>
   )
 } 
