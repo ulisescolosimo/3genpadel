@@ -1,15 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import { handleAuthError } from '@/lib/supabase'
 
 export default function ClientLayout({ children }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  const isAdminRoute = pathname?.startsWith('/admin')
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     let mounted = true
@@ -54,7 +58,7 @@ export default function ClientLayout({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-black">
-        <Header />
+        {!isAdminRoute && <Header />}
         <main className="flex-1">
           <div className="flex justify-center items-center min-h-[70vh]">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E2FF1B] border-t-transparent" />
@@ -66,8 +70,8 @@ export default function ClientLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-black">
-      <Header />
-      <main className="flex-1 pt-28 sm:pt-32">{children}</main>
+      {!isAdminRoute && <Header />}
+      <main className={`flex-1 ${!isAdminRoute && !isHomePage ? 'pt-28' : ''}`}>{children}</main>
     </div>
   )
 } 

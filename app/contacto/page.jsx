@@ -127,9 +127,10 @@ export default function Contacto() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto space-y-8">
-          {/* Información de Contacto */}
-          <div className="space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Información de Contacto y Horario en la misma fila */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Información de Contacto */}
             <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-white mb-4">Información de Contacto</h3>
               <div className="space-y-4">
@@ -157,6 +158,7 @@ export default function Contacto() {
               </div>
             </div>
 
+            {/* Horario de Atención */}
             <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-white mb-4">Horario de Atención</h3>
               <div className="space-y-2">
@@ -176,77 +178,80 @@ export default function Contacto() {
             </div>
           </div>
 
-          {/* Formulario de Contacto */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-6">Envíanos un Mensaje</h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-white">Nombre</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                    placeholder="Tu nombre"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                    placeholder="tu@email.com"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="message" className="text-white">Mensaje</Label>
-                <Textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="min-h-[150px] bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                  placeholder="¿En qué podemos ayudarte?"
-                  required
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Enviando...
+          {/* Formulario y Mapa en la misma fila */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Formulario de Contacto */}
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-6">Envíanos un Mensaje</h3>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-white">Nombre</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                      placeholder="Tu nombre"
+                      required
+                    />
                   </div>
-                ) : (
-                  'Enviar Mensaje'
-                )}
-              </Button>
-            </form>
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-white">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                      placeholder="tu@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message" className="text-white">Mensaje</Label>
+                  <Textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    className="min-h-[150px] bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                    placeholder="¿En qué podemos ayudarte?"
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando...
+                    </div>
+                  ) : (
+                    'Enviar Mensaje'
+                  )}
+                </Button>
+              </form>
+            </div>
 
-          {/* Mapa */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden h-[400px]">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.1234567890123!2d-58.4558858!3d-34.578475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e78893fb43%3A0xb3403f99edbe45fb!2sLa%20Normanda%20Padel%20%26%20Gym!5e0!3m2!1ses!2sar!4v1234567890"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            {/* Mapa */}
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden h-full">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.1234567890123!2d-58.4558858!3d-34.578475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e78893fb43%3A0xb3403f99edbe45fb!2sLa%20Normanda%20Padel%20%26%20Gym!5e0!3m2!1ses!2sar!4v1234567890"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
           </div>
         </div>
       </div>

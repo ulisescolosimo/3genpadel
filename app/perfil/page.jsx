@@ -24,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import Link from "next/link"
+import { toast } from "react-hot-toast"
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
@@ -45,6 +47,7 @@ export default function ProfilePage() {
     fecha_nacimiento: ""
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [registrosSinTorneo, setRegistrosSinTorneo] = useState([])
   const router = useRouter()
 
   useEffect(() => {
@@ -93,22 +96,35 @@ export default function ProfilePage() {
           .from('registros_torneo')
           .select(`
             *,
-            torneo: torneo_id (
+            torneo:torneo_id (
               id,
               nombre,
+              descripcion,
               fecha_inicio,
               fecha_fin,
               ubicacion,
               categoria,
-              estado
+              estado,
+              cupo_maximo,
+              plazas_disponibles
             )
           `)
           .eq('email', user.email)
-          .eq('estado', 'pendiente')
-          .order('fecha_registro', { ascending: true })
+          .order('fecha_registro', { ascending: false })
 
         if (error) throw error
-        setActiveTournaments(data || [])
+
+        console.log("Registros crudos traídos de Supabase:", data);
+
+        // Filtrar registros sin torneo
+        const registrosConTorneo = (data || []).filter(r => r.torneo && r.torneo.id);
+        const registrosSinTorneo = (data || []).filter(r => !r.torneo || !r.torneo.id);
+
+        console.log("Registros válidos (con torneo):", registrosConTorneo);
+        console.log("Registros sin torneo (posibles huérfanos):", registrosSinTorneo);
+
+        setActiveTournaments(registrosConTorneo);
+        setRegistrosSinTorneo(registrosSinTorneo);
       } catch (error) {
         console.error('Error fetching active tournaments:', error)
       }
@@ -439,29 +455,43 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Torneos */}
+            {/* Torneos Activos */}
             <div className="mt-6 sm:mt-8">
               <h2 className="text-lg sm:text-xl font-semibold text-[#E2FF1B] mb-3 sm:mb-4 flex items-center gap-2">
                 <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
                 Torneos Activos
               </h2>
-              {activeTournaments.length === 0 ? (
-                <div className="bg-gray-800/50 rounded-lg p-4 sm:p-6">
-                  <p className="text-center text-sm sm:text-base text-gray-400">
-                    No estás registrado en ningún torneo activo.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3 sm:space-y-4">
-                  {activeTournaments.map((registro) => (
-                    <div key={registro.id} className="bg-gray-800/50 rounded-lg p-4 sm:p-6 hover:bg-gray-800/70 transition-colors">
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0">
-                        <div className="space-y-2">
+              <div className="space-y-3 sm:space-y-4">
+                {activeTournaments.length === 0 && (
+                  <div className="bg-gray-800/50 rounded-lg p-4 sm:p-6">
+                    <p className="text-center text-sm sm:text-base text-gray-400">
+                      No estás registrado en ningún torneo.
+                    </p>
+                  </div>
+                )}
+                {activeTournaments.map((registro) => (
+                  <Link 
+                    href={`/torneos/${registro.torneo.id}`}
+                    key={registro.id} 
+                    className="block bg-gray-800/50 rounded-lg p-4 sm:p-6 hover:bg-gray-800/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#E2FF1B]/5"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
                           <h3 className="text-base sm:text-lg font-medium text-white">{registro.torneo.nombre}</h3>
+                          <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full ${
+                            registro.estado === 'pendiente' ? 'text-yellow-400 bg-yellow-400/10' :
+                            registro.estado === 'confirmado' ? 'text-green-400 bg-green-400/10' :
+                            'text-red-400 bg-red-400/10'
+                          }`}>
+                            {registro.estado.charAt(0).toUpperCase() + registro.estado.slice(1)}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
                           <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
                             <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                             <span>
-                              {format(new Date(registro.torneo.fecha_inicio), "d 'de' MMMM", { locale: es })} - 
+                              {format(new Date(registro.torneo.fecha_inicio), "d 'de' MMMM", { locale: es })} -&nbsp;
                               {format(new Date(registro.torneo.fecha_fin), "d 'de' MMMM", { locale: es })}
                             </span>
                           </div>
@@ -474,20 +504,30 @@ export default function ProfilePage() {
                             <span>Categoría: {registro.torneo.categoria}</span>
                           </div>
                         </div>
-                        <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full ${
-                          registro.estado === 'pendiente' ? 'text-yellow-400 bg-yellow-400/10' :
-                          registro.estado === 'confirmado' ? 'text-green-400 bg-green-400/10' :
-                          'text-red-400 bg-red-400/10'
-                        }`}>
-                          {registro.estado.charAt(0).toUpperCase() + registro.estado.slice(1)}
-                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[#E2FF1B] text-sm">
+                        Ver detalles
+                        <svg 
+                          className="w-4 h-4 transition-transform group-hover:translate-x-1" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M9 5l7 7-7 7" 
+                          />
+                        </svg>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </Link>
+                ))}
+              </div>
             </div>
 
+            {/* Torneos Pasados */}
             <div className="mt-6 sm:mt-8">
               <h2 className="text-lg sm:text-xl font-semibold text-[#E2FF1B] mb-3 sm:mb-4 flex items-center gap-2">
                 <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -499,6 +539,21 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
+
+            {registrosSinTorneo.length > 0 && (
+              <div className="mt-8 bg-red-900/30 border border-red-700 rounded-lg p-4">
+                <h3 className="text-red-400 font-bold mb-2">Registros sin torneo (debug):</h3>
+                <ul className="text-red-200 text-xs space-y-2">
+                  {registrosSinTorneo.map((registro) => (
+                    <li key={registro.id}>
+                      <span className="font-semibold">ID registro:</span> {registro.id} — 
+                      <span className="ml-2 font-semibold">Email:</span> {registro.email} — 
+                      <span className="ml-2 font-semibold">Torneo ID:</span> {registro.torneo_id}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 

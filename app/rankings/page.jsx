@@ -5,6 +5,13 @@ import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import { Spinner } from '@/components/ui/spinner'
 import { Trophy, Medal, Users, ArrowUp, ArrowDown, Filter } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 // Base de datos de ejemplo más extensa
 const mockRankings = [
@@ -101,11 +108,9 @@ export default function Rankings() {
 
   return (
     <div className="min-h-screen bg-black">
-      <Header />
-      
       <main className="container mx-auto px-4 pb-8 max-w-4xl">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Rankings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 pt-8">Rankings</h1>
           <p className="text-sm sm:text-base text-gray-400">Los mejores jugadores de 3gen Padel</p>
         </div>
 
@@ -126,29 +131,37 @@ export default function Rankings() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="flex-1">
                 <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1 sm:mb-2">Género</label>
-                <select
+                <Select
                   value={selectedGender}
-                  onChange={(e) => setSelectedGender(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#E2FF1B]"
+                  onValueChange={setSelectedGender}
                 >
-                  <option value="todos">Todos</option>
-                  <option value="hombre">Hombres</option>
-                  <option value="mujer">Mujeres</option>
-                  <option value="mixto">Mixto</option>
-                </select>
+                  <SelectTrigger className="w-full bg-gray-900/50 border-gray-800 text-white hover:bg-gray-800/50">
+                    <SelectValue placeholder="Seleccionar género" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-800">
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="hombre">Hombres</SelectItem>
+                    <SelectItem value="mujer">Mujeres</SelectItem>
+                    <SelectItem value="mixto">Mixto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex-1">
                 <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1 sm:mb-2">Nivel</label>
-                <select
+                <Select
                   value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#E2FF1B]"
+                  onValueChange={setSelectedLevel}
                 >
-                  <option value="todos">Todos</option>
-                  <option value="Avanzado">Avanzado</option>
-                  <option value="Intermedio">Intermedio</option>
-                  <option value="Principiante">Principiante</option>
-                </select>
+                  <SelectTrigger className="w-full bg-gray-900/50 border-gray-800 text-white hover:bg-gray-800/50">
+                    <SelectValue placeholder="Seleccionar nivel" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-800">
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="Avanzado">Avanzado</SelectItem>
+                    <SelectItem value="Intermedio">Intermedio</SelectItem>
+                    <SelectItem value="Principiante">Principiante</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

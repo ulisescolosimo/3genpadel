@@ -7,6 +7,7 @@ import FloatingRankingsButton from '@/components/FloatingRankingsButton'
 import { Toaster as SonnerToaster } from 'sonner'
 import { Toaster as HotToaster } from 'react-hot-toast'
 import Footer from '@/components/Footer'
+import { AuthProvider } from '@/components/AuthProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 const montserrat = Montserrat({ 
@@ -22,8 +23,8 @@ export const viewport = {
 }
 
 export const metadata = {
-  title: '3gen Padel Academy',
-  description: 'Plataforma de torneos de pádel',
+  title: '3gen Padel',
+  description: 'Tu club de pádel en Madrid',
   icons: {
     icon: [
       {
@@ -46,6 +47,11 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
+  // Verificar si estamos en una ruta de admin
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+
+  console.log('Admin route:', isAdminRoute)
+
   return (
     <html lang="es" className={montserrat.className}>
       <head>
@@ -54,17 +60,27 @@ export default function RootLayout({ children }) {
         <meta name="theme-color" content="#000000" />
       </head>
       <body className={montserrat.className}>
-        <ClientLayout>
-          <main>
-            {children}
-          </main>
+        <AuthProvider>
+          {isAdminRoute ? (
+            children
+          ) : (
+            <ClientLayout>
+              <main>
+                {children}
+              </main>
+            </ClientLayout>
+          )}
           <Footer />
-        </ClientLayout>
-        <Toaster />
-        <SonnerToaster richColors position="top-right" />
-        <HotToaster position="top-right" />
-        <LiveTournamentNotification />
-        <FloatingRankingsButton />
+          <Toaster />
+          <SonnerToaster richColors position="top-right" />
+          <HotToaster position="top-right" />
+          {!isAdminRoute && (
+            <>
+              <LiveTournamentNotification />
+              <FloatingRankingsButton />
+            </>
+          )}
+        </AuthProvider>
       </body>
     </html>
   )

@@ -1,13 +1,12 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { motion } from "framer-motion"
-import { handleAuthError } from "@/lib/supabase"
+import { handleAuthError, supabase } from "@/lib/supabase"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 
@@ -95,7 +94,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-black">
 
       {/* Hero Section */}
-      <section className="relative flex w-full min-h-[100vh] items-center justify-center overflow-hidden">
+      <section className="relative flex w-full min-h-[100vh] items-center justify-center overflow-hidden -mt-16">
         {/* Imagen de fondo */}
         <div className="absolute inset-0">
           <img
