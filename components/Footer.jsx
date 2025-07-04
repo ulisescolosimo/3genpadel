@@ -40,8 +40,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/nosotros" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
-                  Quiénes Somos
+                <Link href="/profesores-expertos" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
+                  Profesores Expertos
                 </Link>
               </li>
               <li>

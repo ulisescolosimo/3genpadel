@@ -158,11 +158,11 @@ export default function Header() {
                 Merchandising
               </Link>
               <Link 
-                href="/nosotros" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/nosotros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                href="/profesores-expertos" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/profesores-expertos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
               >
                 <Users className="w-4 h-4" />
-                Quiénes Somos
+                Profesores Expertos
               </Link>
               <Link 
                 href="/contacto" 
@@ -309,12 +309,12 @@ export default function Header() {
                 Merchandising
               </Link>
               <Link 
-                href="/nosotros" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/nosotros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                href="/profesores-expertos" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/profesores-expertos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                 onClick={closeMenu}
               >
                 <Users className="w-4 h-4" />
-                Quiénes Somos
+                Profesores Expertos
               </Link>
               <Link 
                 href="/contacto" 

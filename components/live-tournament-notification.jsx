@@ -109,7 +109,7 @@ export default function LiveTournamentNotification() {
                 onClick={() => window.open('https://www.worldpadeltour.com', '_blank')}
               >
                 <Trophy className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Ver En Vivo
+                Ver en vivo
                 <ExternalLink className="ml-1.5 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>

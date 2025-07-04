@@ -3,7 +3,7 @@ import { Inter, Montserrat } from 'next/font/google'
 import ClientLayout from '@/components/ClientLayout'
 import { Toaster } from '@/components/ui/toaster'
 import LiveTournamentNotification from '@/components/live-tournament-notification'
-import FloatingRankingsButton from '@/components/FloatingRankingsButton'
+import FloatingWhatsAppButton from '@/components/FloatingWhatsAppButton'
 import { Toaster as SonnerToaster } from 'sonner'
 import { Toaster as HotToaster } from 'react-hot-toast'
 import Footer from '@/components/Footer'
@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
           {!isAdminRoute && (
             <>
               <LiveTournamentNotification />
-              <FloatingRankingsButton />
+              <FloatingWhatsAppButton />
             </>
           )}
         </AuthProvider>
