@@ -30,7 +30,7 @@ export default function FloatingWhatsAppButton() {
       {/* Botón flotante */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-50 group hidden md:block"
+        className="fixed bottom-6 left-6 z-50 group block"
         aria-label="Contactar por WhatsApp"
       >
         <div className="relative">
