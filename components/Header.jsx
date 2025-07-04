@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -121,8 +121,8 @@ export default function Header() {
       <LiveMatchTicker />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          {/* Mobile Logo */}
+          <Link href="/" className="flex items-center gap-2 md:hidden">
             <img src="/images/logo/logo.png" alt="3gen Padel" className="h-8" />
             <span className="text-2xl font-bold text-white">
               <span className="text-[#E2FF1B]">3gen</span>
@@ -130,11 +130,18 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-between flex-1">
-            <div className="w-[200px]">
-              {/* Espacio reservado para el logo */}
+          <div className="hidden md:flex items-center justify-between gap-8 w-full">
+            {/* Logo Section */}
+            <div>
+              <Link href="/" className="flex items-center gap-2">
+                <img src="/images/logo/logo.png" alt="3gen Padel" className="h-8" />
+                <span className="text-2xl font-bold text-white">
+                  <span className="text-[#E2FF1B]">3gen</span>
+                </span>
+              </Link>
             </div>
             
+            {/* Navigation Section */}
             <div className="flex items-center gap-8">
               <Link 
                 href="/" 
@@ -144,11 +151,11 @@ export default function Header() {
                 Inicio
               </Link>
               <Link 
-                href="/torneos" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/torneos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                href="/academia" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
               >
-                <Trophy className="w-4 h-4" />
-                Torneos
+                <BookOpen className="w-4 h-4" />
+                Academia
               </Link>
               <Link 
                 href="/merchandising" 
@@ -182,8 +189,8 @@ export default function Header() {
               </a>
             </div>
 
-            <div className="w-[200px] flex justify-end">
-              {/* User Section */}
+            {/* User Section */}
+            <div>
               <div className="flex items-center gap-4">
                 {user ? (
                   <DropdownMenu>
@@ -285,12 +292,12 @@ export default function Header() {
                 Inicio
               </Link>
               <Link 
-                href="/torneos" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/torneos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                href="/academia" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                 onClick={closeMenu}
               >
-                <Trophy className="w-4 h-4" />
-                Torneos
+                <BookOpen className="w-4 h-4" />
+                Academia
               </Link>
               <Link 
                 href="/rankings" 

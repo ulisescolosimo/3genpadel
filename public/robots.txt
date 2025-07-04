@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://3genpadel.com.ar/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1 
