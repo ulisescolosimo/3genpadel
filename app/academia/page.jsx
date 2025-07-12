@@ -203,41 +203,58 @@ export default function AcademiaPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 {turnos.map((turno) => (
-                  <Card key={turno.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 flex flex-col h-full">
-                    <CardHeader>
-                      <CardTitle className="text-lg sm:text-xl font-bold text-[#E2FF1B] flex items-center gap-2">
-                        <Calendar className="w-4 h-4 md:w-5 md:h-5" />
+                  <Card key={turno.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full flex flex-col">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl md:text-2xl font-bold text-[#E2FF1B] flex items-center gap-3">
+                        <Calendar className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
                         {turno.horario}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col space-y-3 md:space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-white mb-2 text-sm md:text-base">Horarios:</h4>
-                        <ul className="space-y-1">
-                          {turno.horarios.map((horario, index) => (
-                            <li key={index} className="text-gray-300 flex items-center gap-2 text-sm md:text-base">
-                              <Clock className="w-3 h-3 md:w-4 md:h-4 text-[#E2FF1B]" />
-                              {horario}
-                            </li>
-                          ))}
-                        </ul>
+                    <CardContent className="flex-1 flex flex-col space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-3">
+                          <Clock className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white mb-1">Horarios:</h4>
+                            <div className="space-y-1">
+                              {turno.horarios.map((horario, index) => (
+                                <p key={index} className="text-gray-300 text-sm md:text-base">
+                                  {horario}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-white mb-2 text-sm md:text-base">Nivel:</h4>
-                        <p className="text-gray-300 text-sm md:text-base">{turno.nivel}</p>
+
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-3">
+                          <Target className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white mb-1">Nivel:</h4>
+                            <p className="text-gray-300 text-sm md:text-base">{turno.nivel}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-white mb-2 text-sm md:text-base">Cupo:</h4>
-                        <p className="text-gray-300 text-sm md:text-base">{turno.cupo}</p>
+
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-3">
+                          <Users className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white mb-1">Cupo:</h4>
+                            <p className="text-gray-300 text-sm md:text-base">{turno.cupo}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="mt-auto">
+
+                      <div className="mt-auto pt-2">
                         <Button
                           onClick={() => openWhatsApp(turno)}
-                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm md:text-base py-2 md:py-3 font-bold"
+                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm md:text-base py-3 font-bold transition-all duration-300 hover:scale-105"
                         >
-                          Inscribirse
+                          Inscribirse en este turno
                         </Button>
                       </div>
                     </CardContent>

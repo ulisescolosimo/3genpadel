@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
+import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { motion } from "framer-motion"
 import { handleAuthError, supabase } from "@/lib/supabase"
@@ -233,18 +233,23 @@ export default function Home() {
                   <Trophy className="h-6 w-6 text-[#E2FF1B]" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">
-                  Torneos Exclusivos
+                  Ligas
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participa en torneos organizados por 3gen Padel Academy con
+                Participa en ligas organizadas por 3gen Padel Academy con
                 diferentes niveles de dificultad.
               </p>
             </div>
-            <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
+            <a 
+              href="https://wa.me/5491167617557?text=Hola! Me interesa reservar en 3gen Padel Academy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20 cursor-pointer block"
+            >
               <div className="flex items-center space-x-4 mb-4">
                 <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
-                  <Calendar className="h-6 w-6 text-[#E2FF1B]" />
+                  <MessageCircle className="h-6 w-6 text-[#E2FF1B]" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">
                   Reserva Fácil
@@ -254,7 +259,7 @@ export default function Home() {
                 Proceso de inscripción sencillo y rápido para todos los torneos
                 disponibles.
               </p>
-            </div>
+            </a>
             <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">

@@ -30,11 +30,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/torneos" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
-                  Torneos
-                </Link>
-              </li>
-              <li>
                 <Link href="/merchandising" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
                   Merchandising
                 </Link>
@@ -68,15 +63,56 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center space-x-2">
                 <MapPin className="h-5 w-5 text-[#E2FF1B]" />
-                <span className="text-gray-400">Delgado 864, Colegiales, CABA</span>
+                <a 
+                  href="https://g.co/kgs/FFU53qm" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                >
+                  Delgado 864, Colegiales, CABA
+                </a>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="h-5 w-5 text-[#E2FF1B]" />
-                <span className="text-gray-400">+54 11 4781-1234</span>
+                <a 
+                  href="https://wa.me/5491135921988" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                >
+                  +54 9 11 3592-1988
+                </a>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Phone className="h-5 w-5 text-[#E2FF1B]" />
+                <a 
+                  href="https://wa.me/5491149285316" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                >
+                  +54 9 11 4928-5316
+                </a>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Phone className="h-5 w-5 text-[#E2FF1B]" />
+                <a 
+                  href="https://wa.me/5491132673029" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                >
+                  +54 9 11 3267-3029
+                </a>
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="h-5 w-5 text-[#E2FF1B]" />
-                <span className="text-gray-400">info@lanormanda.com</span>
+                <a 
+                  href="mailto:info@lanormanda.com" 
+                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                >
+                  info@lanormanda.com
+                </a>
               </li>
             </ul>
           </div>
@@ -86,19 +122,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4">Síguenos</h3>
             <div className="flex space-x-4">
               <Link
-                href="#"
-                className="p-2 bg-gray-800 rounded-full text-gray-400 hover:text-[#E2FF1B] hover:bg-gray-700 transition-colors"
-              >
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link
-                href="#"
-                className="p-2 bg-gray-800 rounded-full text-gray-400 hover:text-[#E2FF1B] hover:bg-gray-700 transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link
-                href="#"
+                href="https://www.instagram.com/3genpadel/" target="_blank" rel="noopener noreferrer"
                 className="p-2 bg-gray-800 rounded-full text-gray-400 hover:text-[#E2FF1B] hover:bg-gray-700 transition-colors"
               >
                 <Instagram className="h-5 w-5" />

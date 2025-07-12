@@ -138,21 +138,58 @@ export default function Contacto() {
                   <MapPin className="w-5 h-5 text-[#E2FF1B] mt-1" />
                   <div>
                     <p className="text-white font-medium">Dirección</p>
-                    <p className="text-gray-400">Delgado 864, Colegiales, CABA</p>
+                    <a 
+                      href="https://g.co/kgs/FFU53qm" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                    >
+                      Delgado 864, Colegiales, CABA
+                    </a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Phone className="w-5 h-5 text-[#E2FF1B] mt-1" />
                   <div>
                     <p className="text-white font-medium">Teléfono</p>
-                    <p className="text-gray-400">+54 11 4781-1234</p>
+                    <div className="space-y-1">
+                      <a 
+                        href="https://wa.me/5491135921988" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                      >
+                        +54 9 11 3592-1988
+                      </a>
+                      <a 
+                        href="https://wa.me/5491149285316" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                      >
+                        +54 9 11 4928-5316
+                      </a>
+                      <a 
+                        href="https://wa.me/5491132673029" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                      >
+                        +54 9 11 3267-3029
+                      </a>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Mail className="w-5 h-5 text-[#E2FF1B] mt-1" />
                   <div>
                     <p className="text-white font-medium">Email</p>
-                    <p className="text-gray-400">info@lanormanda.com</p>
+                    <a 
+                      href="mailto:info@lanormanda.com" 
+                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                    >
+                      info@lanormanda.com
+                    </a>
                   </div>
                 </div>
               </div>
