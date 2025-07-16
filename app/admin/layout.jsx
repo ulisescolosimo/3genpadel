@@ -5,14 +5,13 @@ import { useRouter, usePathname } from 'next/navigation'
 import { AuthProvider } from '@/components/AuthProvider'
 import { useAuth } from '@/components/AuthProvider'
 import { Spinner } from '@/components/ui/spinner'
-import AdminSidebar from '@/components/AdminSidebar'
+import AdminHeader from '@/components/AdminHeader'
 
 // Layout EXCLUSIVO para el panel de admin
 export default function AdminLayout({ children }) {
   const { user, loading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
-  const [isCollapsed, setIsCollapsed] = useState(false)
 
   useEffect(() => {
     console.log('Usuario actual:', user)
@@ -37,7 +36,7 @@ export default function AdminLayout({ children }) {
     return null
   }
 
-  // Si estamos en la página de login, no mostramos el sidebar
+  // Si estamos en la página de login, no mostramos el header
   if (pathname === '/admin/login') {
     return (
       <div className="min-h-screen bg-black">
@@ -50,8 +49,8 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-black">
-      <AdminSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <main className={`${isCollapsed ? 'ml-16' : 'ml-64'} p-8 transition-all duration-200`}>
+      <AdminHeader />
+      <main className="pt-16">
         {children}
       </main>
     </div>

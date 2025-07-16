@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -16,9 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { handleAuthError } from "@/lib/supabase"
 
 export default function Header() {
   const [user, setUser] = useState(null)
@@ -150,6 +148,51 @@ export default function Header() {
                 <Home className="w-4 h-4" />
                 Inicio
               </Link>
+              {/* <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Inscripciones
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="center" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none text-white">
+                        Inscripciones
+                      </p>
+                      <p className="text-xs leading-none text-gray-400">
+                        Ligas y entrenamientos
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push("/inscripciones")}>
+                    <Trophy className="mr-2 h-4 w-4" />
+                    <span>Ver Todas las Opciones</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/inscripciones/ligas")}>
+                    <Trophy className="mr-2 h-4 w-4" />
+                    <span>Ligas</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs text-gray-400">
+                    Entrenamientos
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => router.push("/inscripciones/entrenamientos")}>
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Clases Grupales - Deportes Racionales</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/inscripciones/entrenamientos")}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    <span>Academia - La Normanda</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu> */}
               <Link 
                 href="/academia" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
@@ -291,6 +334,32 @@ export default function Header() {
                 <Home className="w-4 h-4" />
                 Inicio
               </Link>
+              {/* <Link 
+                href="/inscripciones" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                onClick={closeMenu}
+              >
+                <Trophy className="w-4 h-4" />
+                Inscripciones
+              </Link> */}
+              {/* <div className="pl-4 space-y-2">
+                <Link 
+                  href="/inscripciones/ligas" 
+                  className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-[#E2FF1B] transition-colors"
+                  onClick={closeMenu}
+                >
+                  <Trophy className="w-3 h-3" />
+                  Ligas
+                </Link>
+                <Link 
+                  href="/inscripciones/entrenamientos" 
+                  className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-[#E2FF1B] transition-colors"
+                  onClick={closeMenu}
+                >
+                  <Users className="w-3 h-3" />
+                  Entrenamientos
+                </Link>
+              </div> */}
               <Link 
                 href="/academia" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}

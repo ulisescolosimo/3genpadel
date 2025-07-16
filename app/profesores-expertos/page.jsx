@@ -385,46 +385,40 @@ export default function Nosotros() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-2xl backdrop-blur-sm group">
-              <CardHeader className="text-center">
+            <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-2xl backdrop-blur-sm group hover:scale-105">
+              <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-[#E2FF1B]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   <Trophy className="w-8 h-8 text-[#E2FF1B]" />
                 </div>
-                <CardTitle className="text-xl font-bold text-white">Excelencia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center">
-                  Buscamos la excelencia en todo lo que hacemos, desde la organización de torneos hasta la atención al usuario.
+                <CardTitle className="text-xl font-bold text-white mb-3">Excelencia</CardTitle>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Buscamos la excelencia en todo lo que hacemos, desde la enseñanza hasta la atención al usuario.
                 </p>
-              </CardContent>
+              </CardHeader>
             </Card>
 
-            <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-2xl backdrop-blur-sm group">
-              <CardHeader className="text-center">
+            <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-2xl backdrop-blur-sm group hover:scale-105">
+              <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-[#E2FF1B]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   <Users className="w-8 h-8 text-[#E2FF1B]" />
                 </div>
-                <CardTitle className="text-xl font-bold text-white">Comunidad</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center">
+                <CardTitle className="text-xl font-bold text-white mb-3">Comunidad</CardTitle>
+                <p className="text-gray-400 text-sm leading-relaxed">
                   Fomentamos un ambiente de comunidad y camaradería entre todos los amantes del pádel.
                 </p>
-              </CardContent>
+              </CardHeader>
             </Card>
 
-            <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-2xl backdrop-blur-sm group">
-              <CardHeader className="text-center">
+            <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-[#E2FF1B]/20 hover:border-[#E2FF1B]/40 transition-all duration-300 rounded-2xl backdrop-blur-sm group hover:scale-105">
+              <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-[#E2FF1B]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   <Zap className="w-8 h-8 text-[#E2FF1B]" />
                 </div>
-                <CardTitle className="text-xl font-bold text-white">Innovación</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center">
+                <CardTitle className="text-xl font-bold text-white mb-3">Innovación</CardTitle>
+                <p className="text-gray-400 text-sm leading-relaxed">
                   Estamos constantemente innovando para mejorar la experiencia de nuestros usuarios.
                 </p>
-              </CardContent>
+              </CardHeader>
             </Card>
           </div>
         </div>

@@ -4,16 +4,11 @@ import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react"
-import { Spinner } from "@/components/ui/spinner"
 import { motion } from "framer-motion"
-import { handleAuthError, supabase } from "@/lib/supabase"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 
 export default function Home() {
-  const [torneos, setTorneos] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true,
     align: 'start',
@@ -28,67 +23,6 @@ export default function Home() {
   const scrollNext = useCallback(() => {
     if (emblaApi) emblaApi.scrollNext()
   }, [emblaApi])
-
-  useEffect(() => {
-    let mounted = true
-
-    const fetchTorneos = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('torneo')
-          .select('*')
-          .eq('estado', 'abierto')
-          .order('fecha_inicio', { ascending: true })
-          .limit(3)
-
-        if (error) {
-          throw handleAuthError(error)
-        }
-
-        if (mounted) {
-          setTorneos(data || [])
-        }
-      } catch (error) {
-        console.error('Error fetching torneos:', error)
-        if (mounted) {
-          setError(error.message)
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    fetchTorneos()
-
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[70vh]">
-        <Spinner />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-        <h2 className="text-2xl font-bold text-white mb-4">Error al cargar los torneos</h2>
-        <p className="text-gray-400 mb-6">{error}</p>
-        <Button 
-          onClick={() => window.location.reload()}
-          className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
-        >
-          Intentar nuevamente
-        </Button>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -134,14 +68,14 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <Link href="/torneos">
+              <Link href="/academia">
                 <Button
                   size="lg"
                   className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Ver torneos
+                    Conoce nuestra academia
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -201,7 +135,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center space-y-2">
               <div className="text-3xl font-bold text-[#E2FF1B]">50+</div>
-              <div className="text-sm text-gray-400">Torneos Organizados</div>
+              <div className="text-sm text-gray-400">Clases Organizadas</div>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <div className="text-3xl font-bold text-[#E2FF1B]">1000+</div>
@@ -233,11 +167,11 @@ export default function Home() {
                   <Trophy className="h-6 w-6 text-[#E2FF1B]" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">
-                  Ligas
+                  Clases
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participa en ligas organizadas por 3gen Padel Academy con
+                Participa en clases organizadas por 3gen Padel Academy con
                 diferentes niveles de dificultad.
               </p>
             </div>
@@ -256,7 +190,7 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Proceso de inscripción sencillo y rápido para todos los torneos
+                Proceso de inscripción sencillo y rápido para todas las clases
                 disponibles.
               </p>
             </a>
@@ -298,7 +232,7 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participa en torneos con premios y obtén reconocimientos por tu
+                Participa en clases con premios y obtén reconocimientos por tu
                 desempeño.
               </p>
             </div>
@@ -560,11 +494,11 @@ export default function Home() {
             >
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-[#E2FF1B] to-white animate-gradient-x">
-                  ¿Listo para competir?
+                  ¿Listo para aprender?
                 </span>
               </h2>
               <p className="max-w-[600px] text-gray-200 md:text-xl mx-auto">
-                Regístrate ahora y comienza a participar en los torneos de
+                Regístrate ahora y comienza a mejorar tu juego en
                 3gen Padel Academy.
               </p>
             </motion.div>
@@ -575,14 +509,14 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <Link href="/torneos">
+              <Link href="/academia">
                 <Button
                   size="lg"
                   className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Ver torneos
+                    Conoce nuestra academia
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

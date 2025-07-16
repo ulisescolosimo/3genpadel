@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
-  Trophy, 
   Users, 
   Calendar, 
   MapPin,
@@ -14,37 +13,20 @@ import { Card } from '@/components/ui/card'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
-    totalTorneos: 0,
-    torneosActivos: 0,
     totalInscripciones: 0,
     inscripcionesPendientes: 0
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [proximosTorneos, setProximosTorneos] = useState([])
   const [inscripcionesRecientes, setInscripcionesRecientes] = useState([])
 
   useEffect(() => {
     fetchStats()
-    fetchProximosTorneos()
     fetchInscripcionesRecientes()
   }, [])
 
   const fetchStats = async () => {
     try {
-      // Obtener total de torneos
-      const { count: totalTorneos, error: torneosError } = await supabase
-        .from('torneos')
-        .select('*', { count: 'exact', head: true })
-      if (torneosError) throw torneosError
-
-      // Obtener torneos activos
-      const { count: torneosActivos, error: activosError } = await supabase
-        .from('torneos')
-        .select('*', { count: 'exact', head: true })
-        .in('estado', ['abierto', 'en_curso'])
-      if (activosError) throw activosError
-
       // Obtener total de inscripciones
       const { count: totalInscripciones, error: inscripcionesError } = await supabase
         .from('registros_torneo')
@@ -59,8 +41,6 @@ export default function AdminDashboard() {
       if (pendientesError) throw pendientesError
 
       setStats({
-        totalTorneos,
-        torneosActivos,
         totalInscripciones,
         inscripcionesPendientes
       })
@@ -72,44 +52,12 @@ export default function AdminDashboard() {
     }
   }
 
-  const fetchProximosTorneos = async () => {
-    try {
-      // Traer próximos torneos (abiertos o en curso, ordenados por fecha de inicio)
-      const { data: torneos, error } = await supabase
-        .from('torneos')
-        .select('id, nombre, fecha_inicio, fecha_fin, ubicacion, categoria, estado')
-        .in('estado', ['abierto', 'en_curso'])
-        .order('fecha_inicio', { ascending: true })
-        .limit(5)
-      if (error) throw error
-
-      // Para cada torneo, traer la cantidad de inscriptos
-      const torneosConInscriptos = await Promise.all(
-        (torneos || []).map(async (torneo) => {
-          const { count, error: inscError } = await supabase
-            .from('registros_torneo')
-            .select('*', { count: 'exact', head: true })
-            .eq('torneo_id', torneo.id)
-            .neq('estado', 'cancelado')
-          return {
-            ...torneo,
-            inscriptos: count || 0
-          }
-        })
-      )
-      setProximosTorneos(torneosConInscriptos)
-    } catch (err) {
-      console.error('Error fetching próximos torneos:', err)
-      setProximosTorneos([])
-    }
-  }
-
   const fetchInscripcionesRecientes = async () => {
     try {
       // Traer las últimas 5 inscripciones
       const { data, error } = await supabase
         .from('registros_torneo')
-        .select('id, nombre, apellido, email, torneo_id, fecha_registro, torneo:torneo_id (nombre)')
+        .select('id, nombre, apellido, email, fecha_registro')
         .order('fecha_registro', { ascending: false })
         .limit(5)
       if (error) throw error
@@ -141,18 +89,6 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: 'Total Torneos',
-      value: stats.totalTorneos,
-      icon: Trophy,
-      color: 'text-blue-500'
-    },
-    {
-      title: 'Torneos Activos',
-      value: stats.torneosActivos,
-      icon: Calendar,
-      color: 'text-green-500'
-    },
-    {
       title: 'Total Inscripciones',
       value: stats.totalInscripciones,
       icon: Users,
@@ -170,10 +106,10 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 mt-1">Resumen general de torneos e inscripciones</p>
+        <p className="text-gray-400 mt-1">Resumen general de inscripciones</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {statCards.map((stat) => (
           <Card key={stat.title} className="bg-gray-900/50 border-gray-800">
             <div className="p-6">
@@ -194,29 +130,21 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-gray-900/50 border-gray-800">
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Próximos Torneos</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">Inscripciones Recientes</h2>
             <div className="space-y-4">
-              {proximosTorneos.length === 0 ? (
-                <p className="text-gray-400 text-sm">No hay torneos próximos</p>
+              {inscripcionesRecientes.length === 0 ? (
+                <p className="text-gray-400 text-sm">No hay inscripciones recientes</p>
               ) : (
-                proximosTorneos.map((torneo) => (
-                  <div key={torneo.id} className="bg-gray-800/50 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                inscripcionesRecientes.map((inscripcion) => (
+                  <div key={inscripcion.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
                     <div>
-                      <p className="text-white font-semibold text-base">{torneo.nombre}</p>
-                      <p className="text-gray-400 text-sm">{torneo.categoria} | {torneo.ubicacion}</p>
-                      <p className="text-gray-400 text-xs">{new Date(torneo.fecha_inicio).toLocaleDateString()} - {new Date(torneo.fecha_fin).toLocaleDateString()}</p>
-                      <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        torneo.estado === 'abierto' ? 'bg-green-700/30 text-green-400' :
-                        torneo.estado === 'en_curso' ? 'bg-blue-700/30 text-blue-400' :
-                        torneo.estado === 'finalizado' ? 'bg-gray-700/30 text-gray-400' :
-                        'bg-red-700/30 text-red-400'
-                      }`}>
-                        {torneo.estado.charAt(0).toUpperCase() + torneo.estado.slice(1)}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[#E2FF1B] font-bold text-lg">{torneo.inscriptos}</span>
-                      <span className="text-xs text-gray-400">inscriptos</span>
+                      <p className="text-white font-medium">
+                        {inscripcion.nombre} {inscripcion.apellido}
+                      </p>
+                      <p className="text-gray-400 text-sm">{inscripcion.email}</p>
+                      <p className="text-gray-500 text-xs">
+                        {new Date(inscripcion.fecha_registro).toLocaleDateString('es-ES')}
+                      </p>
                     </div>
                   </div>
                 ))
@@ -227,24 +155,26 @@ export default function AdminDashboard() {
 
         <Card className="bg-gray-900/50 border-gray-800">
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Inscripciones Recientes</h2>
-            <div className="space-y-4">
-              {inscripcionesRecientes.length === 0 ? (
-                <p className="text-gray-400 text-sm">No hay inscripciones recientes</p>
-              ) : (
-                inscripcionesRecientes.map((insc) => (
-                  <div key={insc.id} className="bg-gray-800/50 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div>
-                      <p className="text-white font-semibold text-base">{insc.nombre} {insc.apellido}</p>
-                      <p className="text-gray-400 text-sm">{insc.email}</p>
-                      <p className="text-gray-400 text-xs">Torneo: {insc.torneo?.nombre || insc.torneo_id}</p>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-xs text-gray-400">{new Date(insc.fecha_registro).toLocaleString()}</span>
-                    </div>
+            <h2 className="text-lg font-semibold text-white mb-4">Acciones Rápidas</h2>
+            <div className="space-y-3">
+              <button className="w-full text-left p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-[#E2FF1B]" />
+                  <div>
+                    <p className="text-white font-medium">Ver todas las inscripciones</p>
+                    <p className="text-gray-400 text-sm">Gestionar inscripciones</p>
                   </div>
-                ))
-              )}
+                </div>
+              </button>
+              <button className="w-full text-left p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-[#E2FF1B]" />
+                  <div>
+                    <p className="text-white font-medium">Configuración</p>
+                    <p className="text-gray-400 text-sm">Ajustes del sistema</p>
+                  </div>
+                </div>
+              </button>
             </div>
           </div>
         </Card>

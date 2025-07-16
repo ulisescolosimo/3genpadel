@@ -16,7 +16,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-gray-400">
-              La mejor plataforma para torneos de pádel. Únete a nuestra comunidad y comienza a competir.
+              La mejor academia de pádel. Únete a nuestra comunidad y mejora tu juego con los mejores profesores.
             </p>
           </div>
 
