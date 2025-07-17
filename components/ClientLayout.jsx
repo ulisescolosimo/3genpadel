@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import LiveTournamentNotification from '@/components/live-tournament-notification'
+import FloatingWhatsAppButton from '@/components/FloatingWhatsAppButton'
 import { handleAuthError } from '@/lib/supabase'
 
 export default function ClientLayout({ children }) {
@@ -72,6 +75,15 @@ export default function ClientLayout({ children }) {
     <div className="min-h-screen bg-black">
       {!isAdminRoute && <Header />}
       <main className={`flex-1 ${!isAdminRoute && !isHomePage ? 'pt-28' : ''}`}>{children}</main>
+      
+      {/* Solo mostrar estos componentes si NO estamos en una ruta de admin */}
+      {!isAdminRoute && (
+        <>
+          <Footer />
+          <LiveTournamentNotification />
+          <FloatingWhatsAppButton />
+        </>
+      )}
     </div>
   )
 } 

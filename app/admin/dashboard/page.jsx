@@ -7,81 +7,174 @@ import {
   Calendar, 
   MapPin,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Trophy,
+  CheckCircle,
+  Clock,
+  XCircle,
+  ArrowRight,
+  RefreshCw,
+  BarChart3,
+  Activity,
+  Zap
 } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 
 export default function AdminDashboard() {
+  const { toast } = useToast()
   const [stats, setStats] = useState({
     totalInscripciones: 0,
-    inscripcionesPendientes: 0
+    inscripcionesPendientes: 0,
+    inscripcionesAprobadas: 0,
+    inscripcionesRechazadas: 0
   })
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState(null)
   const [inscripcionesRecientes, setInscripcionesRecientes] = useState([])
 
   useEffect(() => {
-    fetchStats()
-    fetchInscripcionesRecientes()
+    fetchAllData()
   }, [])
+
+  const fetchAllData = async () => {
+    try {
+      setRefreshing(true)
+      await Promise.all([
+        fetchStats(),
+        fetchInscripcionesRecientes()
+      ])
+    } catch (err) {
+      console.error('Error fetching data:', err)
+      setError('Error al cargar los datos')
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
 
   const fetchStats = async () => {
     try {
       // Obtener total de inscripciones
       const { count: totalInscripciones, error: inscripcionesError } = await supabase
-        .from('registros_torneo')
+        .from('ligainscripciones')
         .select('*', { count: 'exact', head: true })
       if (inscripcionesError) throw inscripcionesError
 
-      // Obtener inscripciones pendientes
+      // Obtener inscripciones por estado
       const { count: inscripcionesPendientes, error: pendientesError } = await supabase
-        .from('registros_torneo')
+        .from('ligainscripciones')
         .select('*', { count: 'exact', head: true })
         .eq('estado', 'pendiente')
       if (pendientesError) throw pendientesError
 
+      const { count: inscripcionesAprobadas, error: aprobadasError } = await supabase
+        .from('ligainscripciones')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'aprobada')
+      if (aprobadasError) throw aprobadasError
+
+      const { count: inscripcionesRechazadas, error: rechazadasError } = await supabase
+        .from('ligainscripciones')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'rechazada')
+      if (rechazadasError) throw rechazadasError
+
       setStats({
-        totalInscripciones,
-        inscripcionesPendientes
+        totalInscripciones: totalInscripciones || 0,
+        inscripcionesPendientes: inscripcionesPendientes || 0,
+        inscripcionesAprobadas: inscripcionesAprobadas || 0,
+        inscripcionesRechazadas: inscripcionesRechazadas || 0
       })
-      setLoading(false)
     } catch (err) {
       console.error('Error fetching stats:', err)
-      setError('Error al cargar las estadísticas')
-      setLoading(false)
+      throw err
     }
   }
 
   const fetchInscripcionesRecientes = async () => {
     try {
-      // Traer las últimas 5 inscripciones
+      // Traer las últimas 5 inscripciones con información de categoría y liga
       const { data, error } = await supabase
-        .from('registros_torneo')
-        .select('id, nombre, apellido, email, fecha_registro')
-        .order('fecha_registro', { ascending: false })
+        .from('ligainscripciones')
+        .select(`
+          *,
+          liga_categorias (
+            categoria,
+            ligas (
+              nombre
+            )
+          )
+        `)
+        .order('created_at', { ascending: false })
         .limit(5)
       if (error) throw error
-      setInscripcionesRecientes(data || [])
+      
+      const inscripcionesProcesadas = data?.map(inscripcion => ({
+        ...inscripcion,
+        categoria: inscripcion.liga_categorias?.categoria || 'N/A',
+        liga: inscripcion.liga_categorias?.ligas?.nombre || 'N/A'
+      })) || []
+      
+      setInscripcionesRecientes(inscripcionesProcesadas)
     } catch (err) {
       console.error('Error fetching inscripciones recientes:', err)
       setInscripcionesRecientes([])
     }
   }
 
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case 'aprobada': return 'bg-green-500/20 border-green-500/30 text-green-400'
+      case 'rechazada': return 'bg-red-500/20 border-red-500/30 text-red-400'
+      case 'pendiente': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400'
+      default: return 'bg-gray-500/20 border-gray-500/30 text-gray-400'
+    }
+  }
+
+  const getEstadoIcon = (estado) => {
+    switch (estado) {
+      case 'aprobada': return <CheckCircle className="w-4 h-4" />
+      case 'rechazada': return <XCircle className="w-4 h-4" />
+      case 'pendiente': return <Clock className="w-4 h-4" />
+      default: return <Clock className="w-4 h-4" />
+    }
+  }
+
+  const getEstadoText = (estado) => {
+    switch (estado) {
+      case 'aprobada': return 'Aprobada'
+      case 'rechazada': return 'Rechazada'
+      case 'pendiente': return 'Pendiente'
+      default: return estado
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E2FF1B] border-t-transparent" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pt-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-2 border-[#E2FF1B] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-red-500 flex items-center gap-2">
-          <AlertCircle className="w-5 h-5" />
-          {error}
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pt-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-red-400 flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+              <AlertCircle className="w-5 h-5" />
+              {error}
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -91,93 +184,224 @@ export default function AdminDashboard() {
     {
       title: 'Total Inscripciones',
       value: stats.totalInscripciones,
-      icon: Users,
-      color: 'text-purple-500'
+      icon: Trophy,
+      color: 'text-[#E2FF1B]',
+      bgColor: 'bg-[#E2FF1B]/10',
+      borderColor: 'border-[#E2FF1B]/30',
+      description: 'Todas las inscripciones'
     },
     {
-      title: 'Inscripciones Pendientes',
+      title: 'Pendientes',
       value: stats.inscripcionesPendientes,
-      icon: TrendingUp,
-      color: 'text-yellow-500'
+      icon: Clock,
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-500/10',
+      borderColor: 'border-yellow-500/30',
+      description: 'Requieren revisión'
+    },
+    {
+      title: 'Aprobadas',
+      value: stats.inscripcionesAprobadas,
+      icon: CheckCircle,
+      color: 'text-green-400',
+      bgColor: 'bg-green-500/10',
+      borderColor: 'border-green-500/30',
+      description: 'Confirmadas'
+    },
+    {
+      title: 'Rechazadas',
+      value: stats.inscripcionesRechazadas,
+      icon: XCircle,
+      color: 'text-red-400',
+      bgColor: 'bg-red-500/10',
+      borderColor: 'border-red-500/30',
+      description: 'No aprobadas'
     }
   ]
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 mt-1">Resumen general de inscripciones</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {statCards.map((stat) => (
-          <Card key={stat.title} className="bg-gray-900/50 border-gray-800">
-            <div className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">{stat.title}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-lg bg-gray-800/50 ${stat.color}`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="pt-8 pb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Dashboard Admin</h1>
+              <p className="text-gray-400">Panel de control y gestión de inscripciones</p>
             </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-gray-900/50 border-gray-800">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Inscripciones Recientes</h2>
-            <div className="space-y-4">
-              {inscripcionesRecientes.length === 0 ? (
-                <p className="text-gray-400 text-sm">No hay inscripciones recientes</p>
+            <Button
+              onClick={fetchAllData}
+              disabled={refreshing}
+              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+            >
+              {refreshing ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                inscripcionesRecientes.map((inscripcion) => (
-                  <div key={inscripcion.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
-                    <div>
-                      <p className="text-white font-medium">
-                        {inscripcion.nombre} {inscripcion.apellido}
-                      </p>
-                      <p className="text-gray-400 text-sm">{inscripcion.email}</p>
-                      <p className="text-gray-500 text-xs">
-                        {new Date(inscripcion.fecha_registro).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
-                  </div>
-                ))
+                <RefreshCw className="w-4 h-4 mr-2" />
               )}
-            </div>
+              Actualizar
+            </Button>
           </div>
-        </Card>
 
-        <Card className="bg-gray-900/50 border-gray-800">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Acciones Rápidas</h2>
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-[#E2FF1B]" />
-                  <div>
-                    <p className="text-white font-medium">Ver todas las inscripciones</p>
-                    <p className="text-gray-400 text-sm">Gestionar inscripciones</p>
+          {/* Estadísticas principales */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {statCards.map((stat) => (
+              <Card key={stat.title} className={`bg-white/5 border-white/10 hover:${stat.borderColor} transition-all duration-300 group`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                    </div>
+                    <Badge variant="outline" className={`${stat.borderColor} ${stat.color} text-xs`}>
+                      {stat.description}
+                    </Badge>
                   </div>
-                </div>
-              </button>
-              <button className="w-full text-left p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-[#E2FF1B]" />
                   <div>
-                    <p className="text-white font-medium">Configuración</p>
-                    <p className="text-gray-400 text-sm">Ajustes del sistema</p>
+                    <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
+                    <p className="text-sm text-gray-400">{stat.title}</p>
                   </div>
-                </div>
-              </button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Contenido principal */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Inscripciones Recientes */}
+            <div className="lg:col-span-2">
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-[#E2FF1B]" />
+                      <CardTitle className="text-white">Inscripciones Recientes</CardTitle>
+                    </div>
+                    <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B]">
+                      {inscripcionesRecientes.length} recientes
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {inscripcionesRecientes.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Users className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white mb-2">No hay inscripciones recientes</h3>
+                        <p className="text-gray-400">Las nuevas inscripciones aparecerán aquí</p>
+                      </div>
+                    ) : (
+                      inscripcionesRecientes.map((inscripcion) => (
+                        <div key={inscripcion.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200">
+                          <div className="flex items-center gap-4">
+                            <div className="flex-shrink-0">
+                              <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
+                                <div className="flex items-center gap-1">
+                                  {getEstadoIcon(inscripcion.estado)}
+                                  <span className="text-xs font-medium">{getEstadoText(inscripcion.estado)}</span>
+                                </div>
+                              </Badge>
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">
+                                {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido}
+                              </p>
+                              <p className="text-gray-400 text-sm">
+                                {inscripcion.categoria} • {inscripcion.liga}
+                              </p>
+                              <p className="text-gray-500 text-xs flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(inscripcion.created_at).toLocaleDateString('es-AR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Acciones Rápidas */}
+            <div>
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-[#E2FF1B]" />
+                    <CardTitle className="text-white">Acciones Rápidas</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                                         <Button 
+                       variant="outline" 
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                       onClick={() => window.location.href = '/admin/inscripciones-ligas'}
+                     >
+                       <Users className="w-4 h-4 mr-3" />
+                       <div className="text-left">
+                         <p className="font-medium">Gestionar Inscripciones</p>
+                         <p className="text-xs text-gray-400">Ver y administrar todas</p>
+                       </div>
+                     </Button>
+                     
+                     <Button 
+                       variant="outline" 
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                       onClick={() => window.location.href = '/admin/ligas'}
+                     >
+                       <Trophy className="w-4 h-4 mr-3" />
+                       <div className="text-left">
+                         <p className="font-medium">Gestionar Ligas</p>
+                         <p className="text-xs text-gray-400">Crear y administrar ligas</p>
+                       </div>
+                     </Button>
+                     
+                     <Button 
+                       variant="outline" 
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                     >
+                       <BarChart3 className="w-4 h-4 mr-3" />
+                       <div className="text-left">
+                         <p className="font-medium">Estadísticas</p>
+                         <p className="text-xs text-gray-400">Análisis detallado</p>
+                       </div>
+                     </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Información adicional */}
+              <Card className="bg-white/5 border-white/10 mt-6">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <Trophy className="w-6 h-6 text-[#E2FF1B]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Sistema Activo</h3>
+                    <p className="text-gray-400 text-sm mb-4">
+                      El sistema está funcionando correctamente y procesando inscripciones
+                    </p>
+                    <Badge variant="outline" className="border-green-500/30 text-green-400">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        Operativo
+                      </div>
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   )

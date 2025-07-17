@@ -46,7 +46,7 @@ export default function AdminHeader() {
           </Link>
 
           {/* Navegación desktop */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-2">
             {menuItems.map((item) => {
               const isActive = pathname === item.href
               const Icon = item.icon

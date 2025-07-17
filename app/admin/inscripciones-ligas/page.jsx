@@ -15,9 +15,13 @@ export default function AdminInscripcionesLigasPage() {
   const [inscripciones, setInscripciones] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterCategoria, setFilterCategoria] = useState('all')
+  const [filterLiga, setFilterLiga] = useState('all')
   const [filterEstado, setFilterEstado] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [categoriasDisponibles, setCategoriasDisponibles] = useState([])
+  const [ligasDisponibles, setLigasDisponibles] = useState([])
+  const [cuposInfo, setCuposInfo] = useState({})
 
   useEffect(() => {
     fetchInscripciones()
@@ -28,12 +32,73 @@ export default function AdminInscripcionesLigasPage() {
       setRefreshing(true)
       const { data, error } = await supabase
         .from('ligainscripciones')
-        .select('*')
+        .select(`
+          *,
+          liga_categorias (
+            id,
+            categoria,
+            max_inscripciones,
+            ligas (
+              id,
+              nombre,
+              fecha_inicio
+            )
+          )
+        `)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      setInscripciones(data || [])
+      // Procesar los datos para incluir información de categoría y liga
+      const inscripcionesProcesadas = data.map(inscripcion => ({
+        ...inscripcion,
+        categoria: inscripcion.liga_categorias?.categoria || 'N/A',
+        liga: inscripcion.liga_categorias?.ligas?.nombre || 'N/A',
+        liga_id: inscripcion.liga_categorias?.ligas?.id || null,
+        fecha_inicio: inscripcion.liga_categorias?.ligas?.fecha_inicio || null,
+        liga_categoria_id: inscripcion.liga_categoria_id,
+        max_inscripciones: inscripcion.liga_categorias?.max_inscripciones || 0
+      }))
+
+      setInscripciones(inscripcionesProcesadas)
+
+      // Extraer categorías y ligas únicas para los filtros
+      const categorias = [...new Set(inscripcionesProcesadas.map(i => i.categoria).filter(c => c !== 'N/A'))]
+      const ligas = [...new Set(inscripcionesProcesadas.map(i => i.liga).filter(l => l !== 'N/A'))]
+      
+      setCategoriasDisponibles(categorias)
+      setLigasDisponibles(ligas)
+
+      // Calcular información de cupos por categoría
+      const cuposCalculados = {}
+      inscripcionesProcesadas.forEach(inscripcion => {
+        if (inscripcion.liga_categoria_id) {
+          const key = `${inscripcion.liga_categoria_id}`
+          if (!cuposCalculados[key]) {
+            cuposCalculados[key] = {
+              categoria: inscripcion.categoria,
+              liga: inscripcion.liga,
+              max_inscripciones: inscripcion.max_inscripciones,
+              aprobadas: 0,
+              pendientes: 0,
+              rechazadas: 0,
+              total: 0
+            }
+          }
+          
+          cuposCalculados[key].total++
+          if (inscripcion.estado === 'aprobada') {
+            cuposCalculados[key].aprobadas++
+          } else if (inscripcion.estado === 'pendiente') {
+            cuposCalculados[key].pendientes++
+          } else if (inscripcion.estado === 'rechazada') {
+            cuposCalculados[key].rechazadas++
+          }
+        }
+      })
+
+      setCuposInfo(cuposCalculados)
+
     } catch (error) {
       console.error('Error fetching inscripciones:', error)
       toast({
@@ -49,6 +114,10 @@ export default function AdminInscripcionesLigasPage() {
 
   const updateEstado = async (id, nuevoEstado) => {
     try {
+      // Obtener la inscripción actual para mostrar información de cupos
+      const inscripcionActual = inscripciones.find(i => i.id === id)
+      const cuposActuales = inscripcionActual ? getCuposDisponibles(inscripcionActual.liga_categoria_id) : 0
+      
       const { error } = await supabase
         .from('ligainscripciones')
         .update({ estado: nuevoEstado })
@@ -56,9 +125,24 @@ export default function AdminInscripcionesLigasPage() {
 
       if (error) throw error
 
+      // Mensaje personalizado según el cambio de estado
+      let mensaje = `Inscripción ${nuevoEstado}`
+      if (inscripcionActual) {
+        if (nuevoEstado === 'aprobada') {
+          const nuevosCupos = cuposActuales - 1
+          mensaje = `Inscripción aprobada. Quedan ${nuevosCupos} cupos disponibles en ${inscripcionActual.categoria} - ${inscripcionActual.liga}`
+        } else if (nuevoEstado === 'rechazada' && inscripcionActual.estado === 'aprobada') {
+          const nuevosCupos = cuposActuales + 1
+          mensaje = `Inscripción rechazada. Ahora hay ${nuevosCupos} cupos disponibles en ${inscripcionActual.categoria} - ${inscripcionActual.liga}`
+        } else if (nuevoEstado === 'pendiente' && inscripcionActual.estado === 'aprobada') {
+          const nuevosCupos = cuposActuales + 1
+          mensaje = `Inscripción puesta en pendiente. Ahora hay ${nuevosCupos} cupos disponibles en ${inscripcionActual.categoria} - ${inscripcionActual.liga}`
+        }
+      }
+
       toast({
         title: "Estado actualizado",
-        description: `Inscripción ${nuevoEstado}`,
+        description: mensaje,
         variant: "default"
       })
 
@@ -103,6 +187,7 @@ export default function AdminInscripcionesLigasPage() {
 
   const filteredInscripciones = inscripciones.filter(inscripcion => {
     const matchesCategoria = filterCategoria === 'all' || inscripcion.categoria === filterCategoria
+    const matchesLiga = filterLiga === 'all' || inscripcion.liga === filterLiga
     const matchesEstado = filterEstado === 'all' || inscripcion.estado === filterEstado
     const matchesSearch = searchTerm === '' || 
       inscripcion.titular_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,15 +196,24 @@ export default function AdminInscripcionesLigasPage() {
       inscripcion.titular_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.contacto_celular.includes(searchTerm)
 
-    return matchesCategoria && matchesEstado && matchesSearch
+    return matchesCategoria && matchesLiga && matchesEstado && matchesSearch
   })
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'aprobada': return 'bg-green-500/20 border-green-500/30 text-green-400'
-      case 'rechazada': return 'bg-red-500/20 border-red-500/30 text-red-400'
-      case 'pendiente': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400'
-      default: return 'bg-gray-500/20 border-gray-500/30 text-gray-400'
+      case 'aprobada': return 'bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30 hover:border-green-500/50 transition-all duration-200'
+      case 'rechazada': return 'bg-red-500/20 border-red-500/30 text-red-400 hover:bg-red-500/30 hover:border-red-500/50 transition-all duration-200'
+      case 'pendiente': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 hover:border-yellow-500/50 transition-all duration-200'
+      default: return 'bg-gray-500/20 border-gray-500/30 text-gray-400 hover:bg-gray-500/30 hover:border-gray-500/50 transition-all duration-200'
+    }
+  }
+
+  const getEstadoText = (estado) => {
+    switch (estado) {
+      case 'aprobada': return 'Aprobada'
+      case 'rechazada': return 'Rechazada'
+      case 'pendiente': return 'Pendiente'
+      default: return estado
     }
   }
 
@@ -134,8 +228,26 @@ export default function AdminInscripcionesLigasPage() {
 
   const clearFilters = () => {
     setFilterCategoria('all')
+    setFilterLiga('all')
     setFilterEstado('all')
     setSearchTerm('')
+  }
+
+  const getCuposInfo = (liga_categoria_id) => {
+    return cuposInfo[liga_categoria_id] || {
+      categoria: 'N/A',
+      liga: 'N/A',
+      max_inscripciones: 0,
+      aprobadas: 0,
+      pendientes: 0,
+      rechazadas: 0,
+      total: 0
+    }
+  }
+
+  const getCuposDisponibles = (liga_categoria_id) => {
+    const info = getCuposInfo(liga_categoria_id)
+    return info.max_inscripciones - info.aprobadas
   }
 
   if (loading) {
@@ -152,17 +264,9 @@ export default function AdminInscripcionesLigasPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Header */}
-      <div className="pt-8 pb-8">
-        <div className="container mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              <span className="text-[#E2FF1B]">Inscripciones Ligas</span>
-            </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Gestión de inscripciones para las Ligas de Agosto 2025
-            </p>
-          </div>
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="pt-8 pb-8">
 
           {/* Estadísticas */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -226,95 +330,163 @@ export default function AdminInscripcionesLigasPage() {
             </Card>
           </div>
 
-          {/* Filtros Mejorados - Compacto para móvil */}
-          <Card className="bg-white/5 border-white/10 mb-6 sm:mb-8">
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                <span className="hidden sm:inline">Filtros y Búsqueda</span>
-                <span className="sm:hidden">Filtros</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 sm:pt-6">
-              <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-                {/* Búsqueda */}
-                <div className="space-y-1 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-white flex items-center gap-1 sm:gap-2">
-                    <Search className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Buscar
-                  </label>
+          {/* Filtros y Búsqueda - Rediseño Mejorado */}
+          <Card className="bg-white/5 border-white/10 mb-6">
+            <CardContent className="p-4 sm:p-6">
+              {/* Header con título y botones de acción */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-[#E2FF1B]" />
+                  <h3 className="text-lg font-semibold text-white">Filtros y Búsqueda</h3>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={fetchInscripciones}
+                    disabled={refreshing}
+                    size="sm"
+                    className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                  >
+                    {refreshing ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Actualizar
+                  </Button>
+                  <Button
+                    onClick={clearFilters}
+                    variant="outline"
+                    size="sm"
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    Limpiar
+                  </Button>
+                </div>
+              </div>
+
+              {/* Búsqueda principal - Destacada */}
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    placeholder="Nombre, apellido o teléfono..."
+                    placeholder="Buscar por nombre, apellido o teléfono..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 h-9 sm:h-10 text-sm"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 pl-10 h-12 text-base"
                   />
+                </div>
+              </div>
+
+              {/* Filtros en grid responsive */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Liga */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                    Liga
+                  </label>
+                  <Select value={filterLiga} onValueChange={setFilterLiga}>
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11">
+                      <SelectValue placeholder="Todas las ligas" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900 border-white/20">
+                      <SelectItem value="all" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                        Todas las ligas
+                      </SelectItem>
+                      {ligasDisponibles.map((liga) => (
+                        <SelectItem key={liga} value={liga} className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                          {liga}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {/* Categoría */}
-                <div className="space-y-1 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-white">Categoría</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#E2FF1B]" />
+                    Categoría
+                  </label>
                   <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-9 sm:h-10 text-sm">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11">
                       <SelectValue placeholder="Todas las categorías" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-white/20">
-                      <SelectItem value="all" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">Todas las categorías</SelectItem>
-                      <SelectItem value="C6" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">C6</SelectItem>
-                      <SelectItem value="C7" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">C7</SelectItem>
-                      <SelectItem value="C8" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">C8</SelectItem>
+                      <SelectItem value="all" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                        Todas las categorías
+                      </SelectItem>
+                      {categoriasDisponibles.map((categoria) => (
+                        <SelectItem key={categoria} value={categoria} className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                          {categoria}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 
                 {/* Estado */}
-                <div className="space-y-1 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-white">Estado</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                    Estado
+                  </label>
                   <Select value={filterEstado} onValueChange={setFilterEstado}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-9 sm:h-10 text-sm">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11">
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-white/20">
-                      <SelectItem value="all" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">Todos los estados</SelectItem>
-                      <SelectItem value="pendiente" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">Pendiente</SelectItem>
-                      <SelectItem value="aprobada" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">Aprobada</SelectItem>
-                      <SelectItem value="rechazada" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">Rechazada</SelectItem>
+                      <SelectItem value="all" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                        Todos los estados
+                      </SelectItem>
+                      <SelectItem value="pendiente" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                        Pendiente
+                      </SelectItem>
+                      <SelectItem value="aprobada" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                        Aprobada
+                      </SelectItem>
+                      <SelectItem value="rechazada" className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10 focus:text-white">
+                        Rechazada
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {/* Botones */}
-                <div className="flex gap-2 pt-2 sm:pt-0 sm:items-end">
-                  <Button
-                    onClick={fetchInscripciones}
-                    disabled={refreshing}
-                    className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 flex-1 h-9 sm:h-10 text-sm"
-                  >
-                    {refreshing ? (
-                      <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    )}
-                    <span className="hidden sm:inline">Actualizar</span>
-                    <span className="sm:hidden">Actualizar</span>
-                  </Button>
-                  <Button
-                    onClick={clearFilters}
-                    variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10 h-9 sm:h-10 text-sm px-3 sm:px-4"
-                  >
-                    <span className="hidden sm:inline">Limpiar</span>
-                    <span className="sm:hidden">Limpiar</span>
-                  </Button>
-                </div>
               </div>
+
+              {/* Filtros activos - Chips */}
+              {(filterLiga !== 'all' || filterCategoria !== 'all' || filterEstado !== 'all' || searchTerm) && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-gray-400">Filtros activos:</span>
+                    {filterLiga !== 'all' && (
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
+                        Liga: {filterLiga}
+                      </Badge>
+                    )}
+                    {filterCategoria !== 'all' && (
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
+                        Categoría: {filterCategoria}
+                      </Badge>
+                    )}
+                    {filterEstado !== 'all' && (
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
+                        Estado: {filterEstado}
+                      </Badge>
+                    )}
+                    {searchTerm && (
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
+                        Búsqueda: "{searchTerm}"
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
-      </div>
 
-      {/* Lista de Inscripciones */}
-      <div className="container mx-auto px-4 pb-16">
+        {/* Lista de Inscripciones */}
+        <div className="pb-16">
         <div className="space-y-4">
           {filteredInscripciones.length === 0 ? (
             <Card className="bg-white/5 border-white/10">
@@ -342,15 +514,18 @@ export default function AdminInscripcionesLigasPage() {
                   <CardContent className="p-4 sm:p-6">
                     {/* Header con badges - Mejorado para móvil */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
-                      <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
+                      <Badge className={`${getEstadoColor(inscripcion.estado)} border cursor-pointer`}>
                         <div className="flex items-center gap-1">
                           {getEstadoIcon(inscripcion.estado)}
-                          <span className="hidden sm:inline">{inscripcion.estado}</span>
-                          <span className="sm:hidden">{inscripcion.estado.charAt(0).toUpperCase()}</span>
+                          <span className="hidden sm:inline font-medium">{getEstadoText(inscripcion.estado)}</span>
+                          <span className="sm:hidden font-medium">{getEstadoText(inscripcion.estado).charAt(0)}</span>
                         </div>
                       </Badge>
                       <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B]">
                         {inscripcion.categoria}
+                      </Badge>
+                      <Badge variant="outline" className="border-blue-500/30 text-blue-400">
+                        {inscripcion.liga}
                       </Badge>
                       <span className="text-xs sm:text-sm text-gray-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -373,6 +548,44 @@ export default function AdminInscripcionesLigasPage() {
                         </span>
                       </span>
                     </div>
+                    
+                    {/* Información de cupos */}
+                    {inscripcion.liga_categoria_id && (
+                      <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                        <div className="flex flex-wrap items-center gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400">Cupos:</span>
+                            <span className="font-semibold text-white">
+                              {getCuposDisponibles(inscripcion.liga_categoria_id)}/{inscripcion.max_inscripciones} disponibles
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400">Estado actual:</span>
+                            <div className="flex gap-1">
+                              <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-all duration-200">
+                                {getCuposInfo(inscripcion.liga_categoria_id).aprobadas} Aprobadas
+                              </Badge>
+                              <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-xs font-medium hover:bg-yellow-500/10 transition-all duration-200">
+                                {getCuposInfo(inscripcion.liga_categoria_id).pendientes} Pendientes
+                              </Badge>
+                              <Badge variant="outline" className="border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-500/10 transition-all duration-200">
+                                {getCuposInfo(inscripcion.liga_categoria_id).rechazadas} Rechazadas
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        {inscripcion.estado === 'pendiente' && (
+                          <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-300">
+                            <strong>⚠️ Atención:</strong> Si apruebas esta inscripción, quedarán {getCuposDisponibles(inscripcion.liga_categoria_id) - 1} cupos disponibles en {inscripcion.categoria} - {inscripcion.liga}
+                          </div>
+                        )}
+                        {inscripcion.estado === 'aprobada' && getCuposDisponibles(inscripcion.liga_categoria_id) === 0 && (
+                          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-300">
+                            <strong>🚨 Categoría Completa:</strong> Esta categoría ha alcanzado su cupo máximo. No se pueden aprobar más inscripciones.
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     {/* Información del equipo - Layout mejorado */}
                     <div className="space-y-4">
@@ -436,26 +649,48 @@ export default function AdminInscripcionesLigasPage() {
                         </Button>
                       )}
                       
-                      {inscripcion.estado === 'pendiente' && (
-                        <div className="flex flex-col sm:flex-row gap-3 w-full">
-                          <Button
-                            size="default"
-                            onClick={() => updateEstado(inscripcion.id, 'aprobada')}
-                            className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none order-1 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold"
-                          >
-                            <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                            Aprobar
-                          </Button>
-                          <Button
-                            size="default"
-                            onClick={() => updateEstado(inscripcion.id, 'rechazada')}
-                            className="bg-red-600 hover:bg-red-700 flex-1 sm:flex-none order-2 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold"
-                          >
-                            <XCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                            Rechazar
-                          </Button>
-                        </div>
-                      )}
+                      {/* Botones de cambio de estado - Siempre visibles */}
+                      <div className="flex flex-col sm:flex-row gap-3 w-full">
+                        <Button
+                          size="default"
+                          onClick={() => updateEstado(inscripcion.id, 'aprobada')}
+                          disabled={inscripcion.estado === 'aprobada' || getCuposDisponibles(inscripcion.liga_categoria_id) === 0}
+                          className={`flex-1 sm:flex-none order-1 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold ${
+                            inscripcion.estado === 'aprobada' || getCuposDisponibles(inscripcion.liga_categoria_id) === 0
+                              ? 'bg-green-600/50 text-green-200 cursor-not-allowed' 
+                              : 'bg-green-600 hover:bg-green-700'
+                          }`}
+                        >
+                          <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                          Aprobar
+                        </Button>
+                        <Button
+                          size="default"
+                          onClick={() => updateEstado(inscripcion.id, 'rechazada')}
+                          disabled={inscripcion.estado === 'rechazada'}
+                          className={`flex-1 sm:flex-none order-2 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold ${
+                            inscripcion.estado === 'rechazada' 
+                              ? 'bg-red-600/50 text-red-200 cursor-not-allowed' 
+                              : 'bg-red-600 hover:bg-red-700'
+                          }`}
+                        >
+                          <XCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                          Rechazar
+                        </Button>
+                        <Button
+                          size="default"
+                          onClick={() => updateEstado(inscripcion.id, 'pendiente')}
+                          disabled={inscripcion.estado === 'pendiente'}
+                          className={`flex-1 sm:flex-none order-3 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold ${
+                            inscripcion.estado === 'pendiente' 
+                              ? 'bg-yellow-600/50 text-yellow-200 cursor-not-allowed' 
+                              : 'bg-yellow-600 hover:bg-yellow-700'
+                          }`}
+                        >
+                          <Clock className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                          Pendiente
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -463,7 +698,8 @@ export default function AdminInscripcionesLigasPage() {
             </>
           )}
         </div>
+        </div>
       </div>
     </div>
   )
-} 
+}

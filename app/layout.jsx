@@ -111,11 +111,6 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
-  // Verificar si estamos en una ruta de admin
-  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
-
-  console.log('Admin route:', isAdminRoute)
-
   return (
     <html lang="es" className={montserrat.className}>
       <head>
@@ -141,25 +136,14 @@ export default function RootLayout({ children }) {
       </head>
       <body className={montserrat.className}>
         <AuthProvider>
-          {isAdminRoute ? (
-            children
-          ) : (
-            <ClientLayout>
-              <main>
-                {children}
-              </main>
-            </ClientLayout>
-          )}
-          <Footer />
+          <ClientLayout>
+            <main>
+              {children}
+            </main>
+          </ClientLayout>
           <Toaster />
           <SonnerToaster richColors position="top-right" />
           <HotToaster position="top-right" />
-          {!isAdminRoute && (
-            <>
-              <LiveTournamentNotification />
-              <FloatingWhatsAppButton />
-            </>
-          )}
         </AuthProvider>
       </body>
     </html>

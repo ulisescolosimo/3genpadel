@@ -1,58 +1,109 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Trophy, Users, Calendar, MapPin, ArrowLeft, Star, Clock } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export default function LigasPage() {
   const [selectedLevel, setSelectedLevel] = useState('all')
+  const [ligas, setLigas] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const ligas = [
-    {
-      id: 1,
-      name: "Ligas Agosto 2025",
-      description: "Ligas competitivas de agosto 2025 con formato de clasificación y eliminatorias",
-      level: "Todas las categorías",
-      players: "C6, C7, C8",
-      duration: "Agosto - Septiembre",
-      location: "Por definir",
-      price: "$20.000",
-      status: "Abierta",
-      features: ["2 partidos de clasificación", "Llave eliminatoria", "3 partidos garantizados", "Premios"],
-      link: "/inscripciones/ligas/agosto-2025"
-    },
-    {
-      id: 2,
-      name: "Liga Principiantes",
-      description: "Liga para jugadores que están comenzando en el padel",
-      level: "Principiantes",
-      players: "8-12",
-      duration: "3 meses",
-      location: "Deportes Racionales",
-      price: "$15.000",
-      status: "Próximamente",
-      features: ["Nivel básico", "Entrenamiento incluido", "Torneo final"]
-    },
-    {
-      id: 3,
-      name: "Liga Intermedia",
-      description: "Liga para jugadores con experiencia intermedia",
-      level: "Intermedio",
-      players: "12-16",
-      duration: "4 meses",
-      location: "La Normanda",
-      price: "$20.000",
-      status: "Próximamente",
-      features: ["Nivel intermedio", "Ranking oficial", "Premios"]
-    },
-  ]
+  useEffect(() => {
+    fetchLigas()
+  }, [])
+
+  const fetchLigas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ligas')
+        .select(`
+          *,
+          liga_categorias (
+            id,
+            categoria,
+            max_inscripciones,
+            ligainscripciones (id, estado)
+          )
+        `)
+        .order('fecha_inicio', { ascending: false })
+
+      if (error) throw error
+
+      // Procesar los datos para incluir información de inscripciones por categoría
+      const ligasProcesadas = data.map(liga => {
+        const categorias = liga.liga_categorias || []
+        
+        // Procesar cada categoría con sus inscripciones (solo aprobadas)
+        const categoriasConInscripciones = categorias.map(cat => {
+          const inscripcionesAprobadas = cat.ligainscripciones?.filter(ins => ins.estado === 'aprobada')?.length || 0
+          return {
+            categoria: cat.categoria,
+            inscripcionesActuales: inscripcionesAprobadas,
+            maxInscripciones: cat.max_inscripciones,
+            disponible: inscripcionesAprobadas < cat.max_inscripciones
+          }
+        })
+        
+        const categoriasDisponibles = categorias.map(cat => cat.categoria).join(', ')
+        
+        return {
+          ...liga,
+          categorias: categoriasDisponibles,
+          categoriasDetalle: categoriasConInscripciones,
+          inscripcionesActuales: categorias.reduce((total, cat) => {
+            const inscripcionesAprobadas = cat.ligainscripciones?.filter(ins => ins.estado === 'aprobada')?.length || 0
+            return total + inscripcionesAprobadas
+          }, 0),
+          maxInscripciones: categorias.reduce((total, cat) => total + cat.max_inscripciones, 0)
+        }
+      })
+
+      setLigas(ligasProcesadas)
+    } catch (error) {
+      console.error('Error fetching ligas:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredLigas = selectedLevel === 'all' 
     ? ligas 
-    : ligas.filter(liga => liga.level.toLowerCase() === selectedLevel.toLowerCase())
+    : ligas.filter(liga => liga.nombre.toLowerCase().includes(selectedLevel.toLowerCase()))
+
+  const getStatusBadge = (liga) => {
+    if (liga.estado === 'cerrada') {
+      return { text: 'Cerrada', variant: 'destructive', className: 'bg-red-500' }
+    }
+    if (liga.inscripcionesActuales >= liga.maxInscripciones) {
+      return { text: 'Completa', variant: 'secondary', className: 'bg-yellow-500' }
+    }
+    return { text: 'Abierta', variant: 'default', className: 'bg-green-500' }
+  }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#E2FF1B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white">Cargando ligas...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -83,25 +134,18 @@ export default function LigasPage() {
               Todas las Ligas
             </Button>
             <Button
-              variant={selectedLevel === 'principiantes' ? 'default' : 'outline'}
-              onClick={() => setSelectedLevel('principiantes')}
-              className={selectedLevel === 'principiantes' ? 'bg-[#E2FF1B] text-black' : 'border-white/20 text-white hover:bg-white/10'}
+              variant={selectedLevel === 'agosto' ? 'default' : 'outline'}
+              onClick={() => setSelectedLevel('agosto')}
+              className={selectedLevel === 'agosto' ? 'bg-[#E2FF1B] text-black' : 'border-white/20 text-white hover:bg-white/10'}
             >
-              Principiantes
+              Agosto 2025
             </Button>
             <Button
-              variant={selectedLevel === 'intermedio' ? 'default' : 'outline'}
-              onClick={() => setSelectedLevel('intermedio')}
-              className={selectedLevel === 'intermedio' ? 'bg-[#E2FF1B] text-black' : 'border-white/20 text-white hover:bg-white/10'}
+              variant={selectedLevel === 'septiembre' ? 'default' : 'outline'}
+              onClick={() => setSelectedLevel('septiembre')}
+              className={selectedLevel === 'septiembre' ? 'bg-[#E2FF1B] text-black' : 'border-white/20 text-white hover:bg-white/10'}
             >
-              Intermedio
-            </Button>
-            <Button
-              variant={selectedLevel === 'avanzado' ? 'default' : 'outline'}
-              onClick={() => setSelectedLevel('avanzado')}
-              className={selectedLevel === 'avanzado' ? 'bg-[#E2FF1B] text-black' : 'border-white/20 text-white hover:bg-white/10'}
-            >
-              Avanzado
+              Septiembre 2025
             </Button>
           </div>
         </div>
@@ -109,76 +153,110 @@ export default function LigasPage() {
 
       {/* Ligas Grid */}
       <div className="container mx-auto px-4 pb-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {filteredLigas.map((liga) => (
-            <Card key={liga.id} className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group">
-              <CardHeader>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center group-hover:bg-[#E2FF1B]/20 transition-colors">
-                    <Trophy className="w-6 h-6 text-[#E2FF1B]" />
-                  </div>
-                  <Badge 
-                    variant={liga.status === 'Abierta' ? 'default' : liga.status === 'Próximamente' ? 'secondary' : 'destructive'}
-                    className={liga.status === 'Abierta' ? 'bg-green-500' : liga.status === 'Próximamente' ? 'bg-yellow-500' : 'bg-red-500'}
-                  >
-                    {liga.status}
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl font-bold text-white mb-2">{liga.name}</CardTitle>
-                <CardDescription className="text-gray-400">{liga.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
-                    <Users className="w-4 h-4" />
-                    <span>{liga.players} jugadores</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
-                    <Calendar className="w-4 h-4" />
-                    <span>Duración: {liga.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
-                    <MapPin className="w-4 h-4" />
-                    <span>{liga.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
-                    <Star className="w-4 h-4" />
-                    <span className="font-semibold text-[#E2FF1B]">{liga.price}</span>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <h4 className="text-sm font-semibold text-white mb-2">Incluye:</h4>
-                    <ul className="space-y-1">
-                      {liga.features.map((feature, index) => (
-                        <li key={index} className="text-xs text-gray-400 flex items-center gap-2">
-                          <div className="w-1 h-1 bg-[#E2FF1B] rounded-full"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  {liga.link ? (
-                    <Link href={liga.link}>
-                      <Button 
-                        className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors mt-6"
+        {ligas.length === 0 ? (
+          <div className="text-center py-16">
+            <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No hay ligas disponibles</h3>
+            <p className="text-gray-400">Próximamente tendremos nuevas ligas para ti</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {filteredLigas.map((liga) => {
+              const statusBadge = getStatusBadge(liga)
+              const isInscribible = liga.estado === 'abierta' && liga.inscripcionesActuales < liga.maxInscripciones
+              
+              return (
+                <Card key={liga.id} className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group">
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center group-hover:bg-[#E2FF1B]/20 transition-colors">
+                        <Trophy className="w-6 h-6 text-[#E2FF1B]" />
+                      </div>
+                      <Badge 
+                        variant={statusBadge.variant}
+                        className={statusBadge.className}
                       >
-                        Inscribirse
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button 
-                      className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors mt-6"
-                      disabled={liga.status === 'Cerrada'}
-                    >
-                      {liga.status === 'Abierta' ? 'Inscribirse' : liga.status === 'Próximamente' ? 'Próximamente' : 'Cerrada'}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                        {statusBadge.text}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-xl font-bold text-white mb-2">{liga.nombre}</CardTitle>
+                    <CardDescription className="text-gray-400">{liga.descripcion}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Users className="w-4 h-4" />
+                        <span>Categorías: {liga.categorias}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Calendar className="w-4 h-4" />
+                        <span>Inicio: {formatDate(liga.fecha_inicio)}</span>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <Clock className="w-4 h-4" />
+                          <span>Plazas por categoría:</span>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="text-gray-400 font-medium">Categoría</div>
+                            <div className="text-gray-400 font-medium text-right">Inscritos</div>
+                            {liga.categoriasDetalle.map((cat, index) => (
+                              <>
+                                <div key={`cat-${index}`} className="text-[#E2FF1B] font-medium">{cat.categoria}</div>
+                                <div key={`count-${index}`} className="text-right">
+                                  <span className={`${cat.disponible ? 'text-white' : 'text-red-400'}`}>
+                                    {cat.inscripcionesActuales}
+                                  </span>
+                                  <span className="text-white">/{cat.maxInscripciones}</span>
+                                  {cat.disponible ? (
+                                    <span className="ml-1 text-white text-[10px]">●</span>
+                                  ) : (
+                                    <span className="ml-1 text-red-400 text-[10px]">●</span>
+                                  )}
+                                </div>
+                              </>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      {liga.costo_inscripcion && (
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <Star className="w-4 h-4" />
+                          <span className="font-semibold text-[#E2FF1B]">${liga.costo_inscripcion.toLocaleString()}</span>
+                        </div>
+                      )}
+                      
+                      {liga.formato && (
+                        <div className="pt-4">
+                          <h4 className="text-sm font-semibold text-white mb-2">Formato:</h4>
+                          <p className="text-xs text-gray-400">{liga.formato}</p>
+                        </div>
+                      )}
+                      
+                      {isInscribible ? (
+                        <Link href={`/inscripciones/ligas/${liga.id}`}>
+                          <Button 
+                            className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors mt-6"
+                          >
+                            Inscribirse
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button 
+                          className="w-full bg-gray-600 text-white cursor-not-allowed mt-6"
+                          disabled
+                        >
+                          {liga.estado === 'cerrada' ? 'Cerrada' : 'Completa'}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Info Section */}
