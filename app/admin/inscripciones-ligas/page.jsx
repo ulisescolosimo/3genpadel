@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Trophy, Users, Calendar, Download, Eye, CheckCircle, XCircle, Clock, Search, RefreshCw, Filter } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
+import Link from 'next/link'
 
 export default function AdminInscripcionesLigasPage() {
   const { toast } = useToast()
@@ -268,62 +269,62 @@ export default function AdminInscripcionesLigasPage() {
         {/* Header */}
         <div className="pt-8 pb-8">
 
-          {/* Estadísticas */}
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          {/* Estadísticas - Optimizadas para mobile */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
             <Card className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Total Inscripciones</p>
-                    <p className="text-2xl font-bold text-white">{inscripciones.length}</p>
+                    <p className="text-xs md:text-sm text-gray-400">Total</p>
+                    <p className="text-lg md:text-2xl font-bold text-white">{inscripciones.length}</p>
                   </div>
-                  <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-[#E2FF1B]" />
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center">
+                    <Trophy className="w-4 h-4 md:w-6 md:h-6 text-[#E2FF1B]" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-white/5 border-white/10 hover:border-yellow-500/30 transition-all duration-300">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Pendientes</p>
-                    <p className="text-2xl font-bold text-yellow-400">
+                    <p className="text-xs md:text-sm text-gray-400">Pendientes</p>
+                    <p className="text-lg md:text-2xl font-bold text-yellow-400">
                       {inscripciones.filter(i => i.estado === 'pendiente').length}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-yellow-400" />
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 md:w-6 md:h-6 text-yellow-400" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-white/5 border-white/10 hover:border-green-500/30 transition-all duration-300">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Aprobadas</p>
-                    <p className="text-2xl font-bold text-green-400">
+                    <p className="text-xs md:text-sm text-gray-400">Aprobadas</p>
+                    <p className="text-lg md:text-2xl font-bold text-green-400">
                       {inscripciones.filter(i => i.estado === 'aprobada').length}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-white/5 border-white/10 hover:border-red-500/30 transition-all duration-300">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Rechazadas</p>
-                    <p className="text-2xl font-bold text-red-400">
+                    <p className="text-xs md:text-sm text-gray-400">Rechazadas</p>
+                    <p className="text-lg md:text-2xl font-bold text-red-400">
                       {inscripciones.filter(i => i.estado === 'rechazada').length}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center">
-                    <XCircle className="w-6 h-6 text-red-400" />
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-red-500/10 rounded-lg flex items-center justify-center">
+                    <XCircle className="w-4 h-4 md:w-6 md:h-6 text-red-400" />
                   </div>
                 </div>
               </CardContent>
@@ -340,6 +341,16 @@ export default function AdminInscripcionesLigasPage() {
                   <h3 className="text-lg font-semibold text-white">Filtros y Búsqueda</h3>
                 </div>
                 <div className="flex gap-2">
+                  <Link href="/admin/inscripciones-ligas/categorias">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      <Trophy className="w-4 h-4 mr-2" />
+                      Ver por Categorías
+                    </Button>
+                  </Link>
                   <Button
                     onClick={fetchInscripciones}
                     disabled={refreshing}
@@ -377,16 +388,16 @@ export default function AdminInscripcionesLigasPage() {
                 </div>
               </div>
 
-              {/* Filtros en grid responsive */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Filtros en grid responsive - Optimizado para mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {/* Liga */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-xs md:text-sm font-medium text-white flex items-center gap-1 md:gap-2">
+                    <Trophy className="w-3 h-3 md:w-4 md:h-4 text-[#E2FF1B]" />
                     Liga
                   </label>
                   <Select value={filterLiga} onValueChange={setFilterLiga}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-10 md:h-11 text-sm">
                       <SelectValue placeholder="Todas las ligas" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-white/20">
@@ -403,13 +414,13 @@ export default function AdminInscripcionesLigasPage() {
                 </div>
                 
                 {/* Categoría */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#E2FF1B]" />
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-xs md:text-sm font-medium text-white flex items-center gap-1 md:gap-2">
+                    <Users className="w-3 h-3 md:w-4 md:h-4 text-[#E2FF1B]" />
                     Categoría
                   </label>
                   <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-10 md:h-11 text-sm">
                       <SelectValue placeholder="Todas las categorías" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-white/20">
@@ -426,13 +437,13 @@ export default function AdminInscripcionesLigasPage() {
                 </div>
                 
                 {/* Estado */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-xs md:text-sm font-medium text-white flex items-center gap-1 md:gap-2">
+                    <Clock className="w-3 h-3 md:w-4 md:h-4 text-[#E2FF1B]" />
                     Estado
                   </label>
                   <Select value={filterEstado} onValueChange={setFilterEstado}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11">
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-10 md:h-11 text-sm">
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-white/20">
@@ -487,7 +498,7 @@ export default function AdminInscripcionesLigasPage() {
 
         {/* Lista de Inscripciones */}
         <div className="pb-16">
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredInscripciones.length === 0 ? (
             <Card className="bg-white/5 border-white/10">
               <CardContent className="p-12 text-center">
@@ -509,8 +520,10 @@ export default function AdminInscripcionesLigasPage() {
                 </Badge>
               </div>
               
-              {filteredInscripciones.map((inscripcion) => (
-                <Card key={inscripcion.id} className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group">
+              <div className="space-y-4">
+                {filteredInscripciones.map((inscripcion) => (
+                <Link key={inscripcion.id} href={`/admin/inscripciones-ligas/detalle/${inscripcion.id}`}>
+                  <Card className="bg-white/5 mb-4 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group cursor-pointer">
                   <CardContent className="p-4 sm:p-6">
                     {/* Header con badges - Mejorado para móvil */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
@@ -549,19 +562,19 @@ export default function AdminInscripcionesLigasPage() {
                       </span>
                     </div>
                     
-                    {/* Información de cupos */}
+                    {/* Información de cupos - Optimizada para mobile */}
                     {inscripcion.liga_categoria_id && (
                       <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                        <div className="flex flex-wrap items-center gap-4 text-sm">
+                        <div className="space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4 text-xs md:text-sm">
                           <div className="flex items-center gap-2">
                             <span className="text-gray-400">Cupos:</span>
                             <span className="font-semibold text-white">
                               {getCuposDisponibles(inscripcion.liga_categoria_id)}/{inscripcion.max_inscripciones} disponibles
                             </span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col md:flex-row md:items-center gap-2">
                             <span className="text-gray-400">Estado actual:</span>
-                            <div className="flex gap-1">
+                            <div className="flex flex-wrap gap-1">
                               <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-all duration-200">
                                 {getCuposInfo(inscripcion.liga_categoria_id).aprobadas} Aprobadas
                               </Badge>
@@ -587,33 +600,33 @@ export default function AdminInscripcionesLigasPage() {
                       </div>
                     )}
                     
-                    {/* Información del equipo - Layout mejorado */}
+                    {/* Información del equipo - Layout optimizado para mobile */}
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                         <div className="space-y-2">
-                          <h3 className="font-semibold text-white flex items-center gap-2 text-sm sm:text-base">
+                          <h3 className="font-semibold text-white flex items-center gap-2 text-sm">
                             <Users className="w-4 h-4 text-[#E2FF1B]" />
                             Titulares
                           </h3>
                           <div className="bg-white/5 rounded-lg p-3">
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-gray-300 text-xs md:text-sm">
                               <span className="font-medium">1.</span> {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido}
                             </p>
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-gray-300 text-xs md:text-sm">
                               <span className="font-medium">2.</span> {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido}
                             </p>
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <h3 className="font-semibold text-white flex items-center gap-2 text-sm sm:text-base">
+                          <h3 className="font-semibold text-white flex items-center gap-2 text-sm">
                             <Users className="w-4 h-4 text-[#E2FF1B]" />
                             Suplentes
                           </h3>
                           <div className="bg-white/5 rounded-lg p-3">
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-gray-300 text-xs md:text-sm">
                               <span className="font-medium">1.</span> {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido}
                             </p>
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-gray-300 text-xs md:text-sm">
                               <span className="font-medium">2.</span> {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido}
                             </p>
                           </div>
@@ -622,12 +635,12 @@ export default function AdminInscripcionesLigasPage() {
                       
                       {/* Información adicional */}
                       <div className="space-y-2">
-                        <p className="text-gray-300 text-sm">
+                        <p className="text-gray-300 text-xs md:text-sm">
                           <strong className="text-white">Contacto:</strong> {inscripcion.contacto_celular}
                         </p>
                         {inscripcion.aclaraciones && (
                           <div className="bg-white/5 rounded-lg p-3">
-                            <p className="text-gray-300 text-sm">
+                            <p className="text-gray-300 text-xs md:text-sm">
                               <strong className="text-white">Aclaraciones:</strong> {inscripcion.aclaraciones}
                             </p>
                           </div>
@@ -635,66 +648,88 @@ export default function AdminInscripcionesLigasPage() {
                       </div>
                     </div>
                     
-                    {/* Acciones - Mejoradas para móvil */}
+                    {/* Acciones - Optimizadas para mobile, original para desktop */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-white/10">
                       {inscripcion.comprobante_url && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => downloadComprobante(inscripcion.comprobante_url, inscripcion.comprobante_filename)}
-                          className="border-white/20 text-white hover:bg-white/10 w-full sm:w-auto"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            downloadComprobante(inscripcion.comprobante_url, inscripcion.comprobante_filename)
+                          }}
+                          className="border-white/20 text-white hover:bg-white/10 w-full sm:w-auto h-10 sm:h-9 text-sm"
                         >
                           <Download className="w-4 h-4 mr-2" />
-                          Comprobante
+                          <span className="sm:hidden">Descargar Comprobante</span>
+                          <span className="hidden sm:inline">Comprobante</span>
                         </Button>
                       )}
                       
-                      {/* Botones de cambio de estado - Siempre visibles */}
-                      <div className="flex flex-col sm:flex-row gap-3 w-full">
+                      {/* Botones de cambio de estado - Mobile optimizado, desktop original */}
+                      <div className="grid grid-cols-3 sm:flex sm:flex-row gap-2 sm:gap-3 w-full">
                         <Button
                           size="default"
-                          onClick={() => updateEstado(inscripcion.id, 'aprobada')}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            updateEstado(inscripcion.id, 'aprobada')
+                          }}
                           disabled={inscripcion.estado === 'aprobada' || getCuposDisponibles(inscripcion.liga_categoria_id) === 0}
-                          className={`flex-1 sm:flex-none order-1 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold ${
+                          className={`h-10 sm:h-9 text-xs sm:text-sm font-semibold sm:flex-none ${
                             inscripcion.estado === 'aprobada' || getCuposDisponibles(inscripcion.liga_categoria_id) === 0
                               ? 'bg-green-600/50 text-green-200 cursor-not-allowed' 
                               : 'bg-green-600 hover:bg-green-700'
                           }`}
                         >
-                          <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                          Aprobar
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">Aprobar</span>
+                          <span className="sm:hidden">✓</span>
                         </Button>
                         <Button
                           size="default"
-                          onClick={() => updateEstado(inscripcion.id, 'rechazada')}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            updateEstado(inscripcion.id, 'rechazada')
+                          }}
                           disabled={inscripcion.estado === 'rechazada'}
-                          className={`flex-1 sm:flex-none order-2 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold ${
+                          className={`h-10 sm:h-9 text-xs sm:text-sm font-semibold sm:flex-none ${
                             inscripcion.estado === 'rechazada' 
                               ? 'bg-red-600/50 text-red-200 cursor-not-allowed' 
                               : 'bg-red-600 hover:bg-red-700'
                           }`}
                         >
-                          <XCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                          Rechazar
+                          <XCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">Rechazar</span>
+                          <span className="sm:hidden">✗</span>
                         </Button>
                         <Button
                           size="default"
-                          onClick={() => updateEstado(inscripcion.id, 'pendiente')}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            updateEstado(inscripcion.id, 'pendiente')
+                          }}
                           disabled={inscripcion.estado === 'pendiente'}
-                          className={`flex-1 sm:flex-none order-3 sm:order-none h-12 sm:h-9 text-base sm:text-sm font-semibold ${
+                          className={`h-10 sm:h-9 text-xs sm:text-sm font-semibold sm:flex-none ${
                             inscripcion.estado === 'pendiente' 
                               ? 'bg-yellow-600/50 text-yellow-200 cursor-not-allowed' 
                               : 'bg-yellow-600 hover:bg-yellow-700'
                           }`}
                         >
-                          <Clock className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                          Pendiente
+                          <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">Pendiente</span>
+                          <span className="sm:hidden">⏱</span>
                         </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
+              </div>
             </>
           )}
         </div>

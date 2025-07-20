@@ -65,7 +65,7 @@ export default function EntrenamientosPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
-      <div className="pt-32 pb-8 px-4">
+      <div className="pt-12 pb-8 px-4">
         <div className="container mx-auto">
           <Link href="/inscripciones" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-6">
             <ArrowLeft className="w-4 h-4" />

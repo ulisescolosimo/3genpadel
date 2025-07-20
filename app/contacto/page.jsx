@@ -105,12 +105,7 @@ export default function Contacto() {
   return (
     <div className="min-h-screen bg-black">
       {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden"
-      >
+      <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2FF1B]/10 to-transparent" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         <div className="relative container mx-auto px-4 py-12">
@@ -123,7 +118,7 @@ export default function Contacto() {
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">

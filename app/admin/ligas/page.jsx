@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/ui/rich-text-editor'
+import HtmlContent from '@/components/ui/html-content'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   Trophy, 
@@ -36,6 +38,7 @@ export default function AdminLigasPage() {
   const [filterEstado, setFilterEstado] = useState('all')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingLiga, setEditingLiga] = useState(null)
+  const [viewingLiga, setViewingLiga] = useState(null)
   const [formData, setFormData] = useState({
     nombre: '',
     fecha_inicio: '',
@@ -112,6 +115,9 @@ export default function AdminLigasPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    console.log('Form submitted - this should only happen when clicking the submit button')
     
     // Validar que haya al menos una categoría
     if (categorias.length === 0) {
@@ -139,28 +145,80 @@ export default function AdminLigasPage() {
 
         if (error) throw error
 
-        // Actualizar categorías existentes
-        // Primero eliminar todas las categorías actuales
-        const { error: deleteError } = await supabase
+        // Obtener categorías existentes con sus inscripciones
+        const { data: categoriasExistentes, error: fetchError } = await supabase
           .from('liga_categorias')
-          .delete()
+          .select(`
+            id,
+            categoria,
+            max_inscripciones,
+            ligainscripciones (id)
+          `)
           .eq('liga_id', editingLiga.id)
 
-        if (deleteError) throw deleteError
+        if (fetchError) throw fetchError
 
-        // Luego insertar las nuevas categorías
-        if (categorias.length > 0) {
-          const categoriasData = categorias.map(cat => ({
-            liga_id: editingLiga.id,
-            categoria: cat.categoria,
-            max_inscripciones: cat.max_inscripciones
-          }))
+        // Procesar cada categoría nueva
+        for (const nuevaCategoria of categorias) {
+          const categoriaExistente = categoriasExistentes?.find(
+            cat => cat.categoria === nuevaCategoria.categoria
+          )
 
-          const { error: categoriasError } = await supabase
-            .from('liga_categorias')
-            .insert(categoriasData)
+          if (categoriaExistente) {
+            // Actualizar categoría existente solo si no tiene inscripciones o si el nuevo max es mayor
+            const inscripcionesActuales = categoriaExistente.ligainscripciones?.length || 0
+            
+            if (nuevaCategoria.max_inscripciones >= inscripcionesActuales) {
+              const { error: updateError } = await supabase
+                .from('liga_categorias')
+                .update({ max_inscripciones: nuevaCategoria.max_inscripciones })
+                .eq('id', categoriaExistente.id)
 
-          if (categoriasError) throw categoriasError
+              if (updateError) throw updateError
+            } else {
+              toast({
+                title: "Advertencia",
+                description: `No se puede reducir el cupo de ${nuevaCategoria.categoria} porque ya tiene ${inscripcionesActuales} inscripciones`,
+                variant: "destructive"
+              })
+              return
+            }
+          } else {
+            // Insertar nueva categoría
+            const { error: insertError } = await supabase
+              .from('liga_categorias')
+              .insert({
+                liga_id: editingLiga.id,
+                categoria: nuevaCategoria.categoria,
+                max_inscripciones: nuevaCategoria.max_inscripciones
+              })
+
+            if (insertError) throw insertError
+          }
+        }
+
+        // Eliminar categorías que ya no están en la lista (solo si no tienen inscripciones)
+        const categoriasAEliminar = categoriasExistentes?.filter(
+          cat => !categorias.some(nuevaCat => nuevaCat.categoria === cat.categoria)
+        ) || []
+
+        for (const categoriaAEliminar of categoriasAEliminar) {
+          const inscripcionesActuales = categoriaAEliminar.ligainscripciones?.length || 0
+          
+          if (inscripcionesActuales === 0) {
+            const { error: deleteError } = await supabase
+              .from('liga_categorias')
+              .delete()
+              .eq('id', categoriaAEliminar.id)
+
+            if (deleteError) throw deleteError
+          } else {
+            toast({
+              title: "Advertencia",
+              description: `No se puede eliminar la categoría ${categoriaAEliminar.categoria} porque tiene ${inscripcionesActuales} inscripciones`,
+              variant: "destructive"
+            })
+          }
         }
 
         toast({
@@ -394,7 +452,7 @@ export default function AdminLigasPage() {
                 className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Nueva Liga
+                Nueva liga
               </Button>
             </div>
           </div>
@@ -573,32 +631,32 @@ export default function AdminLigasPage() {
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-white">Descripción</label>
-                  <Textarea
+                  <RichTextEditor
                     value={formData.descripcion}
-                    onChange={(e) => handleInputChange('descripcion', e.target.value)}
+                    onChange={(value) => handleInputChange('descripcion', value)}
                     placeholder="Descripción detallada de la liga..."
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 min-h-[100px]"
+                    minHeight="150px"
                   />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-white">Horarios</label>
-                    <Textarea
+                    <RichTextEditor
                       value={formData.horarios}
-                      onChange={(e) => handleInputChange('horarios', e.target.value)}
+                      onChange={(value) => handleInputChange('horarios', value)}
                       placeholder="Horarios de juego..."
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 min-h-[100px]"
+                      minHeight="150px"
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-white">Cronograma</label>
-                    <Textarea
+                    <RichTextEditor
                       value={formData.cronograma}
-                      onChange={(e) => handleInputChange('cronograma', e.target.value)}
+                      onChange={(value) => handleInputChange('cronograma', value)}
                       placeholder="Cronograma de partidos..."
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 min-h-[100px]"
+                      minHeight="150px"
                     />
                   </div>
                 </div>
@@ -719,7 +777,7 @@ export default function AdminLigasPage() {
                 
                 <div className="flex gap-3 pt-4">
                   <Button type="submit" className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90">
-                    {editingLiga ? 'Actualizar Liga' : 'Crear Liga'}
+                    {editingLiga ? 'Actualizar' : 'Crear'}
                   </Button>
                   <Button type="button" variant="outline" onClick={resetForm} className="border-white/20 text-white hover:bg-white/10">
                     Cancelar
@@ -786,13 +844,26 @@ export default function AdminLigasPage() {
                           </h3>
                           
                           {liga.descripcion && (
-                            <p className="text-gray-300 text-sm leading-relaxed line-clamp-2">
-                              {liga.descripcion}
-                            </p>
+                            <div className="text-gray-300 text-sm leading-relaxed">
+                              <HtmlContent 
+                                content={liga.descripcion} 
+                                maxLength={150}
+                                className="line-clamp-2"
+                              />
+                            </div>
                           )}
                         </div>
                         
                         <div className="flex gap-2 sm:flex-col">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setViewingLiga(liga)}
+                            className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Ver
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -875,17 +946,26 @@ export default function AdminLigasPage() {
                             <div className="w-1 h-4 bg-[#E2FF1B] rounded-full"></div>
                             <h4 className="text-sm font-semibold text-white uppercase tracking-wide">Categorías Disponibles</h4>
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             {liga.liga_categorias.map((cat) => (
-                              <div key={cat.id} className="relative group/cat">
-                                <Badge className={`${getCategoriaColor(cat.categoria)} border w-full justify-center py-2 text-xs font-medium transition-all duration-200 group-hover/cat:scale-105`}>
-                                  <div className="flex flex-col items-center gap-1">
-                                    <span>{cat.categoria}</span>
-                                    <span className="text-xs opacity-75">({cat.max_inscripciones})</span>
+                              <div key={cat.id} className="bg-white/5 rounded-lg p-3 border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200 group/cat">
+                                <div className="flex items-center justify-between mb-2">
+                                  <Badge className={`${getCategoriaColor(cat.categoria)} border text-xs font-medium`}>
+                                    {cat.categoria}
+                                  </Badge>
+                                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                                    <Users className="w-3 h-3" />
+                                    <span>{cat.max_inscripciones}</span>
                                   </div>
-                                </Badge>
-                                <div className="absolute -top-2 -right-2 w-4 h-4 bg-[#E2FF1B] rounded-full flex items-center justify-center opacity-0 group-hover/cat:opacity-100 transition-opacity duration-200">
-                                  <span className="text-black text-xs font-bold">{cat.max_inscripciones}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-400">Cupos disponibles</span>
+                                  <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-[#E2FF1B] rounded-full transition-all duration-300 group-hover/cat:w-full"
+                                      style={{ width: '100%' }}
+                                    ></div>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -900,6 +980,159 @@ export default function AdminLigasPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal para ver detalles completos de la liga */}
+      {viewingLiga && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-white/20 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-white/20">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">{viewingLiga.nombre}</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewingLiga(null)}
+                  className="text-white hover:bg-white/10"
+                >
+                  <XCircle className="w-6 h-6" />
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <Badge className={`${getEstadoColor(viewingLiga.estado)} border`}>
+                  <div className="flex items-center gap-1">
+                    {getEstadoIcon(viewingLiga.estado)}
+                    <span className="font-medium capitalize">{viewingLiga.estado}</span>
+                  </div>
+                </Badge>
+                <div className="flex items-center gap-2 text-sm text-gray-400 bg-white/5 px-3 py-1 rounded-full">
+                  <Calendar className="w-4 h-4" />
+                  <span>Inicio: {new Date(viewingLiga.fecha_inicio).toLocaleDateString('es-AR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#E2FF1B] bg-[#E2FF1B]/10 px-3 py-1 rounded-full">
+                  <Trophy className="w-4 h-4" />
+                  <span>{viewingLiga.liga_categorias?.length || 0} categorías</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Descripción */}
+              {viewingLiga.descripcion && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-[#E2FF1B] rounded-full"></div>
+                    Descripción
+                  </h3>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <HtmlContent 
+                      content={viewingLiga.descripcion} 
+                      className="text-gray-300"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Horarios */}
+              {viewingLiga.horarios && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-[#E2FF1B] rounded-full"></div>
+                    Horarios
+                  </h3>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <HtmlContent 
+                      content={viewingLiga.horarios} 
+                      className="text-gray-300"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Cronograma */}
+              {viewingLiga.cronograma && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-[#E2FF1B] rounded-full"></div>
+                    Cronograma
+                  </h3>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <HtmlContent 
+                      content={viewingLiga.cronograma} 
+                      className="text-gray-300"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Información Importante */}
+              {viewingLiga.importante && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-[#E2FF1B] rounded-full"></div>
+                    Información Importante
+                  </h3>
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <HtmlContent 
+                      content={viewingLiga.importante} 
+                      className="text-gray-300"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Información adicional */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {viewingLiga.formato && (
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <h4 className="text-sm font-semibold text-white mb-2">Formato</h4>
+                    <p className="text-gray-300">{viewingLiga.formato}</p>
+                  </div>
+                )}
+                
+                {viewingLiga.costo_inscripcion && (
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <h4 className="text-sm font-semibold text-white mb-2">Costo de Inscripción</h4>
+                    <p className="text-[#E2FF1B] font-bold text-lg">${viewingLiga.costo_inscripcion.toLocaleString()}</p>
+                  </div>
+                )}
+                
+                {viewingLiga.costo_partido && (
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <h4 className="text-sm font-semibold text-white mb-2">Costo por Partido</h4>
+                    <p className="text-[#E2FF1B] font-bold text-lg">${viewingLiga.costo_partido.toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Categorías */}
+              {viewingLiga.liga_categorias && viewingLiga.liga_categorias.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-[#E2FF1B] rounded-full"></div>
+                    Categorías
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                    {viewingLiga.liga_categorias.map((cat) => (
+                      <div key={cat.id} className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
+                        <Badge className={`${getCategoriaColor(cat.categoria)} border mb-2`}>
+                          {cat.categoria}
+                        </Badge>
+                        <p className="text-white font-bold text-lg">{cat.max_inscripciones}</p>
+                        <p className="text-gray-400 text-xs">cupos</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

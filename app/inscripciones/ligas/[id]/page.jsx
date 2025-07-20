@@ -2,20 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import HtmlContent from '@/components/ui/html-content'
+import DescriptionCard from '@/components/ui/description-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign, Upload, AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign, Upload, AlertCircle, CheckCircle, Clock, LogIn } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/components/AuthProvider'
 
 export default function LigaInscripcionPage() {
   const { id } = useParams()
+  const router = useRouter()
+  const { user } = useAuth()
   const { toast } = useToast()
   const [liga, setLiga] = useState(null)
   const [categorias, setCategorias] = useState([])
@@ -36,11 +41,24 @@ export default function LigaInscripcionPage() {
   })
   const [comprobanteFile, setComprobanteFile] = useState(null)
 
+  // Verificar autenticación
   useEffect(() => {
-    if (id) {
+    if (!user) {
+      toast({
+        title: "Acceso denegado",
+        description: "Debes iniciar sesión para acceder a esta página",
+        variant: "destructive"
+      })
+      router.push('/inscripciones/ligas')
+      return
+    }
+  }, [user, router, toast])
+
+  useEffect(() => {
+    if (id && user) {
       fetchLigaData()
     }
-  }, [id])
+  }, [id, user])
 
   const fetchLigaData = async () => {
     try {
@@ -244,6 +262,18 @@ export default function LigaInscripcionPage() {
     return text.replace(/\\n/g, '\n')
   }
 
+  // Mostrar pantalla de carga mientras se verifica la autenticación
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#E2FF1B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white">Verificando autenticación...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
@@ -288,15 +318,16 @@ export default function LigaInscripcionPage() {
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
               <span className="text-[#E2FF1B]">{liga.nombre}</span>
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              {liga.descripcion}
-            </p>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 pb-16">
-        <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
+          {/* Descripción de la Liga */}
+          <div className="lg:col-span-3">
+            <DescriptionCard content={liga.descripcion} />
+          </div>
           {/* Información de la Liga */}
           <div className="lg:col-span-1">
             <Card className="bg-white/5 border-white/10 sticky top-8">
@@ -327,11 +358,13 @@ export default function LigaInscripcionPage() {
                   )}
                   
                   {liga.horarios && (
-                    <div className="flex items-center gap-3 text-gray-300">
-                      <Clock className="w-5 h-5 text-[#E2FF1B]" />
+                    <div className="flex items-start gap-3 text-gray-300">
+                      <Clock className="w-5 h-5 text-[#E2FF1B] mt-1" />
                       <div>
                         <p className="font-semibold">Horarios</p>
-                        <p className="text-sm">{liga.horarios}</p>
+                        <div className="text-sm">
+                          <HtmlContent content={liga.horarios} />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -358,7 +391,7 @@ export default function LigaInscripcionPage() {
                       <div key={categoria.id} className="flex justify-between items-center text-sm">
                         <span className="text-white font-medium">{categoria.categoria}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-300">
+                          <span className="text-white">
                             {categoria.inscripcionesActuales}/{categoria.max_inscripciones}
                           </span>
                           <Badge 
@@ -376,8 +409,8 @@ export default function LigaInscripcionPage() {
                 {liga.cronograma && (
                   <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-4">
                     <h4 className="font-semibold text-[#E2FF1B] mb-2">Cronograma</h4>
-                    <div className="text-sm text-gray-300 whitespace-pre-line">
-                      {formatText(liga.cronograma)}
+                    <div className="text-sm text-gray-300">
+                      <HtmlContent content={liga.cronograma} />
                     </div>
                   </div>
                 )}
@@ -388,8 +421,8 @@ export default function LigaInscripcionPage() {
                       <AlertCircle className="w-4 h-4" />
                       Importante
                     </h4>
-                    <div className="text-sm text-gray-300 whitespace-pre-line">
-                      {formatText(liga.importante)}
+                    <div className="text-sm text-gray-300">
+                      <HtmlContent content={liga.importante} />
                     </div>
                   </div>
                 )}

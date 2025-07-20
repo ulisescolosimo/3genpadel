@@ -277,7 +277,7 @@ export default function AdminDashboard() {
                       <CardTitle className="text-white">Inscripciones Recientes</CardTitle>
                     </div>
                     <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B]">
-                      {inscripcionesRecientes.length} recientes
+                      {inscripcionesRecientes.length}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
                     ) : (
                       inscripcionesRecientes.map((inscripcion) => (
                         <div key={inscripcion.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200">
-                          <div className="flex items-center gap-4">
+                          <div className="flex flex-col gap-4">
                             <div className="flex-shrink-0">
                               <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
                                 <div className="flex items-center gap-1">
@@ -303,7 +303,7 @@ export default function AdminDashboard() {
                                 </div>
                               </Badge>
                             </div>
-                            <div>
+                            <div className="flex flex-col gap-1">
                               <p className="text-white font-medium">
                                 {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido}
                               </p>
