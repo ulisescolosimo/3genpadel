@@ -43,7 +43,7 @@ export default function ActivarCuentaPage() {
       setError('')
 
       const { data, error } = await supabase
-        .from('jugador')
+        .from('usuarios')
         .select('*')
         .eq('email', emailToSearch.toLowerCase())
         .single()
@@ -53,25 +53,47 @@ export default function ActivarCuentaPage() {
       }
 
       if (data) {
-        // Verificar si ya tiene cuenta activa
-        if (data.cuenta_activada) {
-          setError('Este jugador ya tiene una cuenta activa. Puede iniciar sesión directamente.')
+        // Verificar si ya tiene cuenta completamente activa (auth_id y cuenta_activada)
+        if (data.cuenta_activada && data.auth_id) {
+          setError('Este usuario ya tiene una cuenta activa. Puede iniciar sesión directamente.')
           return
         }
 
-        setJugador(data)
-        setStep(2)
-        toast({
-          title: "Jugador encontrado",
-          description: `${data.nombre} ${data.apellido || ''}`,
-          variant: "default"
-        })
+        // Si tiene auth_id pero no cuenta_activada, es un caso especial (no debería ocurrir)
+        if (data.auth_id && !data.cuenta_activada) {
+          setError('Estado de cuenta inconsistente. Contacta al administrador.')
+          return
+        }
+
+        // Si no tiene cuenta_activada ni auth_id, puede activar su cuenta
+        if (!data.cuenta_activada && !data.auth_id) {
+          setJugador(data)
+          setStep(2)
+          toast({
+            title: "Usuario encontrado",
+            description: `${data.nombre} ${data.apellido || ''} - Activa tu cuenta`,
+            variant: "default"
+          })
+          return
+        }
+
+        // Si tiene cuenta_activada pero no auth_id, significa que necesita configurar su contraseña
+        if (data.cuenta_activada && !data.auth_id) {
+          setJugador(data)
+          setStep(2)
+          toast({
+            title: "Usuario encontrado",
+            description: `${data.nombre} ${data.apellido || ''} - Configura tu contraseña`,
+            variant: "default"
+          })
+          return
+        }
       } else {
-        setError('No se encontró un jugador registrado con este email.')
+        setError('No se encontró un usuario registrado con este email.')
       }
     } catch (error) {
-      console.error('Error buscando jugador:', error)
-      setError('Error al buscar el jugador. Inténtalo de nuevo.')
+      console.error('Error buscando usuario:', error)
+      setError('Error al buscar el usuario. Inténtalo de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -128,7 +150,11 @@ export default function ActivarCuentaPage() {
       }
 
       toast({
-        title: "¡Cuenta activada exitosamente!",
+        title: jugador?.cuenta_activada && !jugador?.auth_id 
+          ? "¡Contraseña configurada exitosamente!"
+          : !jugador?.cuenta_activada && !jugador?.auth_id
+            ? "¡Cuenta activada exitosamente!"
+            : "¡Cuenta activada exitosamente!",
         description: "Ya puedes iniciar sesión con tu email y contraseña.",
         variant: "default"
       })
@@ -163,7 +189,11 @@ export default function ActivarCuentaPage() {
             <CardDescription className="text-gray-400">
               {step === 1 
                 ? "Ingresa tu email para verificar tu registro"
-                : "Establece tu contraseña para activar tu cuenta"
+                : jugador?.cuenta_activada && !jugador?.auth_id
+                  ? "Configura tu contraseña para completar la activación"
+                  : !jugador?.cuenta_activada && !jugador?.auth_id
+                    ? "Establece tu contraseña para activar tu cuenta"
+                    : "Establece tu contraseña para activar tu cuenta"
               }
             </CardDescription>
           </CardHeader>
@@ -212,6 +242,11 @@ export default function ActivarCuentaPage() {
                     <p className="text-green-300 text-sm mt-1">
                       {jugador.email}
                     </p>
+                    {jugador.dni && (
+                      <p className="text-green-300 text-sm mt-1">
+                        DNI: {jugador.dni}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -293,7 +328,14 @@ export default function ActivarCuentaPage() {
                     disabled={loading || !password || !confirmPassword}
                     className="flex-1 bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
                   >
-                    {loading ? 'Activando...' : 'Activar Cuenta'}
+                    {loading 
+                      ? 'Activando...' 
+                      : jugador?.cuenta_activada && !jugador?.auth_id
+                        ? 'Configurar Contraseña'
+                        : !jugador?.cuenta_activada && !jugador?.auth_id
+                          ? 'Activar Cuenta'
+                          : 'Activar Cuenta'
+                    }
                   </Button>
                 </div>
               </form>

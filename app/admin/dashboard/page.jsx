@@ -109,7 +109,7 @@ export default function AdminDashboard() {
               nombre
             )
           ),
-          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+          titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
             id,
             nombre,
             apellido,
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
             telefono,
             ranking_puntos
           ),
-          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+          titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
             nombre,
             apellido,
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
             telefono,
             ranking_puntos
           ),
-          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+          suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
             nombre,
             apellido,
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
             telefono,
             ranking_puntos
           ),
-          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+          suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
             nombre,
             apellido,
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
         ...inscripcion,
         categoria: inscripcion.liga_categorias?.categoria || 'N/A',
         liga: inscripcion.liga_categorias?.ligas?.nombre || 'N/A',
-        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        // Usar datos de la tabla usuarios si están disponibles, sino usar los campos directos
         titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
         titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
         titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',

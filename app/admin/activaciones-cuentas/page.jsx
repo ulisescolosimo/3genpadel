@@ -45,21 +45,11 @@ export default function AdminActivacionesCuentasPage() {
     try {
       setRefreshing(true)
       
-      // Obtener todos los jugadores con información de activación
+      // Obtener todos los usuarios con información de activación
       const { data, error } = await supabase
-        .from('jugador')
-        .select(`
-          *,
-          usuarios (
-            id,
-            email,
-            nombre,
-            apellido,
-            rol,
-            created_at
-          )
-        `)
-        .order('id', { ascending: false })
+        .from('usuarios')
+        .select('*')
+        .order('created_at', { ascending: false })
 
       if (error) throw error
 
@@ -67,7 +57,7 @@ export default function AdminActivacionesCuentasPage() {
 
       // Calcular estadísticas
       const total = data?.length || 0
-      const activados = data?.filter(j => j.cuenta_activada)?.length || 0
+      const activados = data?.filter(u => u.cuenta_activada)?.length || 0
       const pendientes = total - activados
       const porcentaje = total > 0 ? Math.round((activados / total) * 100) : 0
 
@@ -78,10 +68,10 @@ export default function AdminActivacionesCuentasPage() {
         porcentaje
       })
     } catch (error) {
-      console.error('Error fetching jugadores:', error)
+      console.error('Error fetching usuarios:', error)
       toast({
         title: "Error",
-        description: "No se pudieron cargar los jugadores",
+        description: "No se pudieron cargar los usuarios",
         variant: "destructive"
       })
     } finally {
@@ -289,11 +279,11 @@ export default function AdminActivacionesCuentasPage() {
                         </div>
                       </div>
 
-                      {jugador.cuenta_activada && jugador.usuarios && (
+                      {jugador.cuenta_activada && (
                         <div className="mt-2 text-sm text-green-400">
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
-                            Cuenta activada el {new Date(jugador.usuarios.created_at).toLocaleDateString('es-ES')}
+                            Cuenta activada el {new Date(jugador.created_at).toLocaleDateString('es-ES')}
                           </div>
                         </div>
                       )}

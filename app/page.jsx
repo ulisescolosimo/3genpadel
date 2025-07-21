@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react"
+import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
+import * as XLSX from "xlsx"
 
 export default function Home() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -16,6 +17,9 @@ export default function Home() {
     containScroll: 'trimSnaps'
   }, [Autoplay({ delay: 3000, stopOnInteraction: false })])
 
+  const [products, setProducts] = useState([])
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true)
+
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev()
   }, [emblaApi])
@@ -23,6 +27,73 @@ export default function Home() {
   const scrollNext = useCallback(() => {
     if (emblaApi) emblaApi.scrollNext()
   }, [emblaApi])
+
+  // Función para formatear precios
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(price)
+  }
+
+  // Cargar productos del Excel
+  useEffect(() => {
+    const fetchExcelData = async () => {
+      setIsLoadingProducts(true)
+      try {
+        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRJlPwCH1_F1wzoxo5Ss37zJXLaozte-5FHUlFIpLcHFoI4Lf6D4oaLRteb-2NdP9ktJMkXwoG3OJWG/pub?gid=0&single=true&output=csv')
+        const csvText = await response.text()
+        
+        // Convertir CSV a workbook
+        const workbook = XLSX.read(csvText, { type: 'string' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        
+        // Convertir a JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+        
+        // Extraer las columnas que nos interesan
+        const headers = jsonData[0]
+        const filteredData = jsonData.slice(1)
+          .filter(row => row[0] && row[0].trim() !== '') // Filtrar filas vacías
+          .map(row => {
+            // Limpiar y convertir precios
+            const precioRegularStr = (row[2] || '').toString().replace(/[^\d,]/g, '').replace(',', '.')
+            const precio3GENStr = (row[3] || '').toString().replace(/[^\d,]/g, '').replace(',', '.')
+            
+            return {
+              nombre: row[0]?.trim() || '',
+              talle: row[1]?.trim() || '',
+              precioRegular: parseFloat(precioRegularStr) || 0,
+              precio3GEN: parseFloat(precio3GENStr) || 0,
+              stock: parseInt(row[4]) || 0,
+              imagen: row[5]?.trim() || '' // Nueva columna de imagen
+            }
+          })
+        
+        // Convertir datos del Excel a productos
+        const excelProducts = filteredData.map((item, index) => ({
+          id: index + 1,
+          name: item.nombre,
+          description: `${item.nombre} - Talle: ${item.talle}`,
+          price: item.precio3GEN, // Usar precio 3GEN como precio principal
+          originalPrice: item.precioRegular,
+          talle: item.talle,
+          stock: item.stock,
+          image: item.imagen, // Usar imagen del Excel o placeholder
+          category: "indumentaria" // Categoría por defecto
+        }))
+        
+        setProducts(excelProducts)
+      } catch (error) {
+        console.error('Error al obtener datos del Excel:', error)
+      } finally {
+        setIsLoadingProducts(false)
+      }
+    }
+
+    fetchExcelData()
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -288,184 +359,85 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            <div className="overflow-hidden" ref={emblaRef}>
-              <div className="flex">
-                {/* Estructura base para todas las cards */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/camiseta-3gen.jpg"
-                        alt="Camiseta 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Camiseta 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Camiseta oficial de 3gen Padel Academy</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$29.999</span>
+            {isLoadingProducts ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-12 h-12 text-[#E2FF1B] animate-spin mb-4" />
+                <p className="text-gray-400 text-lg">Cargando productos</p>
+              </div>
+            ) : (
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex">
+                  {products.map((product) => (
+                    <div key={product.id} className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
+                      <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
+                        <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
+                          <img
+                            src={product.image || "/images/products/camiseta-3gen.jpg"}
+                            alt={product.name}
+                            className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                        <div className="p-4 flex flex-col flex-grow">
+                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">{product.name}</h3>
+                          <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">{product.description}</p>
+                          <div className="flex items-center justify-between mt-auto">
+                            <div className="flex flex-col">
+                              <span className="text-lg font-bold text-[#E2FF1B]">{formatPrice(product.price)}</span>
+                              {product.originalPrice && product.originalPrice > product.price && (
+                                <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+                              )}
+                            </div>
+                            {product.stock > 0 && (
+                              <span className="text-xs text-green-400">Stock: {product.stock}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Gorra */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/gorra-3gen.jpg"
-                        alt="Gorra 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Gorra 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Gorra ajustable con logo bordado</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$19.999</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bolsa de Pádel */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/bolsa-padel.jpg"
-                        alt="Bolsa de Pádel"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Bolsa de Pádel</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Bolsa térmica para 2 palas</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$49.999</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Toalla */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/toalla-3gen.jpg"
-                        alt="Toalla 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Toalla 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Toalla de microfibra absorbente</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$14.999</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Muñequera */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/munequera-3gen.jpg"
-                        alt="Muñequera 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Muñequera 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Muñequera elástica con logo</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$9.999</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calcetines */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/calcetines-3gen.jpg"
-                        alt="Calcetines 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Calcetines 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Pack de 3 pares de calcetines técnicos</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$24.999</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mochila */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/mochila-3gen.jpg"
-                        alt="Mochila 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Mochila 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Mochila deportiva con compartimento para pala</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$39.999</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Riñonera */}
-                <div className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
-                  <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                      <img
-                        src="/images/products/rinonera-3gen.jpg"
-                        alt="Riñonera 3gen"
-                        className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">Riñonera 3gen</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">Riñonera deportiva con múltiples bolsillos</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="text-lg font-bold text-[#E2FF1B]">$19.999</span>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Controles del carrusel */}
-            <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-10"
-              onClick={scrollPrev}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-            <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-10"
-              onClick={scrollNext}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
+            {!isLoadingProducts && products.length > 0 && (
+              <>
+                <button
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-10"
+                  onClick={scrollPrev}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors z-10"
+                  onClick={scrollNext}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
           </div>
+
+          {/* Enlace para ver todos los productos */}
+          {!isLoadingProducts && products.length > 0 && (
+            <div className="text-center mt-8">
+              <Link href="/merchandising">
+                <Button
+                  variant="outline"
+                  className="group relative px-6 py-3 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <ShoppingBag className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
+                    Ver todos los productos
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

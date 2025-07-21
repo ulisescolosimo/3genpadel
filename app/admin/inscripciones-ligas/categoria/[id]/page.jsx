@@ -55,7 +55,7 @@ export default function AdminInscripcionesCategoriaPage() {
         .from('ligainscripciones')
         .select(`
           *,
-          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+          titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
             id,
             nombre,
             apellido,
@@ -63,7 +63,7 @@ export default function AdminInscripcionesCategoriaPage() {
             telefono,
             ranking_puntos
           ),
-          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+          titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
             nombre,
             apellido,
@@ -71,7 +71,7 @@ export default function AdminInscripcionesCategoriaPage() {
             telefono,
             ranking_puntos
           ),
-          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+          suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
             nombre,
             apellido,
@@ -79,7 +79,7 @@ export default function AdminInscripcionesCategoriaPage() {
             telefono,
             ranking_puntos
           ),
-          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+          suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
             nombre,
             apellido,
@@ -93,10 +93,10 @@ export default function AdminInscripcionesCategoriaPage() {
 
       if (inscripcionesError) throw inscripcionesError
 
-      // Procesar las inscripciones para usar información de la tabla jugador
+      // Procesar las inscripciones para usar información de la tabla usuarios
       const inscripcionesProcesadas = inscripcionesData.map(inscripcion => ({
         ...inscripcion,
-        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        // Usar datos de la tabla usuarios si están disponibles, sino usar los campos directos
         titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
         titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
         titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',

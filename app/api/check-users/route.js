@@ -27,15 +27,7 @@ export async function GET(request) {
       console.error('Error consultando usuarios:', usuariosError)
     }
 
-    // Verificar si existe en tabla jugador
-    const { data: jugadores, error: jugadoresError } = await supabase
-      .from('jugador')
-      .select('*')
-      .eq('email', email.toLowerCase())
 
-    if (jugadoresError) {
-      console.error('Error consultando jugadores:', jugadoresError)
-    }
 
     // Intentar hacer login para verificar si existe en Auth
     let authUser = null
@@ -67,9 +59,7 @@ export async function GET(request) {
       auth: authUser,
       authError: authError?.message,
       usuarios: usuarios || [],
-      jugadores: jugadores || [],
-      usuariosError: usuariosError?.message,
-      jugadoresError: jugadoresError?.message
+      usuariosError: usuariosError?.message
     })
 
   } catch (error) {

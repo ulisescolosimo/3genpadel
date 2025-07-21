@@ -1,5 +1,32 @@
 # Scripts de Administración
 
+## Migración de Consolidación de Tablas
+
+### Descripción
+Scripts para consolidar las tablas `jugador` y `usuarios` en una sola tabla `usuarios`, eliminando la redundancia de datos.
+
+### Archivos de Migración
+- `migrate-consolidate-tables.sql` - Script SQL para la migración de la base de datos
+- `run-migration.js` - Script automatizado para ejecutar la migración
+- `update-code-after-migration.js` - Script para actualizar el código después de la migración
+- `MIGRATION_README.md` - Documentación completa de la migración
+
+### Uso
+```bash
+# 1. Verificar estado actual
+node scripts/run-migration.js check
+
+# 2. Ejecutar migración (después de hacer backup)
+node scripts/run-migration.js migrate
+
+# 3. Actualizar código
+node scripts/update-code-after-migration.js update
+```
+
+**⚠️ IMPORTANTE**: Lee `MIGRATION_README.md` antes de ejecutar la migración.
+
+---
+
 ## Crear Administrador
 
 El script `create-admin.js` te permite crear fácilmente una cuenta de administrador para el panel de administración.

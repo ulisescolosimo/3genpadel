@@ -42,6 +42,56 @@ export default function AuthCallback() {
             if (profileError) throw profileError
           }
 
+          // Verificar si el usuario ya tiene un perfil de jugador
+          const { data: jugador } = await supabase
+            .from("jugador")
+            .select("*")
+            .eq("email", session.user.email.toLowerCase())
+            .single()
+
+          // Si no tiene perfil de jugador, crearlo automáticamente
+          if (!jugador) {
+            // Extraer nombre y apellido del full_name de Google
+            const fullName = session.user.user_metadata?.full_name || ""
+            const nameParts = fullName.split(" ")
+            const nombre = nameParts[0] || session.user.email?.split("@")[0] || ""
+            const apellido = nameParts.slice(1).join(" ") || ""
+
+            const { error: jugadorError } = await supabase
+              .from("jugador")
+              .insert([
+                {
+                  email: session.user.email.toLowerCase(),
+                  nombre: nombre,
+                  apellido: apellido,
+                  dni: "", // Campo vacío que deberá completar después
+                  ranking_puntos: 0,
+                  cuenta_activada: false, // No activada hasta que complete DNI
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                },
+              ])
+
+            if (jugadorError) {
+              console.error('Error creando perfil de jugador:', jugadorError)
+              // No lanzar error aquí para no interrumpir el login
+            } else {
+              // Actualizar el perfil de usuario con el jugador_id
+              const { data: jugadorCreado } = await supabase
+                .from("jugador")
+                .select("id")
+                .eq("email", session.user.email.toLowerCase())
+                .single()
+
+              if (jugadorCreado) {
+                await supabase
+                  .from("usuarios")
+                  .update({ jugador_id: jugadorCreado.id })
+                  .eq("id", session.user.id)
+              }
+            }
+          }
+
           // Redirigir al usuario
           router.push(redirectTo)
         } else {

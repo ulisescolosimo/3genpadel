@@ -63,36 +63,40 @@ export default function AdminInscripcionDetallePage() {
               importante
             )
           ),
-          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+          titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           ),
-          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+          titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           ),
-          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+          suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           ),
-          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+          suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           )
         `)
@@ -101,10 +105,10 @@ export default function AdminInscripcionDetallePage() {
 
       if (error) throw error
 
-      // Procesar los datos para usar información de la tabla jugador
+      // Procesar los datos para usar información de la tabla usuarios
       const inscripcionProcesada = {
         ...data,
-        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        // Usar datos de la tabla usuarios si están disponibles, sino usar los campos directos
         titular_1_nombre: data.titular_1?.nombre || data.titular_1_nombre || 'N/A',
         titular_1_apellido: data.titular_1?.apellido || data.titular_1_apellido || '',
         titular_1_email: data.titular_1?.email || data.titular_1_email || 'N/A',

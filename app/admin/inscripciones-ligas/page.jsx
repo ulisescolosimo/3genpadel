@@ -45,36 +45,40 @@ export default function AdminInscripcionesLigasPage() {
               fecha_inicio
             )
           ),
-          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+          titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           ),
-          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+          titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           ),
-          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+          suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           ),
-          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+          suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
             nombre,
             apellido,
             email,
             telefono,
+            dni,
             ranking_puntos
           )
         `)
@@ -91,7 +95,7 @@ export default function AdminInscripcionesLigasPage() {
         fecha_inicio: inscripcion.liga_categorias?.ligas?.fecha_inicio || null,
         liga_categoria_id: inscripcion.liga_categoria_id,
         max_inscripciones: inscripcion.liga_categorias?.max_inscripciones || 0,
-        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        // Usar datos de la tabla usuarios si están disponibles, sino usar los campos directos
         titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
         titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
         titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
@@ -250,15 +254,19 @@ export default function AdminInscripcionesLigasPage() {
       inscripcion.titular_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inscripcion.titular_1_dni && inscripcion.titular_1_dni.toLowerCase().includes(searchTerm.toLowerCase())) ||
       inscripcion.titular_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inscripcion.titular_2_dni && inscripcion.titular_2_dni.toLowerCase().includes(searchTerm.toLowerCase())) ||
       inscripcion.suplente_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.suplente_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.suplente_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inscripcion.suplente_1_dni && inscripcion.suplente_1_dni.toLowerCase().includes(searchTerm.toLowerCase())) ||
       inscripcion.suplente_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.suplente_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.suplente_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inscripcion.suplente_2_dni && inscripcion.suplente_2_dni.toLowerCase().includes(searchTerm.toLowerCase())) ||
       inscripcion.contacto_celular.includes(searchTerm) ||
       inscripcion.titular_1_telefono.includes(searchTerm) ||
       inscripcion.titular_2_telefono.includes(searchTerm) ||
@@ -448,7 +456,7 @@ export default function AdminInscripcionesLigasPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    placeholder="Buscar por nombre, apellido o teléfono..."
+                    placeholder="Buscar por nombre, apellido, DNI o teléfono..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 pl-10 h-12 text-base"

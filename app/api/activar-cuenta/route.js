@@ -35,37 +35,29 @@ export async function POST(request) {
 
     console.log('Activando cuenta para:', { email, jugadorId })
 
-    // Verificar que el jugador existe y no está activado
-    const { data: jugador, error: jugadorError } = await supabase
-      .from('jugador')
+    // Verificar que el usuario existe y no está activado
+    const { data: usuario, error: usuarioError } = await supabase
+      .from('usuarios')
       .select('*')
       .eq('id', jugadorId)
       .eq('email', email.toLowerCase())
       .single()
 
-    if (jugadorError || !jugador) {
-      console.error('Error buscando jugador:', jugadorError)
+    if (usuarioError || !usuario) {
+      console.error('Error buscando usuario:', usuarioError)
       return NextResponse.json(
-        { error: 'Jugador no encontrado' },
+        { error: 'Usuario no encontrado' },
         { status: 404 }
       )
     }
 
-    console.log('Jugador encontrado:', jugador)
-    console.log('Campos del jugador:', Object.keys(jugador))
+    console.log('Usuario encontrado:', usuario)
+    console.log('Campos del usuario:', Object.keys(usuario))
 
-    if (jugador.cuenta_activada) {
+    // Verificar si ya tiene cuenta completamente activa
+    if (usuario.cuenta_activada) {
       return NextResponse.json(
-        { error: 'Este jugador ya tiene una cuenta activa' },
-        { status: 400 }
-      )
-    }
-
-    // Si ya tiene auth_id, verificar si el usuario existe en Auth
-    if (jugador.auth_id) {
-      console.log('Jugador ya tiene auth_id:', jugador.auth_id)
-      return NextResponse.json(
-        { error: 'Este jugador ya está vinculado a una cuenta de usuario' },
+        { error: 'Este usuario ya tiene una cuenta activa' },
         { status: 400 }
       )
     }
@@ -81,7 +73,7 @@ export async function POST(request) {
       password: password,
       email_confirm: true, // Confirmar email automáticamente
       user_metadata: {
-        full_name: `${jugador.nombre} ${jugador.apellido || ''}`.trim()
+        full_name: `${usuario.nombre} ${usuario.apellido || ''}`.trim()
       }
     })
 
@@ -97,25 +89,48 @@ export async function POST(request) {
       if (authError.code === 'email_exists' || authError.status === 422 || 
           authError.message.includes('already registered') || 
           authError.message.includes('already exists')) {
-        console.log('Usuario ya existe, verificando password...')
+        console.log('Usuario ya existe, actualizando contraseña...')
         
-        // Intentar hacer login para verificar que la password es correcta
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.toLowerCase(),
-          password: password
-        })
+        // Buscar el usuario existente en Auth usando listUsers
+        const { data: users, error: listError } = await supabase.auth.admin.listUsers()
         
-        if (signInError) {
-          console.error('Error en login:', signInError)
+        if (listError) {
+          console.error('Error listando usuarios:', listError)
           return NextResponse.json(
-            { error: 'Ya existe un usuario con este email pero la contraseña no coincide' },
-            { status: 400 }
+            { error: 'Error al obtener usuarios: ' + listError.message },
+            { status: 500 }
           )
         }
         
-        // Si el login es exitoso, usar ese usuario
-        console.log('Login exitoso, usando usuario existente:', signInData.user.id)
-        authData = { user: signInData.user }
+        const existingUser = users.users.find(user => user.email.toLowerCase() === email.toLowerCase())
+        
+        if (!existingUser) {
+          console.error('Usuario no encontrado en Auth')
+          return NextResponse.json(
+            { error: 'Usuario no encontrado en el sistema de autenticación' },
+            { status: 404 }
+          )
+        }
+        
+        // Actualizar la contraseña del usuario existente
+        const { data: updateUserData, error: updateUserError } = await supabase.auth.admin.updateUserById(
+          existingUser.id,
+          {
+            password: password,
+            email_confirm: true
+          }
+        )
+        
+        if (updateUserError) {
+          console.error('Error actualizando contraseña:', updateUserError)
+          return NextResponse.json(
+            { error: 'Error al actualizar la contraseña: ' + updateUserError.message },
+            { status: 500 }
+          )
+        }
+        
+        console.log('Contraseña actualizada exitosamente:', updateUserData.user.id)
+        authData = { user: updateUserData.user }
       } else {
         return NextResponse.json(
           { error: 'Error al crear la cuenta de usuario: ' + authError.message },
@@ -150,12 +165,11 @@ export async function POST(request) {
         .from('usuarios')
         .update({
           email: email.toLowerCase(),
-          nombre: jugador.nombre,
-          apellido: jugador.apellido,
-          telefono: jugador.telefono || null,
-          nivel: jugador.nivel || 'Principiante',
-          updated_at: new Date().toISOString(),
-          jugador_id: jugador.id
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          telefono: usuario.telefono || null,
+          nivel: usuario.nivel || 'Principiante',
+          updated_at: new Date().toISOString()
         })
         .eq('id', authData.user.id)
       
@@ -168,12 +182,11 @@ export async function POST(request) {
         .insert({
           id: authData.user.id,
           email: email.toLowerCase(),
-          nombre: jugador.nombre,
-          apellido: jugador.apellido,
-          telefono: jugador.telefono || null,
-          nivel: jugador.nivel || 'Principiante',
-          updated_at: new Date().toISOString(),
-          jugador_id: jugador.id
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          telefono: usuario.telefono || null,
+          nivel: usuario.nivel || 'Principiante',
+          updated_at: new Date().toISOString()
         })
       
       userError = insertError
@@ -187,10 +200,9 @@ export async function POST(request) {
       )
     }
 
-    // Actualizar jugador con el ID de auth y marcar como activado
+    // Actualizar usuario y marcar como activado
     const updateData = {
-      auth_id: authData.user.id,
-      password: password, // Guardar la contraseña también en jugador
+      password: password, // Guardar la contraseña también en usuario
       cuenta_activada: true,
       updated_at: new Date().toISOString()
     }
@@ -198,35 +210,46 @@ export async function POST(request) {
     // Si el campo created_at existe, no lo actualizamos (debe mantener su valor original)
     // El trigger se encargará de actualizar updated_at automáticamente
     
-    console.log('Datos a actualizar en jugador:', updateData)
+    console.log('Datos a actualizar en usuario:', updateData)
     
-    const { data: updatedJugador, error: updateError } = await supabase
-      .from('jugador')
+    const { data: updatedUsuario, error: updateError } = await supabase
+      .from('usuarios')
       .update(updateData)
-      .eq('id', jugador.id)
+      .eq('id', usuario.id)
       .select()
 
     if (updateError) {
-      console.error('Error actualizando jugador:', updateError)
+      console.error('Error actualizando usuario:', updateError)
       return NextResponse.json(
-        { error: 'Error al actualizar el jugador: ' + updateError.message },
+        { error: 'Error al actualizar el usuario: ' + updateError.message },
         { status: 500 }
       )
     }
 
-    console.log('Jugador actualizado exitosamente:', updatedJugador)
+    console.log('Usuario actualizado exitosamente:', updatedUsuario)
+
+    // Determinar el mensaje según el estado previo del usuario
+    const wasAlreadyActivated = usuario.cuenta_activada
+    const wasNewUser = !usuario.cuenta_activada
+    
+    let message = 'Cuenta activada exitosamente. Ya puedes hacer login.'
+    if (wasAlreadyActivated) {
+      message = 'Contraseña configurada exitosamente. Ya puedes hacer login.'
+    } else if (wasNewUser) {
+      message = 'Cuenta activada exitosamente. Ya puedes hacer login.'
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Cuenta activada exitosamente. Ya puedes hacer login.',
+      message: message,
       user: {
         id: authData.user.id,
         email: authData.user.email
       },
-      jugador: {
-        id: jugador.id,
-        email: jugador.email,
-        nombre: jugador.nombre
+      usuario: {
+        id: usuario.id,
+        email: usuario.email,
+        nombre: usuario.nombre
       }
     })
 

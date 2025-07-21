@@ -30,18 +30,22 @@ export default function LigaInscripcionPage() {
     titular_1_email: '',
     titular_1_nombre: '',
     titular_1_apellido: '',
+    titular_1_dni: '',
     titular_1_id: null,
     titular_2_email: '',
     titular_2_nombre: '',
     titular_2_apellido: '',
+    titular_2_dni: '',
     titular_2_id: null,
     suplente_1_email: '',
     suplente_1_nombre: '',
     suplente_1_apellido: '',
+    suplente_1_dni: '',
     suplente_1_id: null,
     suplente_2_email: '',
     suplente_2_nombre: '',
     suplente_2_apellido: '',
+    suplente_2_dni: '',
     suplente_2_id: null,
     liga_categoria_id: '',
     contacto_celular: '',
@@ -57,104 +61,265 @@ export default function LigaInscripcionPage() {
     suplente_2: null
   })
   
-  // Estados para la búsqueda de jugadores
-  const [emailBusqueda, setEmailBusqueda] = useState('')
+  // Estados para la búsqueda de usuarios
+  const [busqueda, setBusqueda] = useState('')
+  const [tipoBusqueda, setTipoBusqueda] = useState('email') // 'email' o 'dni'
+  const [usuariosEncontrados, setUsuariosEncontrados] = useState([])
+  const [mostrarDropdown, setMostrarDropdown] = useState(false)
   const [jugadorEncontrado, setJugadorEncontrado] = useState(null)
   const [nuevoJugador, setNuevoJugador] = useState({
     nombre: '',
-    apellido: ''
+    apellido: '',
+    dni: '',
+    email: ''
+  })
+  const [dniConfigurado, setDniConfigurado] = useState(false)
+  const [verificandoDNI, setVerificandoDNI] = useState(true)
+  const [creandoUsuario, setCreandoUsuario] = useState(false)
+
+  // 1. Agregar estado para advertencia y bloqueo
+  const [bloquearPorInscripcion, setBloquearPorInscripcion] = useState({
+    bloquear: false,
+    mensaje: ''
   })
 
-  // Verificar autenticación
+  // Estado para verificar si el usuario ya está inscripto en esta liga específica
+  const [yaInscriptoEnLiga, setYaInscriptoEnLiga] = useState({
+    inscripto: false,
+    mensaje: '',
+    inscripcion: null
+  })
+
+  // Verificar autenticación y DNI
   useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Acceso denegado",
-        description: "Debes iniciar sesión para acceder a esta página",
-        variant: "destructive"
-      })
-      router.push('/inscripciones/ligas')
-      return
+    const verificarAutenticacionYDNI = async () => {
+      try {
+        setVerificandoDNI(true)
+        
+        // Verificar autenticación
+        if (!user) {
+          toast({
+            title: "Acceso denegado",
+            description: "Debes iniciar sesión para acceder a esta página",
+            variant: "destructive"
+          })
+          router.push('/inscripciones/ligas')
+          return
+        }
+
+        // Verificar si el usuario tiene DNI configurado
+        const { data: usuario, error: usuarioError } = await supabase
+          .from('usuarios')
+          .select('dni, nombre, apellido')
+          .eq('email', user.email.toLowerCase())
+          .single()
+
+        if (usuarioError && usuarioError.code !== 'PGRST116') {
+          console.error('Error verificando usuario:', usuarioError)
+          setDniConfigurado(false)
+          setVerificandoDNI(false)
+          return
+        }
+
+        // Si no existe el usuario o no tiene DNI
+        if (!usuario || !usuario.dni || usuario.dni.toString().trim() === '') {
+          setDniConfigurado(false)
+          setVerificandoDNI(false)
+          return
+        }
+
+        // DNI configurado correctamente
+        setDniConfigurado(true)
+        setVerificandoDNI(false)
+        
+      } catch (error) {
+        console.error('Error en verificación de DNI:', error)
+        setDniConfigurado(false)
+        setVerificandoDNI(false)
+      }
+    }
+
+    if (user) {
+      verificarAutenticacionYDNI()
     }
   }, [user, router, toast])
 
   useEffect(() => {
-    if (id && user) {
+    if (id && user && !verificandoDNI) {
       fetchLigaData()
+      verificarInscripcionEnLiga()
     }
-  }, [id, user])
+  }, [id, user, verificandoDNI])
 
-  // Auto-asignar usuario logueado como titular 1
+  // Función para verificar si el usuario ya está inscripto en esta liga específica
+  const verificarInscripcionEnLiga = async () => {
+    if (!user || !id) return
+
+    try {
+      // Buscar el usuario en la base de datos
+      const { data: usuario, error: usuarioError } = await supabase
+        .from('usuarios')
+        .select('id, dni')
+        .eq('email', user.email.toLowerCase())
+        .single()
+
+      if (usuarioError && usuarioError.code !== 'PGRST116') {
+        console.error('Error buscando usuario:', usuarioError)
+        return
+      }
+
+      if (!usuario) return
+
+      // Buscar inscripciones en esta liga específica donde el usuario participe
+      const { data: inscripciones, error: inscripcionesError } = await supabase
+        .from('ligainscripciones')
+        .select(`
+          id,
+          estado,
+          liga_categorias!inner(
+            categoria,
+            ligas!inner(
+              id,
+              nombre
+            )
+          )
+        `)
+        .eq('liga_categorias.ligas.id', id)
+        .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
+
+      if (inscripcionesError) {
+        console.error('Error verificando inscripciones en liga:', inscripcionesError)
+        return
+      }
+
+      if (inscripciones && inscripciones.length > 0) {
+        const inscripcion = inscripciones[0]
+        setYaInscriptoEnLiga({
+          inscripto: true,
+          mensaje: `Tu inscripción en la categoría ${inscripcion.liga_categorias.categoria} está ${inscripcion.estado === 'pendiente' ? 'en revisión' : inscripcion.estado}. Te contactaremos cuando sea procesada.`,
+          inscripcion: inscripcion
+        })
+      }
+    } catch (error) {
+      console.error('Error verificando inscripción en liga:', error)
+    }
+  }
+
+  // 2. Modificar el useEffect de autoasignación para buscar por email y DNI
   useEffect(() => {
-    if (user && user.email && !formData.titular_1_id) {
-      // Buscar si el usuario ya existe como jugador
-      const buscarUsuarioJugador = async () => {
+    if (user && user.email && !formData.titular_1_id && !verificandoDNI) {
+      const buscarUsuario = async () => {
         try {
           const { data, error } = await supabase
-            .from('jugador')
+            .from('usuarios')
             .select('*')
             .eq('email', user.email.toLowerCase())
             .single()
 
           if (error && error.code !== 'PGRST116') {
-            console.error('Error buscando jugador:', error)
+            console.error('Error buscando usuario:', error)
             return
           }
 
           if (data) {
-            // Usuario encontrado como jugador, auto-asignar como titular 1
+            // Buscar inscripciones por email o DNI
+            let filtros = []
+            if (data.id) filtros.push(`titular_1_id.eq.${data.id},titular_2_id.eq.${data.id},suplente_1_id.eq.${data.id},suplente_2_id.eq.${data.id}`)
+            if (data.dni) filtros.push(`titular_1_dni.eq.${data.dni},titular_2_dni.eq.${data.dni},suplente_1_dni.eq.${data.dni},suplente_2_dni.eq.${data.dni}`)
+
+            let inscripcionesExistentes = []
+            let errorInscripciones = null
+
+            // Buscar por ID usuario
+            if (filtros.length > 0) {
+              const { data: insc1, error: err1 } = await supabase
+                .from('ligainscripciones')
+                .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+                .or(filtros[0])
+                .in('estado', ['pendiente', 'aprobada'])
+              if (err1) errorInscripciones = err1
+              if (insc1) inscripcionesExistentes = inscripcionesExistentes.concat(insc1)
+            }
+            // Buscar por DNI si existe y es distinto del ID
+            if (filtros.length > 1) {
+              const { data: insc2, error: err2 } = await supabase
+                .from('ligainscripciones')
+                .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+                .or(filtros[1])
+                .in('estado', ['pendiente', 'aprobada'])
+              if (err2) errorInscripciones = err2
+              if (insc2) inscripcionesExistentes = inscripcionesExistentes.concat(insc2)
+            }
+
+            if (errorInscripciones) {
+              console.error('Error verificando inscripciones existentes:', errorInscripciones)
+            } else if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
+              const inscripcion = inscripcionesExistentes[0]
+              const ligaNombre = inscripcion.liga_categorias?.ligas?.nombre || 'una liga'
+              setBloquearPorInscripcion({
+                bloquear: true,
+                mensaje: `Ya tienes una inscripción ${inscripcion.estado} en ${ligaNombre}. No puedes inscribirte nuevamente hasta que se resuelva.`
+              })
+              return
+            }
+
+            // Usuario encontrado y sin inscripciones pendientes/confirmadas, auto-asignar como titular 1
+            console.log('Debug - Auto-asignando usuario encontrado:', data)
             setJugadoresEncontrados(prev => ({
               ...prev,
               titular_1: { ...data, encontrado: true }
             }))
-            
             setFormData(prev => ({
               ...prev,
               titular_1_email: user.email,
               titular_1_id: data.id,
               titular_1_nombre: data.nombre,
-              titular_1_apellido: data.apellido || ''
+              titular_1_apellido: data.apellido || '',
+              titular_1_dni: data.dni?.toString() || ''
             }))
-
             toast({
               title: "Auto-asignado como Titular 1",
               description: `${data.nombre} ${data.apellido || ''}`,
               variant: "default"
             })
           } else {
-            // Usuario no encontrado como jugador, crear uno nuevo
-            const { data: nuevoJugador, error: crearError } = await supabase
-              .from('jugador')
+            // Usuario no encontrado, crear uno nuevo
+            const { data: nuevoUsuario, error: crearError } = await supabase
+              .from('usuarios')
               .insert({
+                id: user.id,
                 email: user.email.toLowerCase(),
-                nombre: user.user_metadata?.full_name || user.email?.split('@')[0],
-                apellido: '',
-                ranking_puntos: 0
+                nombre: user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || "",
+                apellido: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || "",
+                dni: null, // DNI como null inicialmente
+                ranking_puntos: 0,
+                cuenta_activada: true,
+                rol: 'user'
               })
               .select()
               .single()
 
             if (crearError) {
-              console.error('Error creando jugador:', crearError)
+              console.error('Error creando usuario:', crearError)
               return
             }
 
+            console.log('Debug - Auto-asignando nuevo usuario creado:', nuevoUsuario)
             setJugadoresEncontrados(prev => ({
               ...prev,
-              titular_1: { ...nuevoJugador, encontrado: true }
+              titular_1: { ...nuevoUsuario, encontrado: true }
             }))
-            
             setFormData(prev => ({
               ...prev,
               titular_1_email: user.email,
-              titular_1_id: nuevoJugador.id,
-              titular_1_nombre: nuevoJugador.nombre,
-              titular_1_apellido: nuevoJugador.apellido || ''
+              titular_1_id: nuevoUsuario.id,
+              titular_1_nombre: nuevoUsuario.nombre,
+              titular_1_apellido: nuevoUsuario.apellido || '',
+              titular_1_dni: nuevoUsuario.dni?.toString() || ''
             }))
-
             toast({
               title: "Auto-asignado como Titular 1",
-              description: `${nuevoJugador.nombre} ${nuevoJugador.apellido || ''}`,
+              description: `${nuevoUsuario.nombre} ${nuevoUsuario.apellido || ''}`,
               variant: "default"
             })
           }
@@ -162,10 +327,35 @@ export default function LigaInscripcionPage() {
           console.error('Error en auto-asignación:', error)
         }
       }
-
-      buscarUsuarioJugador()
+      buscarUsuario()
     }
   }, [user, toast, formData.titular_1_id])
+
+  // Limpiar búsqueda cuando cambia el tipo
+  useEffect(() => {
+    setBusqueda('')
+    setUsuariosEncontrados([])
+    setMostrarDropdown(false)
+    setJugadorEncontrado(null)
+    setNuevoJugador({ nombre: '', apellido: '', dni: '', email: '' })
+  }, [tipoBusqueda])
+
+  // Actualizar búsqueda cuando cambian los jugadores seleccionados (solo si hay resultados)
+  useEffect(() => {
+    if (busqueda && busqueda.trim() !== '' && usuariosEncontrados.length > 0) {
+      buscarUsuarios(busqueda, tipoBusqueda)
+    }
+  }, [jugadoresSeleccionados])
+
+  // Asegurar que el email del Titular 1 siempre sea el del usuario logueado
+  useEffect(() => {
+    if (user && user.email && formData.titular_1_email !== user.email) {
+      setFormData(prev => ({
+        ...prev,
+        titular_1_email: user.email
+      }))
+    }
+  }, [user, formData.titular_1_email])
 
   const fetchLigaData = async () => {
     try {
@@ -213,75 +403,439 @@ export default function LigaInscripcionPage() {
     }
   }
 
+  const buscarUsuarios = async (termino, tipo) => {
+    console.log('🔍 Iniciando búsqueda:', { termino, tipo })
+    
+    if (!termino || termino.trim() === '') {
+      console.log('❌ Término de búsqueda vacío')
+      setUsuariosEncontrados([])
+      setMostrarDropdown(false)
+      return
+    }
+
+    try {
+      let query = supabase
+        .from('usuarios')
+        .select('*')
+        .neq('rol', 'admin') // Excluir usuarios con rol admin
+        .limit(10)
+
+      if (tipo === 'email') {
+        query = query.ilike('email', `%${termino.toLowerCase()}%`)
+        console.log('📧 Buscando por email:', termino.toLowerCase())
+      } else if (tipo === 'dni') {
+        // Buscar por DNI exacto o parcial
+        const dniTermino = termino.trim()
+        if (dniTermino.length >= 7) {
+          // Si el DNI tiene 7 o más dígitos, buscar coincidencia exacta
+          query = query.eq('dni', parseInt(dniTermino))
+          console.log('🆔 Buscando por DNI exacto:', dniTermino)
+        } else {
+          // Si es menos de 7 dígitos, buscar coincidencia parcial
+          query = query.ilike('dni::text', `%${dniTermino}%`)
+          console.log('🆔 Buscando por DNI parcial:', dniTermino)
+        }
+      }
+
+      console.log('🔍 Ejecutando query...')
+      const { data, error } = await query
+
+      if (error) {
+        console.error('❌ Error buscando usuarios:', error)
+        setUsuariosEncontrados([])
+        setMostrarDropdown(false)
+        return
+      }
+
+      console.log('✅ Usuarios encontrados:', data?.length || 0)
+      console.log('📋 Usuarios encontrados:', data)
+
+      // Marcar usuarios que no están disponibles (asignados, usuario logueado, o con inscripciones pendientes/confirmadas)
+      const usuariosConEstado = await Promise.all(data.map(async (usuario) => {
+        // Verificar si es el usuario logueado (Titular 1)
+        const esUsuarioLogueado = user && usuario.email === user.email.toLowerCase()
+        
+        // Verificar si ya está asignado a otra posición
+        const yaAsignado = Object.values(jugadoresSeleccionados).some(
+          jugador => jugador && jugador.email === usuario.email
+        )
+        
+        // Encontrar la posición asignada
+        const posicionAsignada = Object.keys(jugadoresSeleccionados).find(
+          pos => jugadoresSeleccionados[pos]?.email === usuario.email
+        )
+
+        // Verificar si tiene inscripciones pendientes o confirmadas
+        const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
+          .from('ligainscripciones')
+          .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+          .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
+          .in('estado', ['pendiente', 'aprobada'])
+
+        const tieneInscripcionPendiente = inscripcionesExistentes && inscripcionesExistentes.length > 0
+        const inscripcionInfo = tieneInscripcionPendiente ? inscripcionesExistentes[0] : null
+        
+        return {
+          ...usuario,
+          disponible: !esUsuarioLogueado && !yaAsignado && !tieneInscripcionPendiente,
+          esUsuarioLogueado,
+          yaAsignado,
+          posicionAsignada,
+          tieneInscripcionPendiente,
+          inscripcionInfo
+        }
+      }))
+      
+      const usuariosDisponibles = usuariosConEstado
+
+      console.log('✅ Usuarios disponibles después de filtrar:', usuariosDisponibles.length)
+      console.log('📋 Usuarios disponibles:', usuariosDisponibles)
+      console.log('👤 Usuario logueado:', user?.email)
+      console.log('🎯 Jugadores seleccionados:', jugadoresSeleccionados)
+      console.log('🔍 Tipo de búsqueda:', tipo)
+      console.log('🔍 Término de búsqueda:', termino)
+      setUsuariosEncontrados(usuariosDisponibles)
+      setMostrarDropdown(true) // Siempre mostrar dropdown, incluso si no hay resultados
+    } catch (error) {
+      console.error('❌ Error en búsqueda:', error)
+      setUsuariosEncontrados([])
+      setMostrarDropdown(false)
+    }
+  }
+
   const buscarJugador = async (email) => {
     if (!email) return
 
     try {
-      const { data, error } = await supabase
-        .from('jugador')
+      console.log('Buscando usuario con email:', email.toLowerCase())
+      
+      const { data: usuarios, error } = await supabase
+        .from('usuarios')
         .select('*')
         .eq('email', email.toLowerCase())
-        .single()
+        .neq('rol', 'admin') // Excluir usuarios con rol admin
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        console.error('Error en búsqueda:', error)
         throw error
       }
 
-      if (data) {
-        // Jugador encontrado - mostrar opciones de posición
+      console.log('Resultado de búsqueda:', usuarios)
+
+      if (usuarios && usuarios.length > 0) {
+        const data = usuarios[0]
+        
+        // Verificar si es el usuario logueado
+        if (user && data.email === user.email.toLowerCase()) {
+          toast({
+            title: "Usuario no disponible",
+            description: "No puedes asignarte a otra posición, ya eres el Titular 1",
+            variant: "destructive"
+          })
+          return null
+        }
+        
+        // Verificar si ya está asignado a otra posición
+        const yaAsignado = Object.values(jugadoresSeleccionados).some(
+          jugador => jugador && jugador.email === data.email
+        )
+        
+        if (yaAsignado) {
+          const posicionAsignada = Object.keys(jugadoresSeleccionados).find(
+            pos => jugadoresSeleccionados[pos]?.email === data.email
+          )
+          toast({
+            title: "Usuario ya asignado",
+            description: `${data.nombre} ${data.apellido || ''} ya está asignado como ${posicionAsignada?.replace('_', ' ')}`,
+            variant: "destructive"
+          })
+          return null
+        }
+        
+        // Verificar si tiene inscripciones pendientes o confirmadas
+        const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
+          .from('ligainscripciones')
+          .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+          .or(`titular_1_id.eq.${data.id},titular_2_id.eq.${data.id},suplente_1_id.eq.${data.id},suplente_2_id.eq.${data.id}`)
+          .in('estado', ['pendiente', 'aprobada'])
+
+        if (errorInscripciones) {
+          console.error('Error verificando inscripciones existentes:', errorInscripciones)
+        } else if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
+          const inscripcion = inscripcionesExistentes[0]
+          const ligaNombre = inscripcion.liga_categorias?.ligas?.nombre || 'una liga'
+          toast({
+            title: "Usuario no disponible",
+            description: `${data.nombre} ${data.apellido || ''} ya tiene una inscripción ${inscripcion.estado} en ${ligaNombre}. No puede inscribirse nuevamente.`,
+            variant: "destructive"
+          })
+          return null
+        }
+        
+        // Usuario encontrado y disponible - mostrar opciones de posición
         toast({
-          title: "Jugador encontrado",
-          description: `${data.nombre} ${data.apellido || ''} - Selecciona una posición`,
+          title: "Usuario encontrado",
+          description: `${data.nombre} ${data.apellido || ''} (DNI: ${data.dni}) - Selecciona una posición`,
           variant: "default"
         })
         
-        // Retornar el jugador para que se pueda asignar a una posición
+        // Retornar el usuario para que se pueda asignar a una posición
         return data
       } else {
-        // Jugador no encontrado - permitir crear nuevo
+        // Usuario no encontrado - permitir crear nuevo
         toast({
-          title: "Jugador no encontrado",
-          description: "Completa los datos para crear un nuevo jugador",
+          title: "Usuario no encontrado",
+          description: "Completa los datos para crear un nuevo usuario",
           variant: "default"
         })
         
-        // Retornar un objeto con el email para crear nuevo jugador
+        // Retornar un objeto con el email para crear nuevo usuario
         return { email: email.toLowerCase(), nuevo: true }
       }
     } catch (error) {
-      console.error('Error buscando jugador:', error)
+      console.error('Error buscando usuario:', error)
       toast({
         title: "Error",
-        description: "Error al buscar jugador",
+        description: "Error al buscar usuario: " + error.message,
         variant: "destructive"
       })
       return null
     }
   }
 
-  const crearJugador = async (email, nombre, apellido) => {
+  const buscarJugadorPorDNI = async (dni) => {
+    if (!dni) return
+
     try {
-      const { data, error } = await supabase
-        .from('jugador')
-        .insert({
-          email: email.toLowerCase(),
-          nombre,
-          apellido,
-          ranking_puntos: 0
+      console.log('Buscando usuario con DNI:', dni)
+      
+      const dniNumber = parseInt(dni.trim())
+      if (isNaN(dniNumber)) {
+        toast({
+          title: "DNI inválido",
+          description: "El DNI debe ser un número válido",
+          variant: "destructive"
         })
-        .select()
+        return null
+      }
+      
+      const { data: usuarios, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('dni', dniNumber)
+        .neq('rol', 'admin') // Excluir usuarios con rol admin
+
+      if (error) {
+        console.error('Error en búsqueda por DNI:', error)
+        throw error
+      }
+
+      console.log('Resultado de búsqueda por DNI:', usuarios)
+
+      if (usuarios && usuarios.length > 0) {
+        const data = usuarios[0]
+        
+        // Verificar si es el usuario logueado
+        if (user && data.email === user.email.toLowerCase()) {
+          toast({
+            title: "Usuario no disponible",
+            description: "No puedes asignarte a otra posición, ya eres el Titular 1",
+            variant: "destructive"
+          })
+          return null
+        }
+        
+        // Verificar si ya está asignado a otra posición
+        const yaAsignado = Object.values(jugadoresSeleccionados).some(
+          jugador => jugador && jugador.email === data.email
+        )
+        
+        if (yaAsignado) {
+          const posicionAsignada = Object.keys(jugadoresSeleccionados).find(
+            pos => jugadoresSeleccionados[pos]?.email === data.email
+          )
+          toast({
+            title: "Usuario ya asignado",
+            description: `${data.nombre} ${data.apellido || ''} ya está asignado como ${posicionAsignada?.replace('_', ' ')}`,
+            variant: "destructive"
+          })
+          return null
+        }
+        
+        // Verificar si tiene inscripciones pendientes o confirmadas
+        const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
+          .from('ligainscripciones')
+          .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+          .or(`titular_1_id.eq.${data.id},titular_2_id.eq.${data.id},suplente_1_id.eq.${data.id},suplente_2_id.eq.${data.id}`)
+          .in('estado', ['pendiente', 'aprobada'])
+
+        if (errorInscripciones) {
+          console.error('Error verificando inscripciones existentes:', errorInscripciones)
+        } else if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
+          const inscripcion = inscripcionesExistentes[0]
+          const ligaNombre = inscripcion.liga_categorias?.ligas?.nombre || 'una liga'
+          toast({
+            title: "Usuario no disponible",
+            description: `${data.nombre} ${data.apellido || ''} ya tiene una inscripción ${inscripcion.estado} en ${ligaNombre}. No puede inscribirse nuevamente.`,
+            variant: "destructive"
+          })
+          return null
+        }
+        
+        // Usuario encontrado y disponible - mostrar opciones de posición
+        toast({
+          title: "Usuario encontrado",
+          description: `${data.nombre} ${data.apellido || ''} (DNI: ${data.dni}) - Selecciona una posición`,
+          variant: "default"
+        })
+        
+        // Retornar el usuario para que se pueda asignar a una posición
+        return data
+      } else {
+        // Usuario no encontrado - permitir crear nuevo
+        toast({
+          title: "Usuario no encontrado",
+          description: "Completa los datos para crear un nuevo usuario",
+          variant: "default"
+        })
+        
+        // Retornar un objeto con el DNI para crear nuevo usuario
+        return { dni: dniNumber.toString(), nuevo: true }
+      }
+    } catch (error) {
+      console.error('Error buscando usuario por DNI:', error)
+      toast({
+        title: "Error",
+        description: "Error al buscar usuario por DNI: " + error.message,
+        variant: "destructive"
+      })
+      return null
+    }
+  }
+
+  const seleccionarUsuario = (usuario) => {
+    setJugadorEncontrado(usuario)
+    setBusqueda('')
+    setUsuariosEncontrados([])
+    setMostrarDropdown(false)
+    
+    // Mostrar notificación con información del usuario seleccionado
+    toast({
+      title: "Usuario seleccionado",
+      description: `${usuario.nombre} ${usuario.apellido || ''} (DNI: ${usuario.dni}) - Selecciona una posición`,
+      variant: "default"
+    })
+  }
+
+  const crearJugador = async (email, nombre, apellido, dni) => {
+    try {
+      setCreandoUsuario(true)
+      
+      // Validar que el DNI esté presente
+      if (!dni || dni.trim() === '') {
+        throw new Error('El DNI es obligatorio para crear un usuario')
+      }
+
+      // Validar formato de DNI (7-8 dígitos)
+      const dniRegex = /^\d{7,8}$/
+      if (!dniRegex.test(dni.trim())) {
+        throw new Error('El DNI debe tener 7 u 8 dígitos numéricos')
+      }
+
+      console.log('Creando usuario a través de API:', { email, nombre, apellido, dni })
+
+      // Validar que el email no esté ya en uso
+      console.log('Verificando si el email ya está en uso...')
+      const { data: usuarioExistente, error: errorEmail } = await supabase
+        .from('usuarios')
+        .select('id, email, nombre, apellido, dni')
+        .eq('email', email.toLowerCase())
         .single()
 
-      if (error) throw error
+      if (errorEmail && errorEmail.code !== 'PGRST116') {
+        console.error('Error verificando email:', errorEmail)
+        throw new Error('Error al verificar si el email está en uso')
+      }
 
-      return data
+      if (usuarioExistente) {
+        throw new Error('Ya existe un usuario con ese email')
+      }
+
+      // Usar el endpoint de API para crear el usuario con autenticación
+      const response = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.toLowerCase(),
+          nombre: nombre.trim(),
+          apellido: apellido.trim(),
+          dni: dni.trim()
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al crear usuario')
+      }
+
+      if (!result.success) {
+        throw new Error(result.error || 'Error desconocido al crear usuario')
+      }
+
+      console.log('Usuario creado exitosamente:', result.user)
+
+      // Verificar que el usuario realmente existe en la base de datos
+      console.log('Verificando que el usuario existe en la base de datos...')
+      const { data: usuarioVerificado, error: errorVerificacion } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', result.user.email)
+        .single()
+
+      if (errorVerificacion) {
+        console.error('Error verificando usuario creado:', errorVerificacion)
+        toast({
+          title: "Advertencia",
+          description: "Usuario creado pero puede haber un delay en la disponibilidad para búsqueda",
+          variant: "default"
+        })
+      } else {
+        console.log('Usuario verificado en base de datos:', usuarioVerificado)
+      }
+
+      // Mostrar mensaje informativo sobre la contraseña temporal
+      if (result.tempPassword) {
+        toast({
+          title: "Usuario creado exitosamente",
+          description: `Se ha creado una cuenta para ${result.user.nombre} ${result.user.apellido}. La contraseña temporal es: ${result.tempPassword}. Deberá cambiarla al iniciar sesión.`,
+          variant: "default"
+        })
+      } else {
+        toast({
+          title: "Usuario creado exitosamente",
+          description: `Se ha creado una cuenta para ${result.user.nombre} ${result.user.apellido}. El usuario estará disponible para búsqueda en unos segundos.`,
+          variant: "default"
+        })
+      }
+
+      return result.user
     } catch (error) {
-      console.error('Error creando jugador:', error)
+      console.error('Error creando usuario:', error)
       throw error
+    } finally {
+      setCreandoUsuario(false)
     }
   }
 
   const handleInputChange = (field, value) => {
+    // No permitir modificar el email del Titular 1
+    if (field === 'titular_1_email' && user && user.email) {
+      return // No hacer nada si intentan modificar el email del Titular 1
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -290,33 +844,42 @@ export default function LigaInscripcionPage() {
 
   // Función para asignar un jugador a una posición
   const asignarJugadorAPosicion = (jugador, posicion) => {
-    // Limpiar la posición anterior si el jugador ya estaba asignado
+    // Verificar que el usuario no sea el mismo que está logueado (Titular 1)
+    if (user && jugador.email === user.email) {
+      toast({
+        title: "Error",
+        description: "No puedes asignarte a otra posición, ya eres el Titular 1",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Verificar que el jugador no esté ya asignado a otra posición
     const posicionAnterior = Object.keys(jugadoresSeleccionados).find(
       pos => jugadoresSeleccionados[pos]?.email === jugador.email
     )
     
     if (posicionAnterior) {
-      setJugadoresSeleccionados(prev => ({
-        ...prev,
-        [posicionAnterior]: null
-      }))
-      
-      // Limpiar datos del formulario de la posición anterior
-      setFormData(prev => ({
-        ...prev,
-        [`${posicionAnterior}_email`]: '',
-        [`${posicionAnterior}_nombre`]: '',
-        [`${posicionAnterior}_apellido`]: '',
-        [`${posicionAnterior}_id`]: null
-      }))
-      
-      setJugadoresEncontrados(prev => ({
-        ...prev,
-        [posicionAnterior]: null
-      }))
+      // Mostrar mensaje informativo
+      toast({
+        title: "Usuario ya asignado",
+        description: `${jugador.nombre} ${jugador.apellido || ''} ya está asignado como ${posicionAnterior.replace('_', ' ')}`,
+        variant: "destructive"
+      })
+      return
     }
 
-    // Asignar el jugador a la nueva posición
+    // Verificar que la posición no esté ya ocupada
+    if (jugadoresSeleccionados[posicion]) {
+      toast({
+        title: "Posición ocupada",
+        description: `La posición ${posicion.replace('_', ' ')} ya está ocupada por ${jugadoresSeleccionados[posicion].nombre} ${jugadoresSeleccionados[posicion].apellido || ''}`,
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Asignar el jugador a la posición
     setJugadoresSeleccionados(prev => ({
       ...prev,
       [posicion]: jugador
@@ -328,6 +891,7 @@ export default function LigaInscripcionPage() {
       [`${posicion}_email`]: jugador.email,
       [`${posicion}_nombre`]: jugador.nombre,
       [`${posicion}_apellido`]: jugador.apellido || '',
+      [`${posicion}_dni`]: jugador.dni || '',
       [`${posicion}_id`]: jugador.id
     }))
     
@@ -337,8 +901,8 @@ export default function LigaInscripcionPage() {
     }))
 
     toast({
-      title: "Jugador asignado",
-      description: `${jugador.nombre} ${jugador.apellido || ''} asignado como ${posicion.replace('_', ' ')}`,
+      title: "Usuario asignado",
+      description: `${jugador.nombre} ${jugador.apellido || ''} (DNI: ${jugador.dni}) asignado como ${posicion.replace('_', ' ')}`,
       variant: "default"
     })
   }
@@ -356,6 +920,7 @@ export default function LigaInscripcionPage() {
       [`${posicion}_email`]: '',
       [`${posicion}_nombre`]: '',
       [`${posicion}_apellido`]: '',
+      [`${posicion}_dni`]: '',
       [`${posicion}_id`]: null
     }))
     
@@ -365,8 +930,8 @@ export default function LigaInscripcionPage() {
     }))
 
     toast({
-      title: "Jugador removido",
-      description: `Jugador removido de la posición ${posicion.replace('_', ' ')}`,
+      title: "Usuario removido",
+      description: `Usuario removido de la posición ${posicion.replace('_', ' ')}`,
       variant: "default"
     })
   }
@@ -414,16 +979,31 @@ export default function LigaInscripcionPage() {
     setIsSubmitting(true)
 
     try {
-      // Validar campos requeridos
-      const requiredFields = [
-        'titular_1_email', 'titular_2_email', 'suplente_1_email', 'suplente_2_email',
-        'liga_categoria_id', 'contacto_celular'
+      // Validar campos requeridos con mensajes personalizados
+      const requiredFieldsValidation = [
+        { field: 'titular_1_email', message: 'El email del Titular 1 es requerido' },
+        { field: 'titular_2_email', message: 'El email del Titular 2 es requerido' },
+        { field: 'suplente_1_email', message: 'El email del Suplente 1 es requerido' },
+        { field: 'suplente_2_email', message: 'El email del Suplente 2 es requerido' },
+        { field: 'liga_categoria_id', message: 'Debes seleccionar una categoría' },
+        { field: 'contacto_celular', message: 'El número de contacto es requerido' }
       ]
 
-      for (const field of requiredFields) {
-        if (!formData[field]) {
-          throw new Error(`El campo ${field} es requerido`)
+      for (const validation of requiredFieldsValidation) {
+        if (!formData[validation.field]) {
+          throw new Error(validation.message)
         }
+      }
+
+      // Verificar que el usuario logueado tenga DNI configurado
+      const { data: usuarioActual, error: usuarioError } = await supabase
+        .from('usuarios')
+        .select('dni, nombre, apellido')
+        .eq('email', user.email.toLowerCase())
+        .single()
+
+      if (usuarioError || !usuarioActual?.dni || usuarioActual.dni.toString().trim() === '') {
+        throw new Error('Debes configurar tu DNI en tu perfil antes de inscribirte')
       }
 
       // Validar que todos los jugadores estén asignados
@@ -431,6 +1011,42 @@ export default function LigaInscripcionPage() {
       for (const posicion of jugadoresRequeridos) {
         if (!jugadoresSeleccionados[posicion]) {
           throw new Error(`Debes asignar un jugador como ${posicion.replace('_', ' ')}`)
+        }
+      }
+
+      // Verificar que no haya usuarios duplicados
+      const emailsAsignados = new Set()
+      emailsAsignados.add(user.email.toLowerCase()) // Agregar el usuario logueado
+      
+      for (const posicion of jugadoresRequeridos) {
+        const jugador = jugadoresSeleccionados[posicion]
+        if (emailsAsignados.has(jugador.email.toLowerCase())) {
+          throw new Error(`El usuario ${jugador.nombre} ${jugador.apellido || ''} está asignado a múltiples posiciones`)
+        }
+        emailsAsignados.add(jugador.email.toLowerCase())
+      }
+
+      // Verificar que ningún jugador del equipo ya tenga una inscripción pendiente o confirmada
+      const todosLosJugadores = [
+        { id: formData.titular_1_id, nombre: formData.titular_1_nombre, apellido: formData.titular_1_apellido },
+        { id: jugadoresSeleccionados.titular_2.id, nombre: jugadoresSeleccionados.titular_2.nombre, apellido: jugadoresSeleccionados.titular_2.apellido },
+        { id: jugadoresSeleccionados.suplente_1.id, nombre: jugadoresSeleccionados.suplente_1.nombre, apellido: jugadoresSeleccionados.suplente_1.apellido },
+        { id: jugadoresSeleccionados.suplente_2.id, nombre: jugadoresSeleccionados.suplente_2.nombre, apellido: jugadoresSeleccionados.suplente_2.apellido }
+      ]
+
+      for (const jugador of todosLosJugadores) {
+        const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
+          .from('ligainscripciones')
+          .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+          .or(`titular_1_id.eq.${jugador.id},titular_2_id.eq.${jugador.id},suplente_1_id.eq.${jugador.id},suplente_2_id.eq.${jugador.id}`)
+          .in('estado', ['pendiente', 'aprobada'])
+
+        if (errorInscripciones) {
+          console.error('Error verificando inscripciones existentes:', errorInscripciones)
+        } else if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
+          const inscripcion = inscripcionesExistentes[0]
+          const ligaNombre = inscripcion.liga_categorias?.ligas?.nombre || 'una liga'
+          throw new Error(`${jugador.nombre} ${jugador.apellido || ''} ya tiene una inscripción ${inscripcion.estado} en ${ligaNombre}. No puede inscribirse nuevamente.`)
         }
       }
 
@@ -444,12 +1060,23 @@ export default function LigaInscripcionPage() {
         throw new Error('La categoría seleccionada ya no está disponible')
       }
 
-      // Obtener IDs de los jugadores asignados
-      const jugadoresIds = {
-        titular_1: formData.titular_1_id, // El usuario logueado
+      // Obtener IDs de los usuarios asignados
+      console.log('Debug - formData.titular_1_id:', formData.titular_1_id)
+      console.log('Debug - user.id:', user.id)
+      console.log('Debug - jugadoresSeleccionados:', jugadoresSeleccionados)
+      
+      const usuariosIds = {
+        titular_1: formData.titular_1_id || user.id, // Usar formData.titular_1_id o user.id como respaldo
         titular_2: jugadoresSeleccionados.titular_2.id,
         suplente_1: jugadoresSeleccionados.suplente_1.id,
         suplente_2: jugadoresSeleccionados.suplente_2.id
+      }
+      
+      console.log('Debug - usuariosIds:', usuariosIds)
+
+      // Validar que el titular_1_id no sea null
+      if (!usuariosIds.titular_1) {
+        throw new Error('Error: No se pudo identificar el ID del Titular 1. Por favor, recarga la página e intenta nuevamente.')
       }
 
       // Subir archivo
@@ -460,10 +1087,10 @@ export default function LigaInscripcionPage() {
         .from('ligainscripciones')
         .insert({
           liga_categoria_id: parseInt(formData.liga_categoria_id),
-          titular_1_id: jugadoresIds.titular_1,
-          titular_2_id: jugadoresIds.titular_2,
-          suplente_1_id: jugadoresIds.suplente_1,
-          suplente_2_id: jugadoresIds.suplente_2,
+          titular_1_id: usuariosIds.titular_1,
+          titular_2_id: usuariosIds.titular_2,
+          suplente_1_id: usuariosIds.suplente_1,
+          suplente_2_id: usuariosIds.suplente_2,
           contacto_celular: formData.contacto_celular,
           aclaraciones: formData.aclaraciones,
           comprobante_url: fileData.url,
@@ -493,14 +1120,17 @@ export default function LigaInscripcionPage() {
         titular_2_email: '',
         titular_2_nombre: '',
         titular_2_apellido: '',
+        titular_2_dni: '',
         titular_2_id: null,
         suplente_1_email: '',
         suplente_1_nombre: '',
         suplente_1_apellido: '',
+        suplente_1_dni: '',
         suplente_1_id: null,
         suplente_2_email: '',
         suplente_2_nombre: '',
         suplente_2_apellido: '',
+        suplente_2_dni: '',
         suplente_2_id: null,
         liga_categoria_id: '',
         contacto_celular: '',
@@ -513,9 +1143,9 @@ export default function LigaInscripcionPage() {
         suplente_1: null,
         suplente_2: null
       })
-      setEmailBusqueda('')
+      setBusqueda('')
       setJugadorEncontrado(null)
-      setNuevoJugador({ nombre: '', apellido: '' })
+      setNuevoJugador({ nombre: '', apellido: '', dni: '', email: '' })
 
       // Recargar datos para actualizar contadores
       await fetchLigaData()
@@ -571,25 +1201,33 @@ export default function LigaInscripcionPage() {
         {/* Email y búsqueda */}
         <div className="space-y-2">
           <Label htmlFor={`${tipo}_email`} className="text-white">Email {titulo} *</Label>
+          {esTitular1Logueado && (
+            <p className="text-sm text-[#E2FF1B] mb-2">
+              Tu email se asigna automáticamente como Titular 1
+            </p>
+          )}
           <div className="flex gap-2">
             <Input
               id={`${tipo}_email`}
               type="email"
-              value={email}
+              value={esTitular1Logueado ? user.email : email}
               onChange={(e) => handleInputChange(`${tipo}_email`, e.target.value)}
               className="bg-white/10 border-white/20 text-white flex-1"
-              placeholder="jugador@email.com"
+              placeholder={esTitular1Logueado ? user.email : "usuario@email.com"}
               required
               disabled={esTitular1Logueado}
+              readOnly={esTitular1Logueado}
             />
-            <Button
-              type="button"
-              onClick={() => buscarJugador(email, tipo)}
-              disabled={!email || esTitular1Logueado}
-              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
+            {!esTitular1Logueado && (
+              <Button
+                type="button"
+                onClick={() => buscarJugador(email, tipo)}
+                disabled={!email}
+                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -603,20 +1241,20 @@ export default function LigaInscripcionPage() {
             {jugador.encontrado ? (
               <div className="flex items-center gap-2 text-green-400">
                 <CheckCircle className="w-4 h-4" />
-                <span>Jugador encontrado: {jugador.nombre} {jugador.apellido || ''}</span>
+                <span>Usuario encontrado: {jugador.nombre} {jugador.apellido || ''}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-yellow-400">
                 <Plus className="w-4 h-4" />
-                <span>Crear nuevo jugador</span>
+                <span>Crear nuevo usuario</span>
               </div>
             )}
           </div>
         )}
 
-        {/* Campos para nuevo jugador */}
+        {/* Campos para nuevo usuario */}
         {jugador && !jugador.encontrado && (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor={`${tipo}_nombre`} className="text-white">Nombre *</Label>
               <Input
@@ -638,6 +1276,17 @@ export default function LigaInscripcionPage() {
                 disabled={esTitular1Logueado}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor={`${tipo}_dni`} className="text-white">DNI *</Label>
+              <Input
+                id={`${tipo}_dni`}
+                value={formData[`${tipo}_dni`]}
+                onChange={(e) => handleInputChange(`${tipo}_dni`, e.target.value)}
+                className="bg-white/10 border-white/20 text-white"
+                required
+                disabled={esTitular1Logueado}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -645,47 +1294,219 @@ export default function LigaInscripcionPage() {
   }
 
   // Nueva función para renderizar la sección de selección de jugadores
+  const handleBuscarUsuarios = async () => {
+    console.log('🔘 Botón de búsqueda clickeado')
+    console.log('📝 Estado actual:', { busqueda, tipoBusqueda })
+    
+    if (!busqueda || busqueda.trim() === '') {
+      console.log('❌ Búsqueda vacía')
+      toast({
+        title: "Error",
+        description: "Debes ingresar un término de búsqueda",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    console.log('✅ Iniciando búsqueda...')
+    await buscarUsuarios(busqueda, tipoBusqueda)
+  }
+
+  // Función para refrescar la búsqueda después de crear un usuario
+  const refrescarBusqueda = async (termino, tipo = 'email') => {
+    console.log('🔄 Refrescando búsqueda para:', termino, 'tipo:', tipo)
+    
+    // Esperar un momento para que la base de datos se actualice
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Hacer una nueva búsqueda
+    await buscarUsuarios(termino, tipo)
+    
+    console.log('✅ Búsqueda refrescada')
+  }
+
   const renderSeleccionJugadores = () => {
-    const handleBuscarJugador = async () => {
-      if (!emailBusqueda) return
-      
-      const jugador = await buscarJugador(emailBusqueda)
-      setJugadorEncontrado(jugador)
+    const handleInputChange = (value) => {
+      setBusqueda(value)
+      // Limpiar resultados cuando se borra el input
+      if (!value || value.trim() === '') {
+        setUsuariosEncontrados([])
+        setMostrarDropdown(false)
+      }
     }
 
-    const getPosicionesDisponibles = () => {
+    const getPosicionesDisponibles = (usuarioSeleccionado = null) => {
       const posiciones = [
         { key: 'titular_2', label: 'Titular 2' },
         { key: 'suplente_1', label: 'Suplente 1' },
         { key: 'suplente_2', label: 'Suplente 2' }
       ]
       
-      return posiciones.filter(pos => !jugadoresSeleccionados[pos.key])
+      return posiciones.filter(pos => {
+        // Verificar que la posición no esté ocupada
+        if (jugadoresSeleccionados[pos.key]) {
+          return false
+        }
+        
+        // Si hay un usuario seleccionado, verificar que no esté ya asignado a otra posición
+        if (usuarioSeleccionado) {
+          const yaAsignado = Object.values(jugadoresSeleccionados).some(
+            jugador => jugador && jugador.email === usuarioSeleccionado.email
+          )
+          if (yaAsignado) {
+            return false
+          }
+        }
+        
+        return true
+      })
     }
 
     return (
       <div className="space-y-6">
         <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
-          Selección de Jugadores
+          Selección de Usuarios
         </h3>
 
-        {/* Búsqueda de jugadores */}
+        {/* Búsqueda de usuarios */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-white">Buscar jugador por email</Label>
+            <Label className="text-white">Buscar usuario</Label>
+            <p className="text-sm text-gray-400 mb-2">
+              Ingresa el {tipoBusqueda === 'email' ? 'email' : 'DNI'} y haz click en buscar
+            </p>
             <div className="flex gap-2">
-              <Input
-                type="email"
-                value={emailBusqueda}
-                onChange={(e) => setEmailBusqueda(e.target.value)}
-                className="bg-white/10 border-white/20 text-white flex-1"
-                placeholder="jugador@email.com"
-              />
+              <Select value={tipoBusqueda} onValueChange={setTipoBusqueda}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 border-white/20">
+                  <SelectItem value="email" className="text-white hover:bg-[#E2FF1B]/10">Email</SelectItem>
+                  <SelectItem value="dni" className="text-white hover:bg-[#E2FF1B]/10">DNI</SelectItem>
+                </SelectContent>
+              </Select>
+              {console.log('🔍 Estado del botón:', { busqueda, busquedaTrim: busqueda?.trim(), disabled: !busqueda || busqueda?.trim() === '' })}
+              <div className="relative flex-1">
+                <Input
+                  type={tipoBusqueda === 'email' ? 'email' : 'text'}
+                  value={busqueda}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder={tipoBusqueda === 'email' ? 'usuario@email.com' : '12345678'}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      console.log('🔘 Enter presionado en input')
+                      handleBuscarUsuarios()
+                    }
+                  }}
+                  onFocus={() => {
+                    // No mostrar dropdown automáticamente al hacer focus
+                    // Solo se mostrará cuando se haga una búsqueda activa
+                  }}
+                  onBlur={() => {
+                    // Delay para permitir hacer click en el dropdown
+                    setTimeout(() => setMostrarDropdown(false), 200)
+                  }}
+                />
+                
+                {/* Dropdown de resultados */}
+                {mostrarDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-white/20 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {usuariosEncontrados.length > 0 ? (
+                      usuariosEncontrados.map((usuario) => {
+                        return (
+                          <div
+                            key={usuario.id}
+                            className={`p-3 border-b border-white/10 last:border-b-0 ${
+                              !usuario.disponible
+                                ? 'bg-gray-800/50 cursor-not-allowed opacity-60' 
+                                : 'hover:bg-white/10 cursor-pointer'
+                            }`}
+                            onClick={() => {
+                              if (usuario.disponible) {
+                                seleccionarUsuario(usuario)
+                              }
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-white font-medium">
+                                  {usuario.nombre} {usuario.apellido || ''}
+                                  {usuario.yaAsignado && usuario.posicionAsignada && (
+                                    <span className="ml-2 text-xs text-yellow-400">
+                                      (Ya asignado como {usuario.posicionAsignada.replace('_', ' ')})
+                                    </span>
+                                  )}
+                                  {usuario.esUsuarioLogueado && (
+                                    <span className="ml-2 text-xs text-[#E2FF1B]">
+                                      (Tú - Titular 1)
+                                    </span>
+                                  )}
+                                  {usuario.tieneInscripcionPendiente && usuario.inscripcionInfo && (
+                                    <span className="ml-2 text-xs text-red-400">
+                                      (Inscripción {usuario.inscripcionInfo.estado} en {usuario.inscripcionInfo.liga_categorias?.ligas?.nombre || 'liga'})
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  {usuario.email}
+                                </div>
+                              </div>
+                              <div className="text-sm text-[#E2FF1B]">
+                                DNI: {usuario.dni}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })
+                    ) : (
+                      <div className="p-3 text-center">
+                        <div className="text-gray-400 mb-2">
+                          {usuariosEncontrados.length > 0 
+                            ? 'Todos los usuarios encontrados no están disponibles (ya asignados, son tú, o tienen inscripciones pendientes/confirmadas)'
+                            : tipoBusqueda === 'dni' 
+                              ? `No se encontró usuario con DNI: ${busqueda}`
+                              : `No se encontró usuario con email: ${busqueda}`
+                          }
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const nuevoUsuario = { 
+                              email: tipoBusqueda === 'email' ? busqueda : '', 
+                              dni: tipoBusqueda === 'dni' ? busqueda : '',
+                              nuevo: true 
+                            }
+                            setJugadorEncontrado(nuevoUsuario)
+                            setNuevoJugador({
+                              nombre: '',
+                              apellido: '',
+                              dni: tipoBusqueda === 'dni' ? busqueda : '',
+                              email: tipoBusqueda === 'email' ? busqueda : ''
+                            })
+                            setMostrarDropdown(false)
+                          }}
+                          className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Crear nuevo usuario
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <Button
                 type="button"
-                onClick={handleBuscarJugador}
-                disabled={!emailBusqueda}
+                onClick={() => {
+                  console.log('🔘 Click en botón de búsqueda')
+                  handleBuscarUsuarios()
+                }}
+                disabled={!busqueda || busqueda.trim() === ''}
                 className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10"
+                title={`Buscar ${tipoBusqueda === 'email' ? 'email' : 'DNI'}: ${busqueda}`}
               >
                 <Search className="w-4 h-4" />
               </Button>
@@ -703,8 +1524,17 @@ export default function LigaInscripcionPage() {
                 <div className="flex items-center gap-2">
                   {jugadorEncontrado.nuevo ? (
                     <>
-                      <Plus className="w-4 h-4 text-yellow-400" />
-                      <span className="font-medium text-yellow-400">Crear nuevo jugador</span>
+                      {creandoUsuario ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 mr-2"></div>
+                          <span className="font-medium text-yellow-400">Creando usuario...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 text-yellow-400" />
+                          <span className="font-medium text-yellow-400">Crear nuevo usuario</span>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
@@ -717,8 +1547,8 @@ export default function LigaInscripcionPage() {
                   type="button"
                   onClick={() => {
                     setJugadorEncontrado(null)
-                    setEmailBusqueda('')
-                    setNuevoJugador({ nombre: '', apellido: '' })
+                    setBusqueda('')
+                    setNuevoJugador({ nombre: '', apellido: '', dni: '', email: '' })
                   }}
                   variant="ghost"
                   size="sm"
@@ -730,14 +1560,15 @@ export default function LigaInscripcionPage() {
               
               {jugadorEncontrado.nuevo ? (
                 <div className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-white">Nombre *</Label>
                       <Input
                         value={nuevoJugador.nombre}
                         onChange={(e) => setNuevoJugador(prev => ({ ...prev, nombre: e.target.value }))}
                         className="bg-white/10 border-white/20 text-white"
-                        placeholder="Nombre del jugador"
+                        placeholder="Nombre del usuario"
+                        disabled={creandoUsuario}
                       />
                     </div>
                     <div className="space-y-2">
@@ -746,52 +1577,138 @@ export default function LigaInscripcionPage() {
                         value={nuevoJugador.apellido}
                         onChange={(e) => setNuevoJugador(prev => ({ ...prev, apellido: e.target.value }))}
                         className="bg-white/10 border-white/20 text-white"
-                        placeholder="Apellido del jugador"
+                        placeholder="Apellido del usuario"
+                        disabled={creandoUsuario}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">DNI *</Label>
+                      <Input
+                        value={nuevoJugador.dni}
+                        onChange={(e) => setNuevoJugador(prev => ({ ...prev, dni: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white"
+                        placeholder="DNI del usuario"
+                        disabled={tipoBusqueda === 'dni' || creandoUsuario}
+                        readOnly={tipoBusqueda === 'dni'}
                       />
                     </div>
                   </div>
                   
+                  {/* Campo de email cuando se busca por DNI */}
+                  {tipoBusqueda === 'dni' && (
+                    <div className="space-y-2">
+                      <Label className="text-white">Email *</Label>
+                      <p className="text-sm text-[#E2FF1B] mb-2">
+                        Como buscaste por DNI, necesitas ingresar un email para crear el usuario
+                      </p>
+                      <Input
+                        type="email"
+                        value={nuevoJugador.email}
+                        onChange={(e) => setNuevoJugador(prev => ({ ...prev, email: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white"
+                        placeholder="usuario@email.com"
+                        disabled={creandoUsuario}
+                      />
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
                     <p className="text-sm text-gray-300">Crear y asignar como:</p>
                     <div className="flex flex-wrap gap-2">
-                      {getPosicionesDisponibles().map((posicion) => (
+                      {getPosicionesDisponibles({ email: jugadorEncontrado.email }).map((posicion) => (
                         <Button
                           key={posicion.key}
                           type="button"
                           onClick={async () => {
-                            if (!nuevoJugador.nombre) {
+                            // Validaciones básicas
+                            if (!nuevoJugador.nombre || !nuevoJugador.dni) {
                               toast({
                                 title: "Error",
-                                description: "El nombre es obligatorio",
+                                description: "El nombre y DNI son obligatorios",
+                                variant: "destructive"
+                              })
+                              return
+                            }
+
+                            // Validar email cuando se busca por DNI
+                            if (tipoBusqueda === 'dni' && !nuevoJugador.email) {
+                              toast({
+                                title: "Error",
+                                description: "El email es obligatorio cuando se busca por DNI",
+                                variant: "destructive"
+                              })
+                              return
+                            }
+
+                            // Validar formato de email cuando se busca por DNI
+                            if (tipoBusqueda === 'dni' && nuevoJugador.email) {
+                              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                              if (!emailRegex.test(nuevoJugador.email)) {
+                                toast({
+                                  title: "Error",
+                                  description: "El formato del email no es válido",
+                                  variant: "destructive"
+                                })
+                                return
+                              }
+                            }
+
+                            // Validar formato de DNI (7-8 dígitos)
+                            const dniRegex = /^\d{7,8}$/
+                            if (!dniRegex.test(nuevoJugador.dni)) {
+                              toast({
+                                title: "Error",
+                                description: "El DNI debe tener 7 u 8 dígitos numéricos",
                                 variant: "destructive"
                               })
                               return
                             }
                             
                             try {
-                              const jugadorCreado = await crearJugador(
-                                jugadorEncontrado.email,
+                              const emailParaCrear = tipoBusqueda === 'dni' ? nuevoJugador.email : jugadorEncontrado.email
+                              const usuarioCreado = await crearJugador(
+                                emailParaCrear,
                                 nuevoJugador.nombre,
-                                nuevoJugador.apellido
+                                nuevoJugador.apellido,
+                                nuevoJugador.dni
                               )
                               
-                              asignarJugadorAPosicion(jugadorCreado, posicion.key)
+                              asignarJugadorAPosicion(usuarioCreado, posicion.key)
                               setJugadorEncontrado(null)
-                              setEmailBusqueda('')
-                              setNuevoJugador({ nombre: '', apellido: '' })
+                              setBusqueda('')
+                              setNuevoJugador({ nombre: '', apellido: '', dni: '', email: '' })
+                              
+                              // Refrescar la búsqueda para que el usuario aparezca en futuras búsquedas
+                              console.log('Usuario creado y asignado, refrescando búsqueda...')
+                              // Limpiar el estado de búsqueda para forzar una nueva búsqueda
+                              setUsuariosEncontrados([])
+                              setMostrarDropdown(false)
+                              
+                              // Refrescar la búsqueda después de un delay
+                              setTimeout(() => {
+                                refrescarBusqueda(usuarioCreado.email, 'email')
+                              }, 2000)
                             } catch (error) {
+                              console.error('Error creando usuario:', error)
                               toast({
                                 title: "Error",
-                                description: "Error al crear el jugador",
+                                description: error.message || "Error al crear el usuario",
                                 variant: "destructive"
                               })
                             }
                           }}
                           className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
                           size="sm"
-                          disabled={!nuevoJugador.nombre}
+                          disabled={!nuevoJugador.nombre || creandoUsuario}
                         >
-                          {posicion.label}
+                          {creandoUsuario ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
+                              Creando...
+                            </>
+                          ) : (
+                            posicion.label
+                          )}
                         </Button>
                       ))}
                       {getPosicionesDisponibles().length === 0 && (
@@ -804,14 +1721,14 @@ export default function LigaInscripcionPage() {
                 <div className="space-y-2">
                   <p className="text-sm text-gray-300">Asignar como:</p>
                   <div className="flex flex-wrap gap-2">
-                    {getPosicionesDisponibles().map((posicion) => (
+                    {getPosicionesDisponibles(jugadorEncontrado).map((posicion) => (
                       <Button
                         key={posicion.key}
                         type="button"
                         onClick={() => {
                           asignarJugadorAPosicion(jugadorEncontrado, posicion.key)
                           setJugadorEncontrado(null)
-                          setEmailBusqueda('')
+                          setBusqueda('')
                         }}
                         className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
                         size="sm"
@@ -829,9 +1746,9 @@ export default function LigaInscripcionPage() {
           )}
         </div>
 
-        {/* Jugadores asignados */}
+        {/* Usuarios asignados */}
         <div className="space-y-4">
-          <h4 className="text-lg font-medium text-white">Jugadores Asignados</h4>
+          <h4 className="text-lg font-medium text-white">Usuarios Asignados</h4>
           
           {Object.entries(jugadoresSeleccionados).map(([posicion, jugador]) => (
             <div key={posicion} className="bg-white/5 border border-white/10 rounded-lg p-4">
@@ -907,6 +1824,8 @@ export default function LigaInscripcionPage() {
       </div>
     )
   }
+
+
 
   const ligaDisponible = liga.estado === 'abierta' && categorias.some(cat => cat.disponible)
 
@@ -1038,7 +1957,24 @@ export default function LigaInscripcionPage() {
 
           {/* Formulario de Inscripción */}
           <div className="lg:col-span-2">
-            {!ligaDisponible ? (
+            {yaInscriptoEnLiga.inscripto ? (
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-8 text-center">
+                  <Trophy className="w-16 h-16 text-[#E2FF1B] mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Inscripción ya realizada
+                  </h3>
+                  <p className="text-gray-400 mb-6">
+                    {yaInscriptoEnLiga.mensaje}
+                  </p>
+                  <Link href="/inscripciones/ligas">
+                    <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90">
+                    Ver otras Ligas
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : !ligaDisponible ? (
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-8 text-center">
                   <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -1053,21 +1989,53 @@ export default function LigaInscripcionPage() {
                   </p>
                   <Link href="/inscripciones/ligas">
                     <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90">
-                      Ver Otras Ligas
+                      Ver otras Ligas
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
-            ) : (
-              <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-2xl font-bold text-white">Formulario de Inscripción</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Busca jugadores existentes por email o crea nuevos jugadores para tu equipo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                    ) : (
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-white">Formulario de Inscripción</CardTitle>
+              <CardDescription className="text-gray-400">
+                Busca usuarios existentes por email o crea nuevos usuarios para tu equipo
+              </CardDescription>
+            </CardHeader>
+
+                                                  <CardContent>
+                  {!dniConfigurado && (
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <div className="flex items-center gap-2 text-red-400">
+                        <AlertCircle className="w-5 h-5" />
+                        <div>
+                          <h4 className="font-semibold">DNI requerido</h4>
+                          <p className="text-sm text-red-300">
+                            Debes configurar tu DNI en tu perfil antes de poder inscribirte en ligas.
+                          </p>
+                          <Button
+                            onClick={() => router.push('/perfil')}
+                            className="mt-2 bg-red-600 hover:bg-red-700 text-white"
+                            size="sm"
+                          >
+                            Configurar DNI en Perfil
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {bloquearPorInscripcion.bloquear && (
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <div className="flex items-center gap-2 text-red-400">
+                        <AlertCircle className="w-5 h-5" />
+                        <div>
+                          <h4 className="font-semibold">No puedes inscribirte</h4>
+                          <p className="text-sm text-red-300">{bloquearPorInscripcion.mensaje}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <form onSubmit={handleSubmit} className={`space-y-6 ${!dniConfigurado || bloquearPorInscripcion.bloquear ? 'opacity-50 pointer-events-none' : ''}`}>
                     {/* Titular 1 (Usuario logueado) */}
                     {renderJugadorSection('titular_1', 'Titular 1')}
 

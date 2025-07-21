@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Header() {
   const [user, setUser] = useState(null)
+  const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
@@ -30,6 +31,21 @@ export default function Header() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         setUser(user)
+        
+        // Si hay usuario autenticado, obtener datos de la tabla usuarios
+        if (user) {
+          const { data: userDataFromDB, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', user.email)
+            .single()
+          
+          if (error) {
+            console.error('Error fetching user data:', error)
+          } else {
+            setUserData(userDataFromDB)
+          }
+        }
       } catch (error) {
         console.error('Error getting user:', error)
       } finally {
@@ -39,8 +55,25 @@ export default function Header() {
 
     getUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
+      
+      // Actualizar datos de usuario cuando cambia la sesión
+      if (session?.user) {
+        const { data: userDataFromDB, error } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('email', session.user.email)
+          .single()
+        
+        if (error) {
+          console.error('Error fetching user data:', error)
+        } else {
+          setUserData(userDataFromDB)
+        }
+      } else {
+        setUserData(null)
+      }
     })
 
     return () => {
@@ -95,6 +128,22 @@ export default function Header() {
       .map((n) => n[0])
       .join('')
       .toUpperCase()
+  }
+
+  const getUserDisplayName = () => {
+    if (userData) {
+      return `${userData.nombre} ${userData.apellido || ''}`.trim()
+    }
+    return user?.user_metadata?.full_name || user?.user_metadata?.name || 'Usuario'
+  }
+
+  const getUserEmail = () => {
+    return userData?.email || user?.email || ''
+  }
+
+  const getUserAvatar = () => {
+    // Priorizar avatar_url de la tabla usuarios, luego metadatos de Supabase Auth
+    return userData?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
   }
 
   if (loading) {
@@ -213,11 +262,11 @@ export default function Header() {
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarImage
-                            src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
-                            alt={user.user_metadata?.full_name || user.user_metadata?.name}
+                            src={getUserAvatar()}
+                            alt={getUserDisplayName()}
                           />
                           <AvatarFallback>
-                            {getInitials(user.user_metadata?.full_name || user.user_metadata?.name)}
+                            {getInitials(getUserDisplayName())}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
@@ -226,10 +275,10 @@ export default function Header() {
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">
-                            {user.user_metadata?.full_name || user.user_metadata?.name}
+                            {getUserDisplayName()}
                           </p>
                           <p className="text-xs leading-none text-gray-400">
-                            {user.email}
+                            {getUserEmail()}
                           </p>
                         </div>
                       </DropdownMenuLabel>
@@ -385,19 +434,19 @@ export default function Header() {
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
-                          alt={user.user_metadata?.full_name || user.user_metadata?.name}
+                          src={getUserAvatar()}
+                          alt={getUserDisplayName()}
                         />
                         <AvatarFallback>
-                          {getInitials(user.user_metadata?.full_name || user.user_metadata?.name)}
+                          {getInitials(getUserDisplayName())}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="text-sm font-medium text-white">
-                          {user.user_metadata?.full_name || user.user_metadata?.name}
+                          {getUserDisplayName()}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {user.email}
+                          {getUserEmail()}
                         </p>
                       </div>
                     </div>
