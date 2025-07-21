@@ -12,12 +12,20 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter()
 
   useEffect(() => {
-    // Verificar sesión actual
+    // Verificar sesión actual de forma más segura
     const checkUser = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) throw error
-        setUser(session?.user ?? null)
+        // Primero intentamos obtener la sesión
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError)
+          setUser(null)
+        } else if (session?.user) {
+          setUser(session.user)
+        } else {
+          setUser(null)
+        }
       } catch (error) {
         console.error('Error checking auth:', error)
         setUser(null)

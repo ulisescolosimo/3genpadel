@@ -53,8 +53,7 @@ import { useAuth } from '@/components/AuthProvider'
 import { toast } from 'sonner'
 
 export default function ProfilePage() {
-  const { signOut } = useAuth()
-  const [user, setUser] = useState(null)
+  const { user, loading: authLoading, signOut } = useAuth()
   const [usuario, setUsuario] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -84,25 +83,53 @@ export default function ProfilePage() {
       try {
         setLoading(true)
         
-        // Obtener usuario autenticado
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        
-        if (userError || !user) {
-          console.error('Error obteniendo usuario:', userError)
+        // Verificar si hay usuario autenticado
+        if (!user) {
+          console.log('No hay usuario autenticado')
           router.push('/login')
           return
         }
 
-        setUser(user)
-
-        // Buscar usuario por email
-        console.log('Buscando usuario con email:', user.email.toLowerCase())
+        // Buscar usuario primero por ID (más confiable para usuarios de Google)
+        console.log('Buscando usuario con ID:', user.id)
         
-        const { data: usuarioData, error: usuarioError } = await supabase
+        let { data: usuarioData, error: usuarioError } = await supabase
           .from('usuarios')
           .select('*')
-          .eq('email', user.email.toLowerCase())
+          .eq('id', user.id)
           .single()
+
+        // Si no se encuentra por ID, buscar por email como fallback
+        if (usuarioError && usuarioError.code === 'PGRST116') {
+          console.log('Usuario no encontrado por ID, buscando por email...')
+          const { data: usuarioPorEmail, error: emailError } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', user.email.toLowerCase())
+            .single()
+          
+          if (!emailError && usuarioPorEmail) {
+            console.log('Usuario encontrado por email, actualizando ID...')
+            // Actualizar el usuario existente con el ID correcto
+            const { data: updatedUser, error: updateError } = await supabase
+              .from('usuarios')
+              .update({ id: user.id })
+              .eq('email', user.email.toLowerCase())
+              .select()
+              .single()
+            
+            if (!updateError) {
+              usuarioData = updatedUser
+              usuarioError = null
+            } else {
+              console.error('Error actualizando ID del usuario:', updateError)
+              usuarioError = updateError
+            }
+          } else {
+            usuarioData = usuarioPorEmail
+            usuarioError = emailError
+          }
+        }
 
         console.log('Resultado búsqueda usuario:', { usuarioData, usuarioError })
 
@@ -182,8 +209,13 @@ export default function ProfilePage() {
       }
     }
 
-    loadUserAndProfile()
-  }, [router])
+    if (!authLoading && user) {
+      loadUserAndProfile()
+    } else if (!authLoading && !user) {
+      // Si no hay usuario autenticado y la autenticación ya terminó de cargar
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
 
   // Cargar inscripciones cuando el usuario esté disponible
   useEffect(() => {
@@ -634,6 +666,35 @@ export default function ProfilePage() {
     }
   }
 
+  // Mostrar spinner mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E2FF1B] mx-auto"></div>
+          <p className="mt-4 text-white">Verificando autenticación...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Si no hay usuario autenticado, redirigir al login
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white">Debes iniciar sesión para acceder al perfil</p>
+          <Button 
+            onClick={() => router.push('/login')}
+            className="mt-4 bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+          >
+            Ir al Login
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -645,7 +706,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!user || !usuario) {
+  if (!usuario) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">

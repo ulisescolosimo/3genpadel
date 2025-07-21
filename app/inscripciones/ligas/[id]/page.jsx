@@ -53,6 +53,7 @@ export default function LigaInscripcionPage() {
   })
   const [comprobanteFile, setComprobanteFile] = useState(null)
   const [jugadoresEncontrados, setJugadoresEncontrados] = useState({})
+  const [isDragOver, setIsDragOver] = useState(false)
   
   // Nuevo estado para manejar las posiciones de los jugadores
   const [jugadoresSeleccionados, setJugadoresSeleccionados] = useState({
@@ -76,6 +77,8 @@ export default function LigaInscripcionPage() {
   const [dniConfigurado, setDniConfigurado] = useState(false)
   const [verificandoDNI, setVerificandoDNI] = useState(true)
   const [creandoUsuario, setCreandoUsuario] = useState(false)
+  const [todosLosUsuarios, setTodosLosUsuarios] = useState([])
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(false)
 
   // 1. Agregar estado para advertencia y bloqueo
   const [bloquearPorInscripcion, setBloquearPorInscripcion] = useState({
@@ -148,6 +151,7 @@ export default function LigaInscripcionPage() {
     if (id && user && !verificandoDNI) {
       fetchLigaData()
       verificarInscripcionEnLiga()
+      cargarTodosLosUsuarios()
     }
   }, [id, user, verificandoDNI])
 
@@ -333,6 +337,7 @@ export default function LigaInscripcionPage() {
 
   // Limpiar búsqueda cuando cambia el tipo
   useEffect(() => {
+    console.log('🔄 Cambiando tipo de búsqueda a:', tipoBusqueda)
     setBusqueda('')
     setUsuariosEncontrados([])
     setMostrarDropdown(false)
@@ -340,12 +345,14 @@ export default function LigaInscripcionPage() {
     setNuevoJugador({ nombre: '', apellido: '', dni: '', email: '' })
   }, [tipoBusqueda])
 
-  // Actualizar búsqueda cuando cambian los jugadores seleccionados (solo si hay resultados)
+  // Recargar usuarios cuando cambien los jugadores seleccionados
   useEffect(() => {
-    if (busqueda && busqueda.trim() !== '' && usuariosEncontrados.length > 0) {
-      buscarUsuarios(busqueda, tipoBusqueda)
+    if (user && !verificandoDNI) {
+      cargarTodosLosUsuarios()
     }
-  }, [jugadoresSeleccionados])
+  }, [jugadoresSeleccionados, user, verificandoDNI])
+
+
 
   // Asegurar que el email del Titular 1 siempre sea el del usuario logueado
   useEffect(() => {
@@ -403,6 +410,79 @@ export default function LigaInscripcionPage() {
     }
   }
 
+  const cargarTodosLosUsuarios = async () => {
+    try {
+      setCargandoUsuarios(true)
+      
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .neq('rol', 'admin')
+        .order('nombre', { ascending: true })
+
+      if (error) throw error
+
+      // Filtrar y marcar usuarios según su disponibilidad
+      const usuariosProcesados = await Promise.all(data.map(async (usuario) => {
+        // Verificar si es el usuario logueado (Titular 1)
+        const esUsuarioLogueado = user && usuario.email === user.email.toLowerCase()
+        
+        // Verificar si ya está asignado a otra posición (por email)
+        const yaAsignado = Object.values(jugadoresSeleccionados).some(
+          jugador => jugador && jugador.email === usuario.email
+        )
+        
+        // Verificar si el DNI ya está siendo usado por un jugador asignado
+        const dniYaAsignado = Object.values(jugadoresSeleccionados).some(
+          jugador => jugador && jugador.dni === usuario.dni
+        )
+        
+        // Encontrar la posición asignada
+        const posicionAsignada = Object.keys(jugadoresSeleccionados).find(
+          pos => jugadoresSeleccionados[pos]?.email === usuario.email
+        )
+
+        // Encontrar la posición asignada por DNI
+        const posicionAsignadaPorDNI = Object.keys(jugadoresSeleccionados).find(
+          pos => jugadoresSeleccionados[pos]?.dni === usuario.dni
+        )
+
+        // Verificar si tiene inscripciones pendientes o confirmadas
+        const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
+          .from('ligainscripciones')
+          .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
+          .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
+          .in('estado', ['pendiente', 'aprobada'])
+
+        const tieneInscripcionPendiente = inscripcionesExistentes && inscripcionesExistentes.length > 0
+        const inscripcionInfo = tieneInscripcionPendiente ? inscripcionesExistentes[0] : null
+        
+        return {
+          ...usuario,
+          disponible: !esUsuarioLogueado && !yaAsignado && !dniYaAsignado && !tieneInscripcionPendiente,
+          esUsuarioLogueado,
+          yaAsignado,
+          dniYaAsignado,
+          posicionAsignada,
+          posicionAsignadaPorDNI,
+          tieneInscripcionPendiente,
+          inscripcionInfo
+        }
+      }))
+
+      setTodosLosUsuarios(usuariosProcesados)
+    } catch (error) {
+      console.error('Error cargando usuarios:', error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los usuarios",
+        variant: "destructive"
+      })
+    } finally {
+      setCargandoUsuarios(false)
+    }
+  }
+
   const buscarUsuarios = async (termino, tipo) => {
     console.log('🔍 Iniciando búsqueda:', { termino, tipo })
     
@@ -424,14 +504,16 @@ export default function LigaInscripcionPage() {
         query = query.ilike('email', `%${termino.toLowerCase()}%`)
         console.log('📧 Buscando por email:', termino.toLowerCase())
       } else if (tipo === 'dni') {
-        // Buscar por DNI exacto o parcial
+        // Buscar por DNI (coincidencia parcial o exacta)
         const dniTermino = termino.trim()
-        if (dniTermino.length >= 7) {
-          // Si el DNI tiene 7 o más dígitos, buscar coincidencia exacta
-          query = query.eq('dni', parseInt(dniTermino))
-          console.log('🆔 Buscando por DNI exacto:', dniTermino)
+        
+        // Si es un número válido, buscar por coincidencia exacta
+        const dniNumber = parseInt(dniTermino)
+        if (!isNaN(dniNumber)) {
+          query = query.eq('dni', dniNumber)
+          console.log('🆔 Buscando por DNI exacto:', dniNumber)
         } else {
-          // Si es menos de 7 dígitos, buscar coincidencia parcial
+          // Si no es un número válido, buscar por coincidencia de string en el DNI
           query = query.ilike('dni::text', `%${dniTermino}%`)
           console.log('🆔 Buscando por DNI parcial:', dniTermino)
         }
@@ -444,7 +526,7 @@ export default function LigaInscripcionPage() {
         console.error('❌ Error buscando usuarios:', error)
         setUsuariosEncontrados([])
         setMostrarDropdown(false)
-        return
+        throw error
       }
 
       console.log('✅ Usuarios encontrados:', data?.length || 0)
@@ -455,14 +537,24 @@ export default function LigaInscripcionPage() {
         // Verificar si es el usuario logueado (Titular 1)
         const esUsuarioLogueado = user && usuario.email === user.email.toLowerCase()
         
-        // Verificar si ya está asignado a otra posición
+        // Verificar si ya está asignado a otra posición (por email)
         const yaAsignado = Object.values(jugadoresSeleccionados).some(
           jugador => jugador && jugador.email === usuario.email
+        )
+        
+        // Verificar si el DNI ya está siendo usado por un jugador asignado
+        const dniYaAsignado = Object.values(jugadoresSeleccionados).some(
+          jugador => jugador && jugador.dni === usuario.dni
         )
         
         // Encontrar la posición asignada
         const posicionAsignada = Object.keys(jugadoresSeleccionados).find(
           pos => jugadoresSeleccionados[pos]?.email === usuario.email
+        )
+
+        // Encontrar la posición asignada por DNI
+        const posicionAsignadaPorDNI = Object.keys(jugadoresSeleccionados).find(
+          pos => jugadoresSeleccionados[pos]?.dni === usuario.dni
         )
 
         // Verificar si tiene inscripciones pendientes o confirmadas
@@ -477,10 +569,12 @@ export default function LigaInscripcionPage() {
         
         return {
           ...usuario,
-          disponible: !esUsuarioLogueado && !yaAsignado && !tieneInscripcionPendiente,
+          disponible: !esUsuarioLogueado && !yaAsignado && !dniYaAsignado && !tieneInscripcionPendiente,
           esUsuarioLogueado,
           yaAsignado,
+          dniYaAsignado,
           posicionAsignada,
+          posicionAsignadaPorDNI,
           tieneInscripcionPendiente,
           inscripcionInfo
         }
@@ -500,6 +594,7 @@ export default function LigaInscripcionPage() {
       console.error('❌ Error en búsqueda:', error)
       setUsuariosEncontrados([])
       setMostrarDropdown(false)
+      throw error // Re-lanzar el error para que se maneje en handleBuscarUsuarios
     }
   }
 
@@ -603,115 +698,7 @@ export default function LigaInscripcionPage() {
     }
   }
 
-  const buscarJugadorPorDNI = async (dni) => {
-    if (!dni) return
 
-    try {
-      console.log('Buscando usuario con DNI:', dni)
-      
-      const dniNumber = parseInt(dni.trim())
-      if (isNaN(dniNumber)) {
-        toast({
-          title: "DNI inválido",
-          description: "El DNI debe ser un número válido",
-          variant: "destructive"
-        })
-        return null
-      }
-      
-      const { data: usuarios, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('dni', dniNumber)
-        .neq('rol', 'admin') // Excluir usuarios con rol admin
-
-      if (error) {
-        console.error('Error en búsqueda por DNI:', error)
-        throw error
-      }
-
-      console.log('Resultado de búsqueda por DNI:', usuarios)
-
-      if (usuarios && usuarios.length > 0) {
-        const data = usuarios[0]
-        
-        // Verificar si es el usuario logueado
-        if (user && data.email === user.email.toLowerCase()) {
-          toast({
-            title: "Usuario no disponible",
-            description: "No puedes asignarte a otra posición, ya eres el Titular 1",
-            variant: "destructive"
-          })
-          return null
-        }
-        
-        // Verificar si ya está asignado a otra posición
-        const yaAsignado = Object.values(jugadoresSeleccionados).some(
-          jugador => jugador && jugador.email === data.email
-        )
-        
-        if (yaAsignado) {
-          const posicionAsignada = Object.keys(jugadoresSeleccionados).find(
-            pos => jugadoresSeleccionados[pos]?.email === data.email
-          )
-          toast({
-            title: "Usuario ya asignado",
-            description: `${data.nombre} ${data.apellido || ''} ya está asignado como ${posicionAsignada?.replace('_', ' ')}`,
-            variant: "destructive"
-          })
-          return null
-        }
-        
-        // Verificar si tiene inscripciones pendientes o confirmadas
-        const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
-          .from('ligainscripciones')
-          .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
-          .or(`titular_1_id.eq.${data.id},titular_2_id.eq.${data.id},suplente_1_id.eq.${data.id},suplente_2_id.eq.${data.id}`)
-          .in('estado', ['pendiente', 'aprobada'])
-
-        if (errorInscripciones) {
-          console.error('Error verificando inscripciones existentes:', errorInscripciones)
-        } else if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
-          const inscripcion = inscripcionesExistentes[0]
-          const ligaNombre = inscripcion.liga_categorias?.ligas?.nombre || 'una liga'
-          toast({
-            title: "Usuario no disponible",
-            description: `${data.nombre} ${data.apellido || ''} ya tiene una inscripción ${inscripcion.estado} en ${ligaNombre}. No puede inscribirse nuevamente.`,
-            variant: "destructive"
-          })
-          return null
-        }
-        
-        // Usuario encontrado y disponible - mostrar opciones de posición
-        toast({
-          title: "Usuario encontrado",
-          description: `${data.nombre} ${data.apellido || ''} (DNI: ${data.dni}) - Selecciona una posición`,
-          variant: "default"
-        })
-        
-        // Retornar el usuario para que se pueda asignar a una posición
-        return data
-      } else {
-        // Usuario no encontrado - permitir crear nuevo
-        toast({
-          title: "Usuario no encontrado",
-          description: "Completa los datos para crear un nuevo usuario",
-          variant: "default"
-        })
-        
-        // Retornar un objeto con el DNI para crear nuevo usuario
-        return { dni: dniNumber.toString(), nuevo: true }
-      }
-    } catch (error) {
-      console.error('Error buscando usuario por DNI:', error)
-      toast({
-        title: "Error",
-        description: "Error al buscar usuario por DNI: " + error.message,
-        variant: "destructive"
-      })
-      return null
-    }
-  }
 
   const seleccionarUsuario = (usuario) => {
     setJugadorEncontrado(usuario)
@@ -854,7 +841,7 @@ export default function LigaInscripcionPage() {
       return
     }
 
-    // Verificar que el jugador no esté ya asignado a otra posición
+    // Verificar que el jugador no esté ya asignado a otra posición (por email)
     const posicionAnterior = Object.keys(jugadoresSeleccionados).find(
       pos => jugadoresSeleccionados[pos]?.email === jugador.email
     )
@@ -864,6 +851,21 @@ export default function LigaInscripcionPage() {
       toast({
         title: "Usuario ya asignado",
         description: `${jugador.nombre} ${jugador.apellido || ''} ya está asignado como ${posicionAnterior.replace('_', ' ')}`,
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Verificar que el DNI no esté ya siendo usado por otro jugador
+    const posicionAnteriorPorDNI = Object.keys(jugadoresSeleccionados).find(
+      pos => jugadoresSeleccionados[pos]?.dni === jugador.dni
+    )
+    
+    if (posicionAnteriorPorDNI) {
+      // Mostrar mensaje informativo
+      toast({
+        title: "DNI ya usado",
+        description: `El DNI ${jugador.dni} ya está siendo usado por ${jugadoresSeleccionados[posicionAnteriorPorDNI].nombre} ${jugadoresSeleccionados[posicionAnteriorPorDNI].apellido || ''} como ${posicionAnteriorPorDNI.replace('_', ' ')}`,
         variant: "destructive"
       })
       return
@@ -936,18 +938,44 @@ export default function LigaInscripcionPage() {
     })
   }
 
-  const handleFileChange = (event) => {
+  const handleFileSelect = (event) => {
     const file = event.target.files[0]
-    if (file) {
-      if (file.size > 1024 * 1024 * 1024) { // 1GB
-        toast({
-          title: "Error",
-          description: "El archivo es demasiado grande. Máximo 1GB.",
-          variant: "destructive"
-        })
-        return
-      }
-      setComprobanteFile(file)
+    processComprobanteFile(file)
+  }
+
+  const processComprobanteFile = (file) => {
+    if (!file) return
+
+    // Validar tamaño (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "El archivo es demasiado grande. Máximo 10MB.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setComprobanteFile(file)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      processComprobanteFile(files[0])
     }
   }
 
@@ -1016,14 +1044,32 @@ export default function LigaInscripcionPage() {
 
       // Verificar que no haya usuarios duplicados
       const emailsAsignados = new Set()
+      const dnisAsignados = new Set()
       emailsAsignados.add(user.email.toLowerCase()) // Agregar el usuario logueado
+      
+      // Obtener el DNI del usuario logueado
+      const { data: usuarioLogueado, error: errorUsuarioLogueado } = await supabase
+        .from('usuarios')
+        .select('dni')
+        .eq('email', user.email.toLowerCase())
+        .single()
+
+      if (usuarioLogueado?.dni) {
+        dnisAsignados.add(usuarioLogueado.dni.toString())
+      }
       
       for (const posicion of jugadoresRequeridos) {
         const jugador = jugadoresSeleccionados[posicion]
         if (emailsAsignados.has(jugador.email.toLowerCase())) {
           throw new Error(`El usuario ${jugador.nombre} ${jugador.apellido || ''} está asignado a múltiples posiciones`)
         }
+        if (dnisAsignados.has(jugador.dni?.toString())) {
+          throw new Error(`El DNI ${jugador.dni} está siendo usado por múltiples jugadores`)
+        }
         emailsAsignados.add(jugador.email.toLowerCase())
+        if (jugador.dni) {
+          dnisAsignados.add(jugador.dni.toString())
+        }
       }
 
       // Verificar que ningún jugador del equipo ya tenga una inscripción pendiente o confirmada
@@ -1307,9 +1353,32 @@ export default function LigaInscripcionPage() {
       })
       return
     }
+
+    // Validar DNI si es búsqueda por DNI
+    if (tipoBusqueda === 'dni') {
+      const dniTermino = busqueda.trim()
+      if (!dniTermino || dniTermino === '') {
+        console.log('❌ DNI vacío:', busqueda)
+        toast({
+          title: "DNI requerido",
+          description: "Debes ingresar un DNI para buscar",
+          variant: "destructive"
+        })
+        return
+      }
+    }
     
     console.log('✅ Iniciando búsqueda...')
-    await buscarUsuarios(busqueda, tipoBusqueda)
+    try {
+      await buscarUsuarios(busqueda, tipoBusqueda)
+    } catch (error) {
+      console.error('❌ Error en búsqueda:', error)
+      toast({
+        title: "Error",
+        description: "Error al realizar la búsqueda",
+        variant: "destructive"
+      })
+    }
   }
 
   // Función para refrescar la búsqueda después de crear un usuario
@@ -1356,6 +1425,14 @@ export default function LigaInscripcionPage() {
           if (yaAsignado) {
             return false
           }
+          
+          // Verificar que el DNI no esté ya siendo usado por otro jugador
+          const dniYaAsignado = Object.values(jugadoresSeleccionados).some(
+            jugador => jugador && jugador.dni === usuarioSeleccionado.dni
+          )
+          if (dniYaAsignado) {
+            return false
+          }
         }
         
         return true
@@ -1365,63 +1442,74 @@ export default function LigaInscripcionPage() {
     return (
       <div className="space-y-6">
         <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
-          Selección de Usuarios
+          Selección de Jugadores
         </h3>
 
-        {/* Búsqueda de usuarios */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-white">Buscar usuario</Label>
-            <p className="text-sm text-gray-400 mb-2">
-              Ingresa el {tipoBusqueda === 'email' ? 'email' : 'DNI'} y haz click en buscar
-            </p>
-            <div className="flex gap-2">
-              <Select value={tipoBusqueda} onValueChange={setTipoBusqueda}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white w-32">
+        {/* Búsqueda de usuarios mejorada */}
+        <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+          <div className="space-y-4">
+            <div className="text-center">
+              <h4 className="text-lg font-medium text-white mb-2">Buscar Jugador</h4>
+              <p className="text-sm text-gray-400">
+                Busca por email o DNI para encontrar jugadores disponibles
+              </p>
+            </div>
+            
+                          <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <Select value={tipoBusqueda} onValueChange={setTipoBusqueda}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white w-full sm:w-32 h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-900 border-white/20">
-                  <SelectItem value="email" className="text-white hover:bg-[#E2FF1B]/10">Email</SelectItem>
-                  <SelectItem value="dni" className="text-white hover:bg-[#E2FF1B]/10">DNI</SelectItem>
+                  <SelectItem value="email" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                      Email
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dni" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                      DNI
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              {console.log('🔍 Estado del botón:', { busqueda, busquedaTrim: busqueda?.trim(), disabled: !busqueda || busqueda?.trim() === '' })}
+              
               <div className="relative flex-1">
                 <Input
                   type={tipoBusqueda === 'email' ? 'email' : 'text'}
                   value={busqueda}
                   onChange={(e) => handleInputChange(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white"
-                  placeholder={tipoBusqueda === 'email' ? 'usuario@email.com' : '12345678'}
+                  className="bg-white/10 border-white/20 text-white h-12 text-base"
+                  placeholder={tipoBusqueda === 'email' ? 'usuario@email.com' : '42214710'}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
-                      console.log('🔘 Enter presionado en input')
                       handleBuscarUsuarios()
                     }
                   }}
                   onFocus={() => {
                     // No mostrar dropdown automáticamente al hacer focus
-                    // Solo se mostrará cuando se haga una búsqueda activa
                   }}
                   onBlur={() => {
-                    // Delay para permitir hacer click en el dropdown
                     setTimeout(() => setMostrarDropdown(false), 200)
                   }}
                 />
                 
-                {/* Dropdown de resultados */}
+                {/* Dropdown de resultados mejorado */}
                 {mostrarDropdown && (
-                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-white/20 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-2 bg-gray-900 border border-white/20 rounded-lg shadow-xl max-h-80 overflow-y-auto">
                     {usuariosEncontrados.length > 0 ? (
                       usuariosEncontrados.map((usuario) => {
                         return (
                           <div
                             key={usuario.id}
-                            className={`p-3 border-b border-white/10 last:border-b-0 ${
+                            className={`p-4 border-b border-white/10 last:border-b-0 transition-all duration-200 ${
                               !usuario.disponible
                                 ? 'bg-gray-800/50 cursor-not-allowed opacity-60' 
-                                : 'hover:bg-white/10 cursor-pointer'
+                                : 'hover:bg-white/10 cursor-pointer hover:scale-[1.02]'
                             }`}
                             onClick={() => {
                               if (usuario.disponible) {
@@ -1429,45 +1517,69 @@ export default function LigaInscripcionPage() {
                               }
                             }}
                           >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="text-white font-medium">
-                                  {usuario.nombre} {usuario.apellido || ''}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="w-10 h-10 bg-[#E2FF1B]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <User className="w-5 h-5 text-[#E2FF1B]" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-white font-semibold text-lg truncate">
+                                      {usuario.nombre} {usuario.apellido || ''}
+                                    </div>
+                                    <div className="text-sm text-gray-400 truncate">
+                                      {usuario.email}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Estados del usuario */}
+                                <div className="flex flex-wrap gap-2 mt-2">
                                   {usuario.yaAsignado && usuario.posicionAsignada && (
-                                    <span className="ml-2 text-xs text-yellow-400">
-                                      (Ya asignado como {usuario.posicionAsignada.replace('_', ' ')})
-                                    </span>
+                                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                                      Ya asignado como {usuario.posicionAsignada.replace('_', ' ')}
+                                    </Badge>
+                                  )}
+                                  {usuario.dniYaAsignado && usuario.posicionAsignadaPorDNI && (
+                                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                                      DNI usado como {usuario.posicionAsignadaPorDNI.replace('_', ' ')}
+                                    </Badge>
                                   )}
                                   {usuario.esUsuarioLogueado && (
-                                    <span className="ml-2 text-xs text-[#E2FF1B]">
-                                      (Tú - Titular 1)
-                                    </span>
+                                    <Badge className="bg-[#E2FF1B]/20 text-[#E2FF1B] border-[#E2FF1B]/30 text-xs">
+                                      Tú - Titular 1
+                                    </Badge>
                                   )}
                                   {usuario.tieneInscripcionPendiente && usuario.inscripcionInfo && (
-                                    <span className="ml-2 text-xs text-red-400">
-                                      (Inscripción {usuario.inscripcionInfo.estado} en {usuario.inscripcionInfo.liga_categorias?.ligas?.nombre || 'liga'})
-                                    </span>
+                                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+                                      Inscripción {usuario.inscripcionInfo.estado} en {usuario.inscripcionInfo.liga_categorias?.ligas?.nombre || 'liga'}
+                                    </Badge>
                                   )}
                                 </div>
-                                <div className="text-sm text-gray-400">
-                                  {usuario.email}
-                                </div>
                               </div>
-                              <div className="text-sm text-[#E2FF1B]">
-                                DNI: {usuario.dni}
+                              <div className="text-left sm:text-right">
+                                <div className="text-sm text-[#E2FF1B] font-medium">
+                                  DNI: {usuario.dni}
+                                </div>
+                                {usuario.disponible && (
+                                  <div className="text-xs text-green-400 mt-1">
+                                    Disponible
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
                         )
                       })
                     ) : (
-                      <div className="p-3 text-center">
-                        <div className="text-gray-400 mb-2">
-                          {usuariosEncontrados.length > 0 
-                            ? 'Todos los usuarios encontrados no están disponibles (ya asignados, son tú, o tienen inscripciones pendientes/confirmadas)'
-                            : tipoBusqueda === 'dni' 
-                              ? `No se encontró usuario con DNI: ${busqueda}`
-                              : `No se encontró usuario con email: ${busqueda}`
+                      <div className="p-6 text-center">
+                        <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Search className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <div className="text-gray-400 mb-4 px-2">
+                          {tipoBusqueda === 'dni' 
+                            ? `No se encontró usuario con DNI que contenga: "${busqueda}"`
+                            : `No se encontró usuario con email: "${busqueda}"`
                           }
                         </div>
                         <Button
@@ -1490,7 +1602,7 @@ export default function LigaInscripcionPage() {
                           className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
                           size="sm"
                         >
-                          <Plus className="w-4 h-4 mr-1" />
+                          <Plus className="w-4 h-4 mr-2" />
                           Crear nuevo usuario
                         </Button>
                       </div>
@@ -1500,17 +1612,15 @@ export default function LigaInscripcionPage() {
               </div>
               <Button
                 type="button"
-                onClick={() => {
-                  console.log('🔘 Click en botón de búsqueda')
-                  handleBuscarUsuarios()
-                }}
+                onClick={handleBuscarUsuarios}
                 disabled={!busqueda || busqueda.trim() === ''}
-                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10"
-                title={`Buscar ${tipoBusqueda === 'email' ? 'email' : 'DNI'}: ${busqueda}`}
+                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-12 px-6 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
-                <Search className="w-4 h-4" />
+                <Search className="w-5 h-5 mr-2" />
+                Buscar
               </Button>
             </div>
+          </div>
           </div>
 
           {/* Resultado de búsqueda y opciones de posición */}
@@ -2057,7 +2167,7 @@ export default function LigaInscripcionPage() {
                                 <SelectItem 
                                   key={categoria.id} 
                                   value={categoria.id.toString()} 
-                                  className="text-white hover:bg-[#E2FF1B]/10 focus:bg-[#E2FF1B]/10"
+                                  className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B]"
                                 >
                                   {categoria.categoria} ({categoria.inscripcionesActuales}/{categoria.max_inscripciones})
                                 </SelectItem>
@@ -2088,25 +2198,66 @@ export default function LigaInscripcionPage() {
                           <strong>Alias:</strong> stefanolorenzo
                         </p>
                         <p className="text-xs text-gray-400 mb-4">
-                          Sube 1 archivo compatible. Tamaño máximo: 1 GB.
+                          Arrastra un archivo o haz clic para seleccionar. Tamaño máximo: 10MB.
                         </p>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="comprobante"
+                        
+                        {/* Drag & Drop Zone */}
+                        <div
+                          className={`relative w-full p-6 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
+                            isDragOver 
+                              ? 'border-[#E2FF1B] bg-[#E2FF1B]/10' 
+                              : 'border-gray-600 bg-gray-800/50 hover:border-gray-500 hover:bg-gray-800/70'
+                          }`}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          onClick={() => document.getElementById('comprobante-input').click()}
+                        >
+                          <input
+                            id="comprobante-input"
                             type="file"
-                            onChange={handleFileChange}
-                            className="bg-white/10 border-white/20 text-white file:bg-[#E2FF1B] file:text-black file:border-0 file:rounded file:px-4 file:py-2 file:cursor-pointer file:mr-4 file:font-medium hover:file:bg-[#E2FF1B]/90 transition-colors"
                             accept="image/*,.pdf,.doc,.docx"
+                            onChange={handleFileSelect}
+                            className="hidden"
                             required
                           />
-                          {comprobanteFile && (
-                            <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                          )}
+                          
+                          <div className="flex flex-col items-center justify-center space-y-3">
+                            <div className={`p-3 rounded-full ${
+                              isDragOver ? 'bg-[#E2FF1B]/20' : 'bg-gray-700/50'
+                            }`}>
+                              <Upload className={`w-6 h-6 ${
+                                isDragOver ? 'text-[#E2FF1B]' : 'text-gray-400'
+                              }`} />
+                            </div>
+                            
+                            <div className="text-center">
+                              <p className={`text-sm font-medium ${
+                                isDragOver ? 'text-[#E2FF1B]' : 'text-gray-300'
+                              }`}>
+                                {isDragOver ? 'Suelta el archivo aquí' : 'Arrastra un archivo o haz clic'}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Formatos: JPG, PNG, PDF, DOC, DOCX • Máximo 10MB
+                              </p>
+                            </div>
+                          </div>
                         </div>
+                        
                         {comprobanteFile && (
-                          <p className="text-sm text-gray-300 mt-2">
-                            Archivo seleccionado: {comprobanteFile.name}
-                          </p>
+                          <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm text-green-400 font-medium">
+                                  Archivo seleccionado
+                                </p>
+                                <p className="text-xs text-gray-300">
+                                  {comprobanteFile.name} ({(comprobanteFile.size / 1024 / 1024).toFixed(2)} MB)
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

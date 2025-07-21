@@ -45,11 +45,12 @@ export async function POST(request) {
     const nombre = nameParts[0] || email?.split("@")[0] || ""
     const apellido = nameParts.slice(1).join(" ") || ""
 
-    // Verificar si ya existe un usuario con ese ID
+    // Verificar si ya existe un usuario con ese ID o email
     const { data: usuarioExistente, error: checkError } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('id', userId)
+      .or(`id.eq.${userId},email.eq.${email.toLowerCase()}`)
+      .limit(1)
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -65,19 +66,28 @@ export async function POST(request) {
 
     if (usuarioExistente) {
       console.log('Usuario ya existe, actualizando...')
+      
+      // Si el usuario existe pero con email diferente, actualizar el email
+      const updateData = {
+        email: email.toLowerCase(),
+        nombre: nombre,
+        apellido: apellido,
+        avatar_url: avatarUrl || usuarioExistente.avatar_url,
+        cuenta_activada: true,
+        rol: 'user',
+        updated_at: new Date().toISOString()
+      }
+      
+      // Si el ID es diferente, actualizar también el ID
+      if (usuarioExistente.id !== userId) {
+        updateData.id = userId
+      }
+      
       // Actualizar el perfil existente
       const { data: updatedUser, error: updateError } = await supabase
         .from('usuarios')
-        .update({
-          email: email.toLowerCase(),
-          nombre: nombre,
-          apellido: apellido,
-          avatar_url: avatarUrl || usuarioExistente.avatar_url,
-          cuenta_activada: true, // Cuenta activada para usuarios de Google
-          rol: 'user',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId)
+        .update(updateData)
+        .eq('id', usuarioExistente.id)
         .select()
         .single()
       

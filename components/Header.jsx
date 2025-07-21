@@ -17,73 +17,24 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useAuth } from '@/components/AuthProvider'
 
 export default function Header() {
-  const [user, setUser] = useState(null)
+  const { user, loading } = useAuth()
   const [userData, setUserData] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-        
-        // Si hay usuario autenticado, obtener datos de la tabla usuarios
-        if (user) {
-          try {
-            const { data: userDataFromDB, error } = await supabase
-              .from('usuarios')
-              .select('*')
-              .eq('id', user.id)
-              .single()
-            
-            if (error) {
-              console.error('Error fetching user data:', error)
-              // Si no encuentra por ID, intentar por email como fallback
-              const { data: userDataByEmail, error: emailError } = await supabase
-                .from('usuarios')
-                .select('*')
-                .eq('email', user.email.toLowerCase())
-                .single()
-              
-              if (emailError) {
-                console.error('Error fetching user data by email:', emailError)
-                // Si no encuentra el usuario, no mostrar error, solo no establecer userData
-                // El usuario será creado cuando acceda al perfil
-              } else {
-                setUserData(userDataByEmail)
-              }
-            } else {
-              setUserData(userDataFromDB)
-            }
-          } catch (error) {
-            console.error('Error getting user data:', error)
-            // No mostrar error al usuario, solo log
-          }
-        }
-      } catch (error) {
-        console.error('Error getting user:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null)
-      
-      // Actualizar datos de usuario cuando cambia la sesión
-      if (session?.user) {
+    const getUserData = async () => {
+      // Si hay usuario autenticado, obtener datos de la tabla usuarios
+      if (user) {
         try {
           const { data: userDataFromDB, error } = await supabase
             .from('usuarios')
             .select('*')
-            .eq('id', session.user.id)
+            .eq('id', user.id)
             .single()
           
           if (error) {
@@ -92,7 +43,7 @@ export default function Header() {
             const { data: userDataByEmail, error: emailError } = await supabase
               .from('usuarios')
               .select('*')
-              .eq('email', session.user.email.toLowerCase())
+              .eq('email', user.email.toLowerCase())
               .single()
             
             if (emailError) {
@@ -112,19 +63,17 @@ export default function Header() {
       } else {
         setUserData(null)
       }
-    })
-
-    return () => {
-      subscription.unsubscribe()
     }
-  }, [])
+
+    getUserData()
+  }, [user])
 
   const handleSignIn = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?redirectTo=${pathname}`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       })
       if (error) throw error
@@ -139,7 +88,7 @@ export default function Header() {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       
-      setUser(null)
+      setUserData(null)
       router.push('/')
     } catch (error) {
       toast.error('Error al cerrar sesión')
@@ -169,19 +118,27 @@ export default function Header() {
   }
 
   const getUserDisplayName = () => {
-    if (userData) {
-      return `${userData.nombre} ${userData.apellido || ''}`.trim()
+    if (userData?.nombre) {
+      return userData.nombre
     }
-    return user?.user_metadata?.full_name || user?.user_metadata?.name || 'Usuario'
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+    }
+    return user?.email || 'Usuario'
   }
 
   const getUserEmail = () => {
-    return userData?.email || user?.email || ''
+    return user?.email || ''
   }
 
   const getUserAvatar = () => {
-    // Priorizar avatar_url de la tabla usuarios, luego metadatos de Supabase Auth
-    return userData?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+    if (userData?.avatar_url) {
+      return userData.avatar_url
+    }
+    if (user?.user_metadata?.avatar_url) {
+      return user.user_metadata.avatar_url
+    }
+    return null
   }
 
   if (loading) {
