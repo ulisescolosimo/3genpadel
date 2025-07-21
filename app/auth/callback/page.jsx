@@ -13,92 +13,161 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        console.log('=== AUTH CALLBACK START ===')
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Error obteniendo sesión:', sessionError)
+          router.push('/')
+          return
+        }
         
         if (session) {
-          // Verificar si el usuario ya tiene un perfil
-          const { data: profile } = await supabase
+          console.log('Sesión obtenida:', {
+            email: session.user.email,
+            id: session.user.id,
+            metadata: session.user.user_metadata
+          })
+          
+          // Verificar si el usuario ya tiene un perfil en la tabla usuarios
+          console.log('Buscando perfil existente...')
+          const { data: profile, error: profileError } = await supabase
             .from("usuarios")
             .select("*")
             .eq("id", session.user.id)
             .single()
 
-          // Si no tiene perfil, crearlo
+          console.log('Resultado búsqueda perfil:', { profile, profileError })
+
+          // Si no tiene perfil, crearlo automáticamente usando la API
           if (!profile) {
-            const { error: profileError } = await supabase
-              .from("usuarios")
-              .insert([
-                {
-                  id: session.user.id,
+            console.log('No se encontró perfil, creando uno automáticamente...')
+            
+            try {
+              const response = await fetch('/api/create-user-auto', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userId: session.user.id,
                   email: session.user.email,
-                  nombre: session.user.user_metadata?.full_name || session.user.email?.split("@")[0],
-                  avatar_url: session.user.user_metadata?.avatar_url,
-                  nivel: "Principiante",
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                },
-              ])
+                  fullName: session.user.user_metadata?.full_name || "",
+                  avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture
+                })
+              })
 
-            if (profileError) throw profileError
-          }
+              const result = await response.json()
 
-          // Verificar si el usuario ya tiene un perfil de jugador
-          const { data: jugador } = await supabase
-            .from("jugador")
-            .select("*")
-            .eq("email", session.user.email.toLowerCase())
-            .single()
+              if (!response.ok) {
+                console.error('Error en API create-user-auto:', result.error)
+                throw new Error(result.error || 'Error al crear usuario automáticamente')
+              }
 
-          // Si no tiene perfil de jugador, crearlo automáticamente
-          if (!jugador) {
-            // Extraer nombre y apellido del full_name de Google
-            const fullName = session.user.user_metadata?.full_name || ""
-            const nameParts = fullName.split(" ")
-            const nombre = nameParts[0] || session.user.email?.split("@")[0] || ""
-            const apellido = nameParts.slice(1).join(" ") || ""
+              if (!result.success) {
+                console.error('API create-user-auto falló:', result)
+                throw new Error(result.error || 'Error desconocido al crear usuario')
+              }
 
-            const { error: jugadorError } = await supabase
-              .from("jugador")
-              .insert([
-                {
-                  email: session.user.email.toLowerCase(),
-                  nombre: nombre,
-                  apellido: apellido,
-                  dni: "", // Campo vacío que deberá completar después
-                  ranking_puntos: 0,
-                  cuenta_activada: false, // No activada hasta que complete DNI
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                },
-              ])
+              console.log('Usuario creado automáticamente:', result.user)
+            } catch (apiError) {
+              console.error('Error llamando a create-user-auto:', apiError)
+              
+              // Fallback: intentar crear manualmente
+              console.log('Intentando crear manualmente como fallback...')
+              
+              const fullName = session.user.user_metadata?.full_name || ""
+              const nameParts = fullName.split(" ")
+              const nombre = nameParts[0] || session.user.email?.split("@")[0] || ""
+              const apellido = nameParts.slice(1).join(" ") || ""
 
-            if (jugadorError) {
-              console.error('Error creando perfil de jugador:', jugadorError)
-              // No lanzar error aquí para no interrumpir el login
-            } else {
-              // Actualizar el perfil de usuario con el jugador_id
-              const { data: jugadorCreado } = await supabase
-                .from("jugador")
-                .select("id")
-                .eq("email", session.user.email.toLowerCase())
+              const userData = {
+                id: session.user.id,
+                email: session.user.email.toLowerCase(),
+                nombre: nombre,
+                apellido: apellido,
+                dni: null,
+                ranking_puntos: 0,
+                cuenta_activada: true,
+                rol: 'user',
+                avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+                nivel: "Principiante"
+              }
+
+              console.log('Datos a insertar (fallback):', userData)
+
+              const { data: newProfile, error: insertError } = await supabase
+                .from("usuarios")
+                .insert(userData)
+                .select()
                 .single()
 
-              if (jugadorCreado) {
-                await supabase
-                  .from("usuarios")
-                  .update({ jugador_id: jugadorCreado.id })
-                  .eq("id", session.user.id)
+              if (insertError) {
+                console.error('Error en fallback manual:', insertError)
+                throw insertError
+              }
+
+              console.log('Usuario creado manualmente (fallback):', newProfile)
+            }
+          } else {
+            console.log('Perfil existente encontrado:', profile)
+            
+            // Actualizar campos que puedan haber cambiado (avatar, nombre, etc.)
+            const updateData = {}
+            
+            if (session.user.user_metadata?.avatar_url && profile.avatar_url !== session.user.user_metadata.avatar_url) {
+              updateData.avatar_url = session.user.user_metadata.avatar_url
+            }
+            
+            if (session.user.user_metadata?.picture && profile.avatar_url !== session.user.user_metadata.picture) {
+              updateData.avatar_url = session.user.user_metadata.picture
+            }
+            
+            if (Object.keys(updateData).length > 0) {
+              console.log('Actualizando perfil con nuevos datos:', updateData)
+              const { error: updateError } = await supabase
+                .from("usuarios")
+                .update(updateData)
+                .eq("id", session.user.id)
+              
+              if (updateError) {
+                console.error('Error actualizando perfil:', updateError)
+              } else {
+                console.log('Perfil actualizado correctamente')
               }
             }
           }
 
+          // Verificar que el perfil existe antes de redirigir
+          console.log('Verificando perfil final...')
+          const { data: finalProfile, error: finalError } = await supabase
+            .from("usuarios")
+            .select("*")
+            .eq("id", session.user.id)
+            .single()
+
+          if (finalError) {
+            console.error('Error verificando perfil final:', finalError)
+            throw finalError
+          }
+
+          console.log('Perfil final verificado:', finalProfile)
+
           // Redirigir al usuario
+          console.log('Redirigiendo a:', redirectTo)
           router.push(redirectTo)
         } else {
+          console.log('No hay sesión, redirigiendo a inicio')
           router.push('/')
         }
       } catch (error) {
         console.error('Error en el callback:', error)
+        console.error('Detalles del error:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        })
         router.push('/')
       }
     }
@@ -137,4 +206,4 @@ export default function AuthCallback() {
       </div>
     </div>
   )
-} 
+}

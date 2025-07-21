@@ -367,50 +367,6 @@ export default function ProfilePage() {
     }
   }
 
-  // Función de debug para verificar usuarios
-  const debugUsuarios = async () => {
-    try {
-      console.log('=== DEBUG USUARIOS ===')
-      console.log('Email del usuario:', user?.email)
-      console.log('Usuario actual:', usuario)
-      
-      // Buscar todos los usuarios para ver qué hay
-      const { data: todosUsuarios, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .order('id', { ascending: false })
-        .limit(10)
-
-      if (error) {
-        console.error('Error buscando todos los usuarios:', error)
-        return
-      }
-
-      console.log('Últimos 10 usuarios:', todosUsuarios)
-      
-      // Buscar específicamente por el email del usuario
-      const { data: usuarioPorEmail, error: errorEmail } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', user.email.toLowerCase())
-
-      console.log('Búsqueda por email:', { usuarioPorEmail, errorEmail })
-      
-      // Verificar si el usuario actual existe
-      if (usuario?.id) {
-        const { data: usuarioActual, error: errorActual } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', usuario.id)
-          .single()
-
-        console.log('Verificación usuario actual:', { usuarioActual, errorActual })
-      }
-      
-    } catch (error) {
-      console.error('Error en debug:', error)
-    }
-  }
 
   // Función para refrescar datos del usuario
   const refreshUsuario = async () => {

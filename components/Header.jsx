@@ -37,11 +37,23 @@ export default function Header() {
           const { data: userDataFromDB, error } = await supabase
             .from('usuarios')
             .select('*')
-            .eq('email', user.email)
+            .eq('id', user.id)
             .single()
           
           if (error) {
             console.error('Error fetching user data:', error)
+            // Si no encuentra por ID, intentar por email como fallback
+            const { data: userDataByEmail, error: emailError } = await supabase
+              .from('usuarios')
+              .select('*')
+              .eq('email', user.email.toLowerCase())
+              .single()
+            
+            if (emailError) {
+              console.error('Error fetching user data by email:', emailError)
+            } else {
+              setUserData(userDataByEmail)
+            }
           } else {
             setUserData(userDataFromDB)
           }
@@ -63,11 +75,23 @@ export default function Header() {
         const { data: userDataFromDB, error } = await supabase
           .from('usuarios')
           .select('*')
-          .eq('email', session.user.email)
+          .eq('id', session.user.id)
           .single()
         
         if (error) {
           console.error('Error fetching user data:', error)
+          // Si no encuentra por ID, intentar por email como fallback
+          const { data: userDataByEmail, error: emailError } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', session.user.email.toLowerCase())
+            .single()
+          
+          if (emailError) {
+            console.error('Error fetching user data by email:', emailError)
+          } else {
+            setUserData(userDataByEmail)
+          }
         } else {
           setUserData(userDataFromDB)
         }
