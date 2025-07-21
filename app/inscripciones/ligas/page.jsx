@@ -109,17 +109,17 @@ export default function LigasPage() {
   if (ligas.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-        <div className="pt-12 pb-8 px-4">
+        <div className="pt-8 pb-6 px-4 sm:pt-12 sm:pb-8">
           <div className="container mx-auto">
-            <Link href="/inscripciones" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-6">
+            <Link href="/inscripciones" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-4 sm:mb-6">
               <ArrowLeft className="w-4 h-4" />
-              Volver a Inscripciones
+              <span className="text-sm sm:text-base">Volver a Inscripciones</span>
             </Link>
             
-            <div className="text-center py-16">
-              <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No hay ligas disponibles</h3>
-              <p className="text-gray-400">Próximamente tendremos nuevas ligas para ti</p>
+            <div className="text-center py-12 sm:py-16">
+              <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No hay ligas disponibles</h3>
+              <p className="text-gray-400 text-sm sm:text-base">Próximamente tendremos nuevas ligas para ti</p>
             </div>
           </div>
         </div>
@@ -138,18 +138,18 @@ export default function LigasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
-      <div className="pt-12 pb-8 px-4">
+      <div className="pt-8 pb-6 px-4 sm:pt-12 sm:pb-8">
         <div className="container mx-auto">
-          <Link href="/inscripciones" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-6">
+          <Link href="/inscripciones" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-4 sm:mb-6">
             <ArrowLeft className="w-4 h-4" />
-            Volver a Inscripciones
+            <span className="text-sm sm:text-base">Volver a Inscripciones</span>
           </Link>
           
-          <div className="text-center mb-12 max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          <div className="text-center mb-8 sm:mb-12 max-w-4xl mx-auto">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
               <span className="text-[#E2FF1B]">Liga</span> Actual
             </h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-base sm:text-xl text-gray-300 px-4">
               Únete a nuestra liga competitiva y mejora tu ranking jugando contra los mejores
             </p>
           </div>
@@ -161,82 +161,82 @@ export default function LigasPage() {
         <div className="max-w-6xl mx-auto">
           <Card className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 overflow-hidden">
             {/* Header con imagen de fondo */}
-            <div className="relative bg-gradient-to-r from-[#E2FF1B]/10 to-[#E2FF1B]/5 p-8 border-b border-white/10">
-              <div className="flex items-start justify-between mb-6">
-                <div className="w-16 h-16 bg-[#E2FF1B]/20 rounded-xl flex items-center justify-center">
-                  <Trophy className="w-8 h-8 text-[#E2FF1B]" />
+            <div className="relative bg-gradient-to-r from-[#E2FF1B]/10 to-[#E2FF1B]/5 p-4 sm:p-6 md:p-8 border-b border-white/10">
+              <div className="flex items-start justify-between mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#E2FF1B]/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-[#E2FF1B]" />
                 </div>
                 <Badge 
                   variant={statusBadge.variant}
-                  className={`${statusBadge.className} text-sm px-4 py-2`}
+                  className={`${statusBadge.className} text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2`}
                 >
                   {statusBadge.text}
                 </Badge>
               </div>
-              <CardTitle className="text-3xl md:text-4xl font-bold text-white mb-4">{liga.nombre}</CardTitle>
-              <div className="text-lg text-gray-300 max-w-3xl">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">{liga.nombre}</CardTitle>
+              <div className="text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl">
                 <HtmlContent content={liga.descripcion} />
               </div>
             </div>
 
-            <CardContent className="p-8">
-              <div className="grid lg:grid-cols-2 gap-8">
+            <CardContent className="p-4 sm:p-6 md:p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {/* Información Principal */}
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-[#E2FF1B] flex items-center gap-2">
-                      <Award className="w-5 h-5" />
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <h3 className="text-lg sm:text-xl font-semibold text-[#E2FF1B] flex items-center gap-2">
+                      <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                       Información General
                     </h3>
                     
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-gray-300">
-                        <Users className="w-5 h-5 text-[#E2FF1B]" />
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] flex-shrink-0" />
                         <span className="font-medium">Categorías:</span>
                         <span className="text-white">{liga.categorias}</span>
                       </div>
                       
-                      <div className="flex items-center gap-3 text-gray-300">
-                        <Calendar className="w-5 h-5 text-[#E2FF1B]" />
+                      <div className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] flex-shrink-0" />
                         <span className="font-medium">Fecha de inicio:</span>
                         <span className="text-white">{formatDate(liga.fecha_inicio)}</span>
                       </div>
                       
                       {liga.costo_inscripcion && (
-                        <div className="flex items-center gap-3 text-gray-300">
-                          <Star className="w-5 h-5 text-[#E2FF1B]" />
+                        <div className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
+                          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] flex-shrink-0" />
                           <span className="font-medium">Costo de inscripción:</span>
-                          <span className="text-[#E2FF1B] font-bold text-lg">${liga.costo_inscripcion.toLocaleString()}</span>
+                          <span className="text-[#E2FF1B] font-bold text-base sm:text-lg">${liga.costo_inscripcion.toLocaleString()}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {liga.formato && (
-                    <div className="space-y-3">
-                      <h4 className="text-lg font-semibold text-[#E2FF1B] flex items-center gap-2">
-                        <Target className="w-5 h-5" />
+                    <div className="space-y-2 sm:space-y-3">
+                      <h4 className="text-base sm:text-lg font-semibold text-[#E2FF1B] flex items-center gap-2">
+                        <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                         Formato de Juego
                       </h4>
-                      <p className="text-gray-300 leading-relaxed">{liga.formato}</p>
+                      <p className="text-gray-300 leading-relaxed text-sm sm:text-base">{liga.formato}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Estado de Inscripciones */}
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-[#E2FF1B] flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
+                <div className="space-y-4 sm:space-y-6">
+                  <h3 className="text-lg sm:text-xl font-semibold text-[#E2FF1B] flex items-center gap-2">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                     Estado de Inscripciones
                   </h3>
                   
-                  <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                    <div className="space-y-4">
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-4 sm:p-6">
+                    <div className="space-y-3 sm:space-y-4">
                       {liga.categoriasDetalle.map((cat, index) => (
                         <div key={index} className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-[#E2FF1B] font-semibold">{cat.categoria}</span>
-                            <span className={`text-sm ${cat.disponible ? 'text-white' : 'text-red-400'}`}>
+                            <span className="text-[#E2FF1B] font-semibold text-sm sm:text-base">{cat.categoria}</span>
+                            <span className={`text-xs sm:text-sm ${cat.disponible ? 'text-white' : 'text-red-400'}`}>
                               {cat.inscripcionesActuales}/{cat.maxInscripciones}
                             </span>
                           </div>
@@ -267,29 +267,29 @@ export default function LigasPage() {
                   </div>
 
                   {/* Botón de Inscripción */}
-                  <div className="">
+                  <div className="mt-4 sm:mt-6">
                     {!user ? (
                       <Button 
-                        className="w-full bg-gray-600 text-white cursor-not-allowed py-6 text-lg font-semibold"
+                        className="w-full bg-gray-600 text-white cursor-not-allowed py-4 sm:py-6 text-base sm:text-lg font-semibold"
                         disabled
                       >
-                        <LogIn className="w-5 h-5 mr-2" />
-                        Inicia sesión para inscribirte
+                        <LogIn className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        <span className="text-sm sm:text-base">Inicia sesión para inscribirte</span>
                       </Button>
                     ) : isInscribible ? (
                       <Link href={`/inscripciones/ligas/${liga.id}`}>
                         <Button 
-                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors py-6 text-lg font-semibold"
+                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors py-4 sm:py-6 text-base sm:text-lg font-semibold"
                         >
                           ¡Inscribirse Ahora!
                         </Button>
                       </Link>
                     ) : (
                       <Button 
-                        className="w-full bg-gray-600 text-white cursor-not-allowed py-6 text-lg font-semibold"
+                        className="w-full bg-gray-600 text-white cursor-not-allowed py-4 sm:py-6 text-base sm:text-lg font-semibold"
                         disabled
                       >
-                        {liga.estado === 'cerrada' ? 'Liga Cerrada' : 'Liga Completa'}
+                        <span className="text-sm sm:text-base">{liga.estado === 'cerrada' ? 'Liga Cerrada' : 'Liga Completa'}</span>
                       </Button>
                     )}
                   </div>
@@ -301,13 +301,13 @@ export default function LigasPage() {
       </div>
 
       {/* Info Section */}
-      <div className="container mx-auto px-4 pb-16">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 max-w-6xl mx-auto">
-          <h2 className="text-2xl font-bold text-white mb-6">Información Importante</h2>
-          <div className="grid md:grid-cols-2 gap-8">
+      <div className="container mx-auto px-4 pb-12 sm:pb-16">
+        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 max-w-6xl mx-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Información Importante</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-[#E2FF1B] mb-4">¿Cómo funciona la liga?</h3>
-              <ul className="space-y-2 text-gray-300">
+              <h3 className="text-base sm:text-lg font-semibold text-[#E2FF1B] mb-3 sm:mb-4">¿Cómo funciona la liga?</h3>
+              <ul className="space-y-2 text-gray-300 text-sm sm:text-base">
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-2 flex-shrink-0"></div>
                   <span>Juegas partidos semanales contra otros jugadores</span>
@@ -327,8 +327,8 @@ export default function LigasPage() {
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-[#E2FF1B] mb-4">Requisitos</h3>
-              <ul className="space-y-2 text-gray-300">
+              <h3 className="text-base sm:text-lg font-semibold text-[#E2FF1B] mb-3 sm:mb-4">Requisitos</h3>
+              <ul className="space-y-2 text-gray-300 text-sm sm:text-base">
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-2 flex-shrink-0"></div>
                   <span>Ser mayor de 18 años</span>

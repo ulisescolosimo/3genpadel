@@ -44,6 +44,38 @@ export default function AdminInscripcionesLigasPage() {
               nombre,
               fecha_inicio
             )
+          ),
+          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
           )
         `)
         .order('created_at', { ascending: false })
@@ -58,7 +90,31 @@ export default function AdminInscripcionesLigasPage() {
         liga_id: inscripcion.liga_categorias?.ligas?.id || null,
         fecha_inicio: inscripcion.liga_categorias?.ligas?.fecha_inicio || null,
         liga_categoria_id: inscripcion.liga_categoria_id,
-        max_inscripciones: inscripcion.liga_categorias?.max_inscripciones || 0
+        max_inscripciones: inscripcion.liga_categorias?.max_inscripciones || 0,
+        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
+        titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
+        titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
+        titular_1_telefono: inscripcion.titular_1?.telefono || 'N/A',
+        titular_1_ranking: inscripcion.titular_1?.ranking_puntos || 0,
+        
+        titular_2_nombre: inscripcion.titular_2?.nombre || inscripcion.titular_2_nombre || 'N/A',
+        titular_2_apellido: inscripcion.titular_2?.apellido || inscripcion.titular_2_apellido || '',
+        titular_2_email: inscripcion.titular_2?.email || inscripcion.titular_2_email || 'N/A',
+        titular_2_telefono: inscripcion.titular_2?.telefono || 'N/A',
+        titular_2_ranking: inscripcion.titular_2?.ranking_puntos || 0,
+        
+        suplente_1_nombre: inscripcion.suplente_1?.nombre || inscripcion.suplente_1_nombre || 'N/A',
+        suplente_1_apellido: inscripcion.suplente_1?.apellido || inscripcion.suplente_1_apellido || '',
+        suplente_1_email: inscripcion.suplente_1?.email || inscripcion.suplente_1_email || 'N/A',
+        suplente_1_telefono: inscripcion.suplente_1?.telefono || 'N/A',
+        suplente_1_ranking: inscripcion.suplente_1?.ranking_puntos || 0,
+        
+        suplente_2_nombre: inscripcion.suplente_2?.nombre || inscripcion.suplente_2_nombre || 'N/A',
+        suplente_2_apellido: inscripcion.suplente_2?.apellido || inscripcion.suplente_2_apellido || '',
+        suplente_2_email: inscripcion.suplente_2?.email || inscripcion.suplente_2_email || 'N/A',
+        suplente_2_telefono: inscripcion.suplente_2?.telefono || 'N/A',
+        suplente_2_ranking: inscripcion.suplente_2?.ranking_puntos || 0
       }))
 
       setInscripciones(inscripcionesProcesadas)
@@ -193,9 +249,21 @@ export default function AdminInscripcionesLigasPage() {
     const matchesSearch = searchTerm === '' || 
       inscripcion.titular_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.titular_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inscripcion.contacto_celular.includes(searchTerm)
+      inscripcion.titular_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.contacto_celular.includes(searchTerm) ||
+      inscripcion.titular_1_telefono.includes(searchTerm) ||
+      inscripcion.titular_2_telefono.includes(searchTerm) ||
+      inscripcion.suplente_1_telefono.includes(searchTerm) ||
+      inscripcion.suplente_2_telefono.includes(searchTerm)
 
     return matchesCategoria && matchesLiga && matchesEstado && matchesSearch
   })
@@ -335,19 +403,19 @@ export default function AdminInscripcionesLigasPage() {
           <Card className="bg-white/5 border-white/10 mb-6">
             <CardContent className="p-4 sm:p-6">
               {/* Header con título y botones de acción */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div className="flex flex-col gap-3 mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-[#E2FF1B]" />
-                  <h3 className="text-lg font-semibold text-white">Filtros y Búsqueda</h3>
+                  <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Filtros y Búsqueda</h3>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Link href="/admin/inscripciones-ligas/categorias">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-white/20 text-white hover:bg-white/10"
+                      className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                     >
-                      <Trophy className="w-4 h-4 mr-2" />
+                      <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Ver por Categorías
                     </Button>
                   </Link>
@@ -355,12 +423,12 @@ export default function AdminInscripcionesLigasPage() {
                     onClick={fetchInscripciones}
                     disabled={refreshing}
                     size="sm"
-                    className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                    className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                   >
                     {refreshing ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
                     ) : (
-                      <RefreshCw className="w-4 h-4 mr-2" />
+                      <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     )}
                     Actualizar
                   </Button>
@@ -368,7 +436,7 @@ export default function AdminInscripcionesLigasPage() {
                     onClick={clearFilters}
                     variant="outline"
                     size="sm"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                   >
                     Limpiar
                   </Button>
@@ -520,136 +588,133 @@ export default function AdminInscripcionesLigasPage() {
                 </Badge>
               </div>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {filteredInscripciones.map((inscripcion) => (
                 <Link key={inscripcion.id} href={`/admin/inscripciones-ligas/detalle/${inscripcion.id}`}>
-                  <Card className="bg-white/5 mb-4 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group cursor-pointer">
-                  <CardContent className="p-4 sm:p-6">
-                    {/* Header con badges - Mejorado para móvil */}
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
-                      <Badge className={`${getEstadoColor(inscripcion.estado)} border cursor-pointer`}>
+                  <Card className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group cursor-pointer h-full">
+                  <CardContent className="p-4">
+                    {/* Header con badges - Compacto para grid */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <Badge className={`${getEstadoColor(inscripcion.estado)} border cursor-pointer text-xs`}>
                         <div className="flex items-center gap-1">
                           {getEstadoIcon(inscripcion.estado)}
-                          <span className="hidden sm:inline font-medium">{getEstadoText(inscripcion.estado)}</span>
-                          <span className="sm:hidden font-medium">{getEstadoText(inscripcion.estado).charAt(0)}</span>
+                          <span className="font-medium">{getEstadoText(inscripcion.estado)}</span>
                         </div>
                       </Badge>
-                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B]">
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
                         {inscripcion.categoria}
                       </Badge>
-                      <Badge variant="outline" className="border-blue-500/30 text-blue-400">
+                      <Badge variant="outline" className="border-blue-500/30 text-blue-400 text-xs">
                         {inscripcion.liga}
                       </Badge>
-                      <span className="text-xs sm:text-sm text-gray-400 flex items-center gap-1">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">
-                          {new Date(inscripcion.created_at).toLocaleDateString('es-AR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                        <span className="sm:hidden">
-                          {new Date(inscripcion.created_at).toLocaleDateString('es-AR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
+                    </div>
+                    
+                    {/* Fecha */}
+                    <div className="mb-3">
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(inscripcion.created_at).toLocaleDateString('es-AR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </span>
                     </div>
                     
-                    {/* Información de cupos - Optimizada para mobile */}
+                    {/* Información de cupos - Compacta */}
                     {inscripcion.liga_categoria_id && (
-                      <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                        <div className="space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4 text-xs md:text-sm">
-                          <div className="flex items-center gap-2">
+                      <div className="mb-3 p-2 bg-white/5 rounded-lg border border-white/10">
+                        <div className="text-xs">
+                          <div className="flex items-center justify-between mb-1">
                             <span className="text-gray-400">Cupos:</span>
                             <span className="font-semibold text-white">
-                              {getCuposDisponibles(inscripcion.liga_categoria_id)}/{inscripcion.max_inscripciones} disponibles
+                              {getCuposDisponibles(inscripcion.liga_categoria_id)}/{inscripcion.max_inscripciones}
                             </span>
                           </div>
-                          <div className="flex flex-col md:flex-row md:items-center gap-2">
-                            <span className="text-gray-400">Estado actual:</span>
-                            <div className="flex flex-wrap gap-1">
-                              <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs font-medium hover:bg-green-500/10 transition-all duration-200">
-                                {getCuposInfo(inscripcion.liga_categoria_id).aprobadas} Aprobadas
-                              </Badge>
-                              <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-xs font-medium hover:bg-yellow-500/10 transition-all duration-200">
-                                {getCuposInfo(inscripcion.liga_categoria_id).pendientes} Pendientes
-                              </Badge>
-                              <Badge variant="outline" className="border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-500/10 transition-all duration-200">
-                                {getCuposInfo(inscripcion.liga_categoria_id).rechazadas} Rechazadas
-                              </Badge>
-                            </div>
+                          <div className="flex gap-1">
+                            <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs px-1 py-0">
+                              {getCuposInfo(inscripcion.liga_categoria_id).aprobadas} ✓
+                            </Badge>
+                            <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 text-xs px-1 py-0">
+                              {getCuposInfo(inscripcion.liga_categoria_id).pendientes} ⏱
+                            </Badge>
+                            <Badge variant="outline" className="border-red-500/30 text-red-400 text-xs px-1 py-0">
+                              {getCuposInfo(inscripcion.liga_categoria_id).rechazadas} ✗
+                            </Badge>
                           </div>
                         </div>
-                        {inscripcion.estado === 'pendiente' && (
-                          <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-300">
-                            <strong>⚠️ Atención:</strong> Si apruebas esta inscripción, quedarán {getCuposDisponibles(inscripcion.liga_categoria_id) - 1} cupos disponibles en {inscripcion.categoria} - {inscripcion.liga}
-                          </div>
-                        )}
-                        {inscripcion.estado === 'aprobada' && getCuposDisponibles(inscripcion.liga_categoria_id) === 0 && (
-                          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-300">
-                            <strong>🚨 Categoría Completa:</strong> Esta categoría ha alcanzado su cupo máximo. No se pueden aprobar más inscripciones.
-                          </div>
-                        )}
                       </div>
                     )}
                     
-                    {/* Información del equipo - Layout optimizado para mobile */}
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-white flex items-center gap-2 text-sm">
-                            <Users className="w-4 h-4 text-[#E2FF1B]" />
-                            Titulares
-                          </h3>
-                          <div className="bg-white/5 rounded-lg p-3">
-                            <p className="text-gray-300 text-xs md:text-sm">
-                              <span className="font-medium">1.</span> {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido}
+                    {/* Información del equipo - Compacta */}
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <h3 className="font-semibold text-white flex items-center gap-2 text-sm">
+                          <Users className="w-3 h-3 text-[#E2FF1B]" />
+                          Titulares
+                        </h3>
+                        <div className="bg-white/5 rounded-lg p-2 space-y-1">
+                          <div>
+                            <p className="text-gray-300 text-xs font-medium">
+                              <span className="text-[#E2FF1B]">1.</span> {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido}
                             </p>
-                            <p className="text-gray-300 text-xs md:text-sm">
-                              <span className="font-medium">2.</span> {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido}
+                            <p className="text-gray-500 text-xs">
+                              {inscripcion.titular_1_ranking > 0 ? `${inscripcion.titular_1_ranking} pts` : 'Sin puntos'}
                             </p>
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-white flex items-center gap-2 text-sm">
-                            <Users className="w-4 h-4 text-[#E2FF1B]" />
-                            Suplentes
-                          </h3>
-                          <div className="bg-white/5 rounded-lg p-3">
-                            <p className="text-gray-300 text-xs md:text-sm">
-                              <span className="font-medium">1.</span> {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido}
+                          <div>
+                            <p className="text-gray-300 text-xs font-medium">
+                              <span className="text-[#E2FF1B]">2.</span> {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido}
                             </p>
-                            <p className="text-gray-300 text-xs md:text-sm">
-                              <span className="font-medium">2.</span> {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido}
+                            <p className="text-gray-500 text-xs">
+                              {inscripcion.titular_2_ranking > 0 ? `${inscripcion.titular_2_ranking} pts` : 'Sin puntos'}
                             </p>
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Información adicional */}
                       <div className="space-y-2">
-                        <p className="text-gray-300 text-xs md:text-sm">
-                          <strong className="text-white">Contacto:</strong> {inscripcion.contacto_celular}
-                        </p>
-                        {inscripcion.aclaraciones && (
-                          <div className="bg-white/5 rounded-lg p-3">
-                            <p className="text-gray-300 text-xs md:text-sm">
-                              <strong className="text-white">Aclaraciones:</strong> {inscripcion.aclaraciones}
+                        <h3 className="font-semibold text-white flex items-center gap-2 text-sm">
+                          <Users className="w-3 h-3 text-[#E2FF1B]" />
+                          Suplentes
+                        </h3>
+                        <div className="bg-white/5 rounded-lg p-2 space-y-1">
+                          <div>
+                            <p className="text-gray-300 text-xs font-medium">
+                              <span className="text-[#E2FF1B]">1.</span> {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido}
+                            </p>
+                            <p className="text-gray-500 text-xs">
+                              {inscripcion.suplente_1_ranking > 0 ? `${inscripcion.suplente_1_ranking} pts` : 'Sin puntos'}
                             </p>
                           </div>
-                        )}
+                          <div>
+                            <p className="text-gray-300 text-xs font-medium">
+                              <span className="text-[#E2FF1B]">2.</span> {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido}
+                            </p>
+                            <p className="text-gray-500 text-xs">
+                              {inscripcion.suplente_2_ranking > 0 ? `${inscripcion.suplente_2_ranking} pts` : 'Sin puntos'}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Acciones - Optimizadas para mobile, original para desktop */}
-                    <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-white/10">
+                    {/* Información adicional */}
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                      <p className="text-gray-300 text-xs">
+                        <strong className="text-white">Contacto:</strong> {inscripcion.contacto_celular}
+                      </p>
+                      {inscripcion.aclaraciones && (
+                        <div className="mt-2 p-2 bg-white/5 rounded text-xs">
+                          <p className="text-gray-300">
+                            <strong className="text-white">Aclaraciones:</strong> {inscripcion.aclaraciones}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Acciones - Compactas */}
+                    <div className="flex flex-col gap-2 mt-4 pt-3 border-t border-white/10">
                       {inscripcion.comprobante_url && (
                         <Button
                           variant="outline"
@@ -659,69 +724,62 @@ export default function AdminInscripcionesLigasPage() {
                             e.stopPropagation()
                             downloadComprobante(inscripcion.comprobante_url, inscripcion.comprobante_filename)
                           }}
-                          className="border-white/20 text-white hover:bg-white/10 w-full sm:w-auto h-10 sm:h-9 text-sm"
+                          className="border-white/20 text-white hover:bg-white/10 h-8 text-xs"
                         >
-                          <Download className="w-4 h-4 mr-2" />
-                          <span className="sm:hidden">Descargar Comprobante</span>
-                          <span className="hidden sm:inline">Comprobante</span>
+                          <Download className="w-3 h-3 mr-1" />
+                          Comprobante
                         </Button>
                       )}
                       
-                      {/* Botones de cambio de estado - Mobile optimizado, desktop original */}
-                      <div className="grid grid-cols-3 sm:flex sm:flex-row gap-2 sm:gap-3 w-full">
+                      {/* Botones de cambio de estado - Compactos */}
+                      <div className="grid grid-cols-3 gap-1">
                         <Button
-                          size="default"
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
                             updateEstado(inscripcion.id, 'aprobada')
                           }}
                           disabled={inscripcion.estado === 'aprobada' || getCuposDisponibles(inscripcion.liga_categoria_id) === 0}
-                          className={`h-10 sm:h-9 text-xs sm:text-sm font-semibold sm:flex-none ${
+                          className={`h-8 text-xs font-semibold ${
                             inscripcion.estado === 'aprobada' || getCuposDisponibles(inscripcion.liga_categoria_id) === 0
                               ? 'bg-green-600/50 text-green-200 cursor-not-allowed' 
                               : 'bg-green-600 hover:bg-green-700'
                           }`}
                         >
-                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-                          <span className="hidden sm:inline">Aprobar</span>
-                          <span className="sm:hidden">✓</span>
+                          <CheckCircle className="w-3 h-3" />
                         </Button>
                         <Button
-                          size="default"
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
                             updateEstado(inscripcion.id, 'rechazada')
                           }}
                           disabled={inscripcion.estado === 'rechazada'}
-                          className={`h-10 sm:h-9 text-xs sm:text-sm font-semibold sm:flex-none ${
+                          className={`h-8 text-xs font-semibold ${
                             inscripcion.estado === 'rechazada' 
                               ? 'bg-red-600/50 text-red-200 cursor-not-allowed' 
                               : 'bg-red-600 hover:bg-red-700'
                           }`}
                         >
-                          <XCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-                          <span className="hidden sm:inline">Rechazar</span>
-                          <span className="sm:hidden">✗</span>
+                          <XCircle className="w-3 h-3" />
                         </Button>
                         <Button
-                          size="default"
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
                             updateEstado(inscripcion.id, 'pendiente')
                           }}
                           disabled={inscripcion.estado === 'pendiente'}
-                          className={`h-10 sm:h-9 text-xs sm:text-sm font-semibold sm:flex-none ${
+                          className={`h-8 text-xs font-semibold ${
                             inscripcion.estado === 'pendiente' 
                               ? 'bg-yellow-600/50 text-yellow-200 cursor-not-allowed' 
                               : 'bg-yellow-600 hover:bg-yellow-700'
                           }`}
                         >
-                          <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-                          <span className="hidden sm:inline">Pendiente</span>
-                          <span className="sm:hidden">⏱</span>
+                          <Clock className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>

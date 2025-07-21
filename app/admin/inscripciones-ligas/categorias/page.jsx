@@ -14,6 +14,7 @@ import Link from 'next/link'
 export default function AdminInscripcionesCategoriasPage() {
   const { toast } = useToast()
   const [categorias, setCategorias] = useState([])
+  const [inscripciones, setInscripciones] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterLiga, setFilterLiga] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -42,58 +43,120 @@ export default function AdminInscripcionesCategoriasPage() {
         `)
         .order('id', { ascending: false })
 
-      if (categoriasError) throw categoriasError
+      if (categoriasError) {
+        console.error('Error fetching categorias:', categoriasError)
+        throw categoriasError
+      }
       
       console.log('Categorías obtenidas:', categoriasData)
 
-      // Obtener todas las inscripciones
+      // Obtener todas las inscripciones con joins a la tabla jugador
       const { data: inscripcionesData, error: inscripcionesError } = await supabase
         .from('ligainscripciones')
-        .select('*')
+        .select(`
+          *,
+          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          )
+        `)
         .order('created_at', { ascending: false })
 
-      if (inscripcionesError) throw inscripcionesError
-      
+      if (inscripcionesError) {
+        console.error('Error fetching inscripciones:', inscripcionesError)
+        throw inscripcionesError
+      }
+
       console.log('Inscripciones obtenidas:', inscripcionesData)
 
-      // Procesar los datos para incluir estadísticas
-      const categoriasProcesadas = categoriasData.map(categoria => {
-        const inscripciones = inscripcionesData.filter(i => i.liga_categoria_id === categoria.id) || []
-        const aprobadas = inscripciones.filter(i => i.estado === 'aprobada').length
-        const pendientes = inscripciones.filter(i => i.estado === 'pendiente').length
-        const rechazadas = inscripciones.filter(i => i.estado === 'rechazada').length
-        const total = inscripciones.length
-        const disponible = aprobadas < categoria.max_inscripciones
+      // Procesar las inscripciones usando datos de la tabla jugador
+      const inscripcionesProcesadas = inscripcionesData?.map(inscripcion => ({
+        ...inscripcion,
+        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
+        titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
+        titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
+        titular_1_telefono: inscripcion.titular_1?.telefono || inscripcion.titular_1_telefono || 'N/A',
+        titular_1_ranking: inscripcion.titular_1?.ranking_puntos || inscripcion.titular_1_ranking || 0,
+        
+        titular_2_nombre: inscripcion.titular_2?.nombre || inscripcion.titular_2_nombre || 'N/A',
+        titular_2_apellido: inscripcion.titular_2?.apellido || inscripcion.titular_2_apellido || '',
+        titular_2_email: inscripcion.titular_2?.email || inscripcion.titular_2_email || 'N/A',
+        titular_2_telefono: inscripcion.titular_2?.telefono || inscripcion.titular_2_telefono || 'N/A',
+        titular_2_ranking: inscripcion.titular_2?.ranking_puntos || inscripcion.titular_2_ranking || 0,
+        
+        suplente_1_nombre: inscripcion.suplente_1?.nombre || inscripcion.suplente_1_nombre || 'N/A',
+        suplente_1_apellido: inscripcion.suplente_1?.apellido || inscripcion.suplente_1_apellido || '',
+        suplente_1_email: inscripcion.suplente_1?.email || inscripcion.suplente_1_email || 'N/A',
+        suplente_1_telefono: inscripcion.suplente_1?.telefono || inscripcion.suplente_1_telefono || 'N/A',
+        suplente_1_ranking: inscripcion.suplente_1?.ranking_puntos || inscripcion.suplente_1_ranking || 0,
+        
+        suplente_2_nombre: inscripcion.suplente_2?.nombre || inscripcion.suplente_2_nombre || 'N/A',
+        suplente_2_apellido: inscripcion.suplente_2?.apellido || inscripcion.suplente_2_apellido || '',
+        suplente_2_email: inscripcion.suplente_2?.email || inscripcion.suplente_2_email || 'N/A',
+        suplente_2_telefono: inscripcion.suplente_2?.telefono || inscripcion.suplente_2_telefono || 'N/A',
+        suplente_2_ranking: inscripcion.suplente_2?.ranking_puntos || inscripcion.suplente_2_ranking || 0
+      })) || []
 
+      console.log('Inscripciones procesadas:', inscripcionesProcesadas)
+
+      // Procesar categorías con información de inscripciones
+      const categoriasProcesadas = categoriasData?.map(categoria => {
+        const inscripcionesCategoria = inscripcionesProcesadas.filter(ins => ins.liga_categoria_id === categoria.id)
+        
         return {
           ...categoria,
-          liga: categoria.ligas?.nombre || 'N/A',
-          liga_id: categoria.ligas?.id || null,
-          fecha_inicio: categoria.ligas?.fecha_inicio || null,
-          estado_liga: categoria.ligas?.estado || 'N/A',
-          estadisticas: {
-            aprobadas,
-            pendientes,
-            rechazadas,
-            total,
-            disponible,
-            cupos_disponibles: categoria.max_inscripciones - aprobadas
-          },
-          inscripciones: inscripciones
+          inscripciones: inscripcionesCategoria,
+          total_inscripciones: inscripcionesCategoria.length,
+          aprobadas: inscripcionesCategoria.filter(ins => ins.estado === 'aprobada').length,
+          pendientes: inscripcionesCategoria.filter(ins => ins.estado === 'pendiente').length,
+          rechazadas: inscripcionesCategoria.filter(ins => ins.estado === 'rechazada').length,
+          cupos_disponibles: categoria.max_inscripciones - inscripcionesCategoria.filter(ins => ins.estado === 'aprobada').length
         }
-      })
+      }) || []
+
+      console.log('Categorías procesadas:', categoriasProcesadas)
 
       setCategorias(categoriasProcesadas)
+      setInscripciones(inscripcionesProcesadas)
 
       // Extraer ligas únicas para los filtros
-      const ligas = [...new Set(categoriasProcesadas.map(c => c.liga).filter(l => l !== 'N/A'))]
+      const ligas = [...new Set(categoriasProcesadas.map(c => c.ligas?.nombre).filter(l => l))]
       setLigasDisponibles(ligas)
 
     } catch (error) {
       console.error('Error fetching categorias:', error)
       toast({
         title: "Error",
-        description: "No se pudieron cargar las categorías",
+        description: error.message || "No se pudieron cargar las categorías",
         variant: "destructive"
       })
     } finally {
@@ -121,10 +184,26 @@ export default function AdminInscripcionesCategoriasPage() {
   }
 
   const filteredCategorias = categorias.filter(categoria => {
-    const matchesLiga = filterLiga === 'all' || categoria.liga === filterLiga
+    const matchesLiga = filterLiga === 'all' || categoria.ligas?.nombre === filterLiga
     const matchesSearch = searchTerm === '' || 
       categoria.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      categoria.liga.toLowerCase().includes(searchTerm.toLowerCase())
+      categoria.ligas?.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Buscar en los jugadores de las inscripciones de esta categoría
+      categoria.inscripciones.some(inscripcion => 
+        inscripcion.titular_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.titular_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.titular_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.titular_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.titular_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.titular_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.suplente_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.suplente_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.suplente_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.suplente_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.suplente_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.suplente_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inscripcion.contacto_celular.includes(searchTerm)
+      )
 
     return matchesLiga && matchesSearch
   })
@@ -216,12 +295,12 @@ export default function AdminInscripcionesCategoriasPage() {
                       {categoria.categoria}
                     </CardTitle>
                     <CardDescription className="text-base text-gray-300">
-                      {categoria.liga} • Inicio: {new Date(categoria.fecha_inicio).toLocaleDateString('es-ES')}
+                      {categoria.ligas?.nombre} • Inicio: {new Date(categoria.ligas?.fecha_inicio).toLocaleDateString('es-ES')}
                     </CardDescription>
                   </div>
                   <div className="text-right">
-                    <Badge variant={categoria.estado_liga === 'abierta' ? 'default' : 'secondary'}>
-                      {categoria.estado_liga === 'abierta' ? 'Abierta' : 'Cerrada'}
+                    <Badge variant={categoria.ligas?.estado === 'abierta' ? 'default' : 'secondary'}>
+                      {categoria.ligas?.estado === 'abierta' ? 'Abierta' : 'Cerrada'}
                     </Badge>
                   </div>
                 </div>
@@ -230,28 +309,28 @@ export default function AdminInscripcionesCategoriasPage() {
                 {/* Estadísticas */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <div className="text-2xl font-bold text-green-400">{categoria.estadisticas.aprobadas}</div>
+                    <div className="text-2xl font-bold text-green-400">{categoria.aprobadas}</div>
                     <div className="text-sm text-green-300">Aprobadas</div>
                   </div>
                   <div className="text-center p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-400">{categoria.estadisticas.pendientes}</div>
+                    <div className="text-2xl font-bold text-yellow-400">{categoria.pendientes}</div>
                     <div className="text-sm text-yellow-300">Pendientes</div>
                   </div>
                   <div className="text-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <div className="text-2xl font-bold text-red-400">{categoria.estadisticas.rechazadas}</div>
+                    <div className="text-2xl font-bold text-red-400">{categoria.rechazadas}</div>
                     <div className="text-sm text-red-300">Rechazadas</div>
                   </div>
                   <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-400">{categoria.estadisticas.cupos_disponibles}</div>
+                    <div className="text-2xl font-bold text-blue-400">{categoria.cupos_disponibles}</div>
                     <div className="text-sm text-blue-300">Cupos disponibles</div>
                   </div>
                 </div>
 
-                {/* Lista de Inscripciones */}
+                {/* Grid de Inscripciones */}
                 <div className="space-y-3">
                   <h4 className="font-semibold text-white flex items-center gap-2">
                     <Users className="w-4 h-4 text-[#E2FF1B]" />
-                    Inscripciones ({categoria.estadisticas.total})
+                    Inscripciones ({categoria.total_inscripciones})
                   </h4>
                   
                   {categoria.inscripciones.length === 0 ? (
@@ -260,34 +339,41 @@ export default function AdminInscripcionesCategoriasPage() {
                       <p>No hay inscripciones en esta categoría</p>
                     </div>
                   ) : (
-                    <div className="space-y-2 flex flex-col gap-1">
-                      {categoria.inscripciones.slice(0, 5).map((inscripcion) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {categoria.inscripciones.slice(0, 8).map((inscripcion) => (
                         <Link key={inscripcion.id} href={`/admin/inscripciones-ligas/detalle/${inscripcion.id}`}>
-                          <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 cursor-pointer">
-                            <div className="flex items-center gap-3">
-                              <User className="w-4 h-4 text-gray-400" />
-                              <div>
-                                <p className="font-medium text-white">
-                                  {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido} & {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido}
-                                </p>
-                                <p className="text-sm text-gray-300 flex items-center gap-1">
-                                  <Phone className="w-3 h-3" />
-                                  {inscripcion.contacto_celular}
-                                </p>
+                          <Card className="bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 cursor-pointer h-full">
+                            <CardContent className="p-3">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <User className="w-4 h-4 text-gray-400" />
+                                  <Badge className={`${getEstadoColor(inscripcion.estado)} text-xs`}>
+                                    {getEstadoText(inscripcion.estado)}
+                                  </Badge>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-white text-sm">
+                                    {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido} & {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido}
+                                  </p>
+                                  <p className="text-xs text-gray-300 mt-1">
+                                    Suplentes: {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido} & {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido}
+                                  </p>
+                                  <p className="text-xs text-gray-300 flex items-center gap-1 mt-1">
+                                    <Phone className="w-3 h-3" />
+                                    {inscripcion.contacto_celular}
+                                  </p>
+                                </div>
+                                <div className="flex justify-end">
+                                  <Eye className="w-4 h-4 text-gray-400" />
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={getEstadoColor(inscripcion.estado)}>
-                                {getEstadoText(inscripcion.estado)}
-                              </Badge>
-                              <Eye className="w-4 h-4 text-gray-400" />
-                            </div>
-                          </div>
+                            </CardContent>
+                          </Card>
                         </Link>
                       ))}
                       
-                      {categoria.inscripciones.length > 5 && (
-                        <div className="text-center pt-2">
+                      {categoria.inscripciones.length > 8 && (
+                        <div className="col-span-full text-center pt-2">
                           <Link href={`/admin/inscripciones-ligas/categoria/${categoria.id}`}>
                             <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
                               Ver todas las inscripciones ({categoria.inscripciones.length})

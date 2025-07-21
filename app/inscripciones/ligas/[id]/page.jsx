@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign, Upload, AlertCircle, CheckCircle, Clock, LogIn } from 'lucide-react'
+import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign, Upload, AlertCircle, CheckCircle, Clock, LogIn, Search, Plus, User, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/components/AuthProvider'
@@ -27,19 +27,43 @@ export default function LigaInscripcionPage() {
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
+    titular_1_email: '',
     titular_1_nombre: '',
     titular_1_apellido: '',
+    titular_1_id: null,
+    titular_2_email: '',
     titular_2_nombre: '',
     titular_2_apellido: '',
+    titular_2_id: null,
+    suplente_1_email: '',
     suplente_1_nombre: '',
     suplente_1_apellido: '',
+    suplente_1_id: null,
+    suplente_2_email: '',
     suplente_2_nombre: '',
     suplente_2_apellido: '',
+    suplente_2_id: null,
     liga_categoria_id: '',
     contacto_celular: '',
     aclaraciones: ''
   })
   const [comprobanteFile, setComprobanteFile] = useState(null)
+  const [jugadoresEncontrados, setJugadoresEncontrados] = useState({})
+  
+  // Nuevo estado para manejar las posiciones de los jugadores
+  const [jugadoresSeleccionados, setJugadoresSeleccionados] = useState({
+    titular_2: null,
+    suplente_1: null,
+    suplente_2: null
+  })
+  
+  // Estados para la búsqueda de jugadores
+  const [emailBusqueda, setEmailBusqueda] = useState('')
+  const [jugadorEncontrado, setJugadorEncontrado] = useState(null)
+  const [nuevoJugador, setNuevoJugador] = useState({
+    nombre: '',
+    apellido: ''
+  })
 
   // Verificar autenticación
   useEffect(() => {
@@ -59,6 +83,89 @@ export default function LigaInscripcionPage() {
       fetchLigaData()
     }
   }, [id, user])
+
+  // Auto-asignar usuario logueado como titular 1
+  useEffect(() => {
+    if (user && user.email && !formData.titular_1_id) {
+      // Buscar si el usuario ya existe como jugador
+      const buscarUsuarioJugador = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('jugador')
+            .select('*')
+            .eq('email', user.email.toLowerCase())
+            .single()
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error buscando jugador:', error)
+            return
+          }
+
+          if (data) {
+            // Usuario encontrado como jugador, auto-asignar como titular 1
+            setJugadoresEncontrados(prev => ({
+              ...prev,
+              titular_1: { ...data, encontrado: true }
+            }))
+            
+            setFormData(prev => ({
+              ...prev,
+              titular_1_email: user.email,
+              titular_1_id: data.id,
+              titular_1_nombre: data.nombre,
+              titular_1_apellido: data.apellido || ''
+            }))
+
+            toast({
+              title: "Auto-asignado como Titular 1",
+              description: `${data.nombre} ${data.apellido || ''}`,
+              variant: "default"
+            })
+          } else {
+            // Usuario no encontrado como jugador, crear uno nuevo
+            const { data: nuevoJugador, error: crearError } = await supabase
+              .from('jugador')
+              .insert({
+                email: user.email.toLowerCase(),
+                nombre: user.user_metadata?.full_name || user.email?.split('@')[0],
+                apellido: '',
+                ranking_puntos: 0
+              })
+              .select()
+              .single()
+
+            if (crearError) {
+              console.error('Error creando jugador:', crearError)
+              return
+            }
+
+            setJugadoresEncontrados(prev => ({
+              ...prev,
+              titular_1: { ...nuevoJugador, encontrado: true }
+            }))
+            
+            setFormData(prev => ({
+              ...prev,
+              titular_1_email: user.email,
+              titular_1_id: nuevoJugador.id,
+              titular_1_nombre: nuevoJugador.nombre,
+              titular_1_apellido: nuevoJugador.apellido || ''
+            }))
+
+            toast({
+              title: "Auto-asignado como Titular 1",
+              description: `${nuevoJugador.nombre} ${nuevoJugador.apellido || ''}`,
+              variant: "default"
+            })
+          }
+        } catch (error) {
+          console.error('Error en auto-asignación:', error)
+        }
+      }
+
+      buscarUsuarioJugador()
+    }
+  }, [user, toast, formData.titular_1_id])
 
   const fetchLigaData = async () => {
     try {
@@ -106,11 +213,162 @@ export default function LigaInscripcionPage() {
     }
   }
 
+  const buscarJugador = async (email) => {
+    if (!email) return
+
+    try {
+      const { data, error } = await supabase
+        .from('jugador')
+        .select('*')
+        .eq('email', email.toLowerCase())
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        throw error
+      }
+
+      if (data) {
+        // Jugador encontrado - mostrar opciones de posición
+        toast({
+          title: "Jugador encontrado",
+          description: `${data.nombre} ${data.apellido || ''} - Selecciona una posición`,
+          variant: "default"
+        })
+        
+        // Retornar el jugador para que se pueda asignar a una posición
+        return data
+      } else {
+        // Jugador no encontrado - permitir crear nuevo
+        toast({
+          title: "Jugador no encontrado",
+          description: "Completa los datos para crear un nuevo jugador",
+          variant: "default"
+        })
+        
+        // Retornar un objeto con el email para crear nuevo jugador
+        return { email: email.toLowerCase(), nuevo: true }
+      }
+    } catch (error) {
+      console.error('Error buscando jugador:', error)
+      toast({
+        title: "Error",
+        description: "Error al buscar jugador",
+        variant: "destructive"
+      })
+      return null
+    }
+  }
+
+  const crearJugador = async (email, nombre, apellido) => {
+    try {
+      const { data, error } = await supabase
+        .from('jugador')
+        .insert({
+          email: email.toLowerCase(),
+          nombre,
+          apellido,
+          ranking_puntos: 0
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return data
+    } catch (error) {
+      console.error('Error creando jugador:', error)
+      throw error
+    }
+  }
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+  }
+
+  // Función para asignar un jugador a una posición
+  const asignarJugadorAPosicion = (jugador, posicion) => {
+    // Limpiar la posición anterior si el jugador ya estaba asignado
+    const posicionAnterior = Object.keys(jugadoresSeleccionados).find(
+      pos => jugadoresSeleccionados[pos]?.email === jugador.email
+    )
+    
+    if (posicionAnterior) {
+      setJugadoresSeleccionados(prev => ({
+        ...prev,
+        [posicionAnterior]: null
+      }))
+      
+      // Limpiar datos del formulario de la posición anterior
+      setFormData(prev => ({
+        ...prev,
+        [`${posicionAnterior}_email`]: '',
+        [`${posicionAnterior}_nombre`]: '',
+        [`${posicionAnterior}_apellido`]: '',
+        [`${posicionAnterior}_id`]: null
+      }))
+      
+      setJugadoresEncontrados(prev => ({
+        ...prev,
+        [posicionAnterior]: null
+      }))
+    }
+
+    // Asignar el jugador a la nueva posición
+    setJugadoresSeleccionados(prev => ({
+      ...prev,
+      [posicion]: jugador
+    }))
+    
+    // Actualizar datos del formulario
+    setFormData(prev => ({
+      ...prev,
+      [`${posicion}_email`]: jugador.email,
+      [`${posicion}_nombre`]: jugador.nombre,
+      [`${posicion}_apellido`]: jugador.apellido || '',
+      [`${posicion}_id`]: jugador.id
+    }))
+    
+    setJugadoresEncontrados(prev => ({
+      ...prev,
+      [posicion]: { ...jugador, encontrado: true }
+    }))
+
+    toast({
+      title: "Jugador asignado",
+      description: `${jugador.nombre} ${jugador.apellido || ''} asignado como ${posicion.replace('_', ' ')}`,
+      variant: "default"
+    })
+  }
+
+  // Función para quitar un jugador de una posición
+  const quitarJugadorDePosicion = (posicion) => {
+    setJugadoresSeleccionados(prev => ({
+      ...prev,
+      [posicion]: null
+    }))
+    
+    // Limpiar datos del formulario
+    setFormData(prev => ({
+      ...prev,
+      [`${posicion}_email`]: '',
+      [`${posicion}_nombre`]: '',
+      [`${posicion}_apellido`]: '',
+      [`${posicion}_id`]: null
+    }))
+    
+    setJugadoresEncontrados(prev => ({
+      ...prev,
+      [posicion]: null
+    }))
+
+    toast({
+      title: "Jugador removido",
+      description: `Jugador removido de la posición ${posicion.replace('_', ' ')}`,
+      variant: "default"
+    })
   }
 
   const handleFileChange = (event) => {
@@ -158,16 +416,21 @@ export default function LigaInscripcionPage() {
     try {
       // Validar campos requeridos
       const requiredFields = [
-        'titular_1_nombre', 'titular_1_apellido',
-        'titular_2_nombre', 'titular_2_apellido',
-        'suplente_1_nombre', 'suplente_1_apellido',
-        'suplente_2_nombre', 'suplente_2_apellido',
+        'titular_1_email', 'titular_2_email', 'suplente_1_email', 'suplente_2_email',
         'liga_categoria_id', 'contacto_celular'
       ]
 
       for (const field of requiredFields) {
         if (!formData[field]) {
           throw new Error(`El campo ${field} es requerido`)
+        }
+      }
+
+      // Validar que todos los jugadores estén asignados
+      const jugadoresRequeridos = ['titular_2', 'suplente_1', 'suplente_2']
+      for (const posicion of jugadoresRequeridos) {
+        if (!jugadoresSeleccionados[posicion]) {
+          throw new Error(`Debes asignar un jugador como ${posicion.replace('_', ' ')}`)
         }
       }
 
@@ -181,6 +444,14 @@ export default function LigaInscripcionPage() {
         throw new Error('La categoría seleccionada ya no está disponible')
       }
 
+      // Obtener IDs de los jugadores asignados
+      const jugadoresIds = {
+        titular_1: formData.titular_1_id, // El usuario logueado
+        titular_2: jugadoresSeleccionados.titular_2.id,
+        suplente_1: jugadoresSeleccionados.suplente_1.id,
+        suplente_2: jugadoresSeleccionados.suplente_2.id
+      }
+
       // Subir archivo
       const fileData = await uploadFile(comprobanteFile)
 
@@ -189,14 +460,10 @@ export default function LigaInscripcionPage() {
         .from('ligainscripciones')
         .insert({
           liga_categoria_id: parseInt(formData.liga_categoria_id),
-          titular_1_nombre: formData.titular_1_nombre,
-          titular_1_apellido: formData.titular_1_apellido,
-          titular_2_nombre: formData.titular_2_nombre,
-          titular_2_apellido: formData.titular_2_apellido,
-          suplente_1_nombre: formData.suplente_1_nombre,
-          suplente_1_apellido: formData.suplente_1_apellido,
-          suplente_2_nombre: formData.suplente_2_nombre,
-          suplente_2_apellido: formData.suplente_2_apellido,
+          titular_1_id: jugadoresIds.titular_1,
+          titular_2_id: jugadoresIds.titular_2,
+          suplente_1_id: jugadoresIds.suplente_1,
+          suplente_2_id: jugadoresIds.suplente_2,
           contacto_celular: formData.contacto_celular,
           aclaraciones: formData.aclaraciones,
           comprobante_url: fileData.url,
@@ -216,21 +483,39 @@ export default function LigaInscripcionPage() {
         variant: "default"
       })
 
-      // Limpiar formulario
-      setFormData({
-        titular_1_nombre: '',
-        titular_1_apellido: '',
+      // Recargar datos para actualizar contadores
+      await fetchLigaData()
+
+      // Redirigir a la página de ligas
+      router.push('/inscripciones/ligas')
+      setFormData(prev => ({
+        ...prev,
+        titular_2_email: '',
         titular_2_nombre: '',
         titular_2_apellido: '',
+        titular_2_id: null,
+        suplente_1_email: '',
         suplente_1_nombre: '',
         suplente_1_apellido: '',
+        suplente_1_id: null,
+        suplente_2_email: '',
         suplente_2_nombre: '',
         suplente_2_apellido: '',
+        suplente_2_id: null,
         liga_categoria_id: '',
         contacto_celular: '',
         aclaraciones: ''
-      })
+      }))
       setComprobanteFile(null)
+      setJugadoresEncontrados({})
+      setJugadoresSeleccionados({
+        titular_2: null,
+        suplente_1: null,
+        suplente_2: null
+      })
+      setEmailBusqueda('')
+      setJugadorEncontrado(null)
+      setNuevoJugador({ nombre: '', apellido: '' })
 
       // Recargar datos para actualizar contadores
       await fetchLigaData()
@@ -260,6 +545,327 @@ export default function LigaInscripcionPage() {
     if (!text) return ''
     // Convertir \n literales a saltos de línea reales
     return text.replace(/\\n/g, '\n')
+  }
+
+  const renderJugadorSection = (tipo, titulo) => {
+    const jugador = jugadoresEncontrados[tipo]
+    const email = formData[`${tipo}_email`]
+    const nombre = formData[`${tipo}_nombre`]
+    const apellido = formData[`${tipo}_apellido`]
+    
+    // Verificar si es titular 1 y el usuario está logueado
+    const esTitular1Logueado = tipo === 'titular_1' && user && user.email === email
+
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
+          {titulo} *
+          {esTitular1Logueado && (
+            <Badge className="ml-2 bg-[#E2FF1B] text-black text-xs">
+              <User className="w-3 h-3 mr-1" />
+              Tú
+            </Badge>
+          )}
+        </h3>
+        
+        {/* Email y búsqueda */}
+        <div className="space-y-2">
+          <Label htmlFor={`${tipo}_email`} className="text-white">Email {titulo} *</Label>
+          <div className="flex gap-2">
+            <Input
+              id={`${tipo}_email`}
+              type="email"
+              value={email}
+              onChange={(e) => handleInputChange(`${tipo}_email`, e.target.value)}
+              className="bg-white/10 border-white/20 text-white flex-1"
+              placeholder="jugador@email.com"
+              required
+              disabled={esTitular1Logueado}
+            />
+            <Button
+              type="button"
+              onClick={() => buscarJugador(email, tipo)}
+              disabled={!email || esTitular1Logueado}
+              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Resultado de búsqueda */}
+        {jugador && (
+          <div className={`p-3 rounded-lg border ${
+            jugador.encontrado 
+              ? 'bg-green-500/10 border-green-500/20' 
+              : 'bg-yellow-500/10 border-yellow-500/20'
+          }`}>
+            {jugador.encontrado ? (
+              <div className="flex items-center gap-2 text-green-400">
+                <CheckCircle className="w-4 h-4" />
+                <span>Jugador encontrado: {jugador.nombre} {jugador.apellido || ''}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-yellow-400">
+                <Plus className="w-4 h-4" />
+                <span>Crear nuevo jugador</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Campos para nuevo jugador */}
+        {jugador && !jugador.encontrado && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${tipo}_nombre`} className="text-white">Nombre *</Label>
+              <Input
+                id={`${tipo}_nombre`}
+                value={nombre}
+                onChange={(e) => handleInputChange(`${tipo}_nombre`, e.target.value)}
+                className="bg-white/10 border-white/20 text-white"
+                required
+                disabled={esTitular1Logueado}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`${tipo}_apellido`} className="text-white">Apellido</Label>
+              <Input
+                id={`${tipo}_apellido`}
+                value={apellido}
+                onChange={(e) => handleInputChange(`${tipo}_apellido`, e.target.value)}
+                className="bg-white/10 border-white/20 text-white"
+                disabled={esTitular1Logueado}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Nueva función para renderizar la sección de selección de jugadores
+  const renderSeleccionJugadores = () => {
+    const handleBuscarJugador = async () => {
+      if (!emailBusqueda) return
+      
+      const jugador = await buscarJugador(emailBusqueda)
+      setJugadorEncontrado(jugador)
+    }
+
+    const getPosicionesDisponibles = () => {
+      const posiciones = [
+        { key: 'titular_2', label: 'Titular 2' },
+        { key: 'suplente_1', label: 'Suplente 1' },
+        { key: 'suplente_2', label: 'Suplente 2' }
+      ]
+      
+      return posiciones.filter(pos => !jugadoresSeleccionados[pos.key])
+    }
+
+    return (
+      <div className="space-y-6">
+        <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+          Selección de Jugadores
+        </h3>
+
+        {/* Búsqueda de jugadores */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-white">Buscar jugador por email</Label>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                value={emailBusqueda}
+                onChange={(e) => setEmailBusqueda(e.target.value)}
+                className="bg-white/10 border-white/20 text-white flex-1"
+                placeholder="jugador@email.com"
+              />
+              <Button
+                type="button"
+                onClick={handleBuscarJugador}
+                disabled={!emailBusqueda}
+                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Resultado de búsqueda y opciones de posición */}
+          {jugadorEncontrado && (
+            <div className={`rounded-lg p-4 border ${
+              jugadorEncontrado.nuevo 
+                ? 'bg-yellow-500/10 border-yellow-500/20' 
+                : 'bg-green-500/10 border-green-500/20'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  {jugadorEncontrado.nuevo ? (
+                    <>
+                      <Plus className="w-4 h-4 text-yellow-400" />
+                      <span className="font-medium text-yellow-400">Crear nuevo jugador</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <span className="font-medium text-green-400">{jugadorEncontrado.nombre} {jugadorEncontrado.apellido || ''}</span>
+                    </>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setJugadorEncontrado(null)
+                    setEmailBusqueda('')
+                    setNuevoJugador({ nombre: '', apellido: '' })
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              {jugadorEncontrado.nuevo ? (
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-white">Nombre *</Label>
+                      <Input
+                        value={nuevoJugador.nombre}
+                        onChange={(e) => setNuevoJugador(prev => ({ ...prev, nombre: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white"
+                        placeholder="Nombre del jugador"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Apellido</Label>
+                      <Input
+                        value={nuevoJugador.apellido}
+                        onChange={(e) => setNuevoJugador(prev => ({ ...prev, apellido: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white"
+                        placeholder="Apellido del jugador"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-300">Crear y asignar como:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {getPosicionesDisponibles().map((posicion) => (
+                        <Button
+                          key={posicion.key}
+                          type="button"
+                          onClick={async () => {
+                            if (!nuevoJugador.nombre) {
+                              toast({
+                                title: "Error",
+                                description: "El nombre es obligatorio",
+                                variant: "destructive"
+                              })
+                              return
+                            }
+                            
+                            try {
+                              const jugadorCreado = await crearJugador(
+                                jugadorEncontrado.email,
+                                nuevoJugador.nombre,
+                                nuevoJugador.apellido
+                              )
+                              
+                              asignarJugadorAPosicion(jugadorCreado, posicion.key)
+                              setJugadorEncontrado(null)
+                              setEmailBusqueda('')
+                              setNuevoJugador({ nombre: '', apellido: '' })
+                            } catch (error) {
+                              toast({
+                                title: "Error",
+                                description: "Error al crear el jugador",
+                                variant: "destructive"
+                              })
+                            }
+                          }}
+                          className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                          size="sm"
+                          disabled={!nuevoJugador.nombre}
+                        >
+                          {posicion.label}
+                        </Button>
+                      ))}
+                      {getPosicionesDisponibles().length === 0 && (
+                        <p className="text-sm text-yellow-400">Todas las posiciones están ocupadas</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-300">Asignar como:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {getPosicionesDisponibles().map((posicion) => (
+                      <Button
+                        key={posicion.key}
+                        type="button"
+                        onClick={() => {
+                          asignarJugadorAPosicion(jugadorEncontrado, posicion.key)
+                          setJugadorEncontrado(null)
+                          setEmailBusqueda('')
+                        }}
+                        className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                        size="sm"
+                      >
+                        {posicion.label}
+                      </Button>
+                    ))}
+                    {getPosicionesDisponibles().length === 0 && (
+                      <p className="text-sm text-yellow-400">Todas las posiciones están ocupadas</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Jugadores asignados */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-medium text-white">Jugadores Asignados</h4>
+          
+          {Object.entries(jugadoresSeleccionados).map(([posicion, jugador]) => (
+            <div key={posicion} className="bg-white/5 border border-white/10 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-[#E2FF1B] text-black text-xs">
+                      {posicion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </Badge>
+                    <span className="text-white font-medium">
+                      {jugador ? `${jugador.nombre} ${jugador.apellido || ''}` : 'Sin asignar'}
+                    </span>
+                  </div>
+                  {jugador && (
+                    <p className="text-sm text-gray-400 mt-1">{jugador.email}</p>
+                  )}
+                </div>
+                {jugador && (
+                  <Button
+                    type="button"
+                    onClick={() => quitarJugadorDePosicion(posicion)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   // Mostrar pantalla de carga mientras se verifica la autenticación
@@ -457,108 +1063,16 @@ export default function LigaInscripcionPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold text-white">Formulario de Inscripción</CardTitle>
                   <CardDescription className="text-gray-400">
-                    Completa todos los campos requeridos para inscribir tu equipo
+                    Busca jugadores existentes por email o crea nuevos jugadores para tu equipo
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Titulares */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
-                        Titulares *
-                      </h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="titular_1_nombre" className="text-white">Nombre Titular 1 *</Label>
-                          <Input
-                            id="titular_1_nombre"
-                            value={formData.titular_1_nombre}
-                            onChange={(e) => handleInputChange('titular_1_nombre', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="titular_1_apellido" className="text-white">Apellido Titular 1 *</Label>
-                          <Input
-                            id="titular_1_apellido"
-                            value={formData.titular_1_apellido}
-                            onChange={(e) => handleInputChange('titular_1_apellido', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="titular_2_nombre" className="text-white">Nombre Titular 2 *</Label>
-                          <Input
-                            id="titular_2_nombre"
-                            value={formData.titular_2_nombre}
-                            onChange={(e) => handleInputChange('titular_2_nombre', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="titular_2_apellido" className="text-white">Apellido Titular 2 *</Label>
-                          <Input
-                            id="titular_2_apellido"
-                            value={formData.titular_2_apellido}
-                            onChange={(e) => handleInputChange('titular_2_apellido', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    {/* Titular 1 (Usuario logueado) */}
+                    {renderJugadorSection('titular_1', 'Titular 1')}
 
-                    {/* Suplentes */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
-                        Suplentes *
-                      </h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="suplente_1_nombre" className="text-white">Nombre Suplente #1 *</Label>
-                          <Input
-                            id="suplente_1_nombre"
-                            value={formData.suplente_1_nombre}
-                            onChange={(e) => handleInputChange('suplente_1_nombre', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="suplente_1_apellido" className="text-white">Apellido Suplente #1 *</Label>
-                          <Input
-                            id="suplente_1_apellido"
-                            value={formData.suplente_1_apellido}
-                            onChange={(e) => handleInputChange('suplente_1_apellido', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="suplente_2_nombre" className="text-white">Nombre Suplente #2 *</Label>
-                          <Input
-                            id="suplente_2_nombre"
-                            value={formData.suplente_2_nombre}
-                            onChange={(e) => handleInputChange('suplente_2_nombre', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="suplente_2_apellido" className="text-white">Apellido Suplente #2 *</Label>
-                          <Input
-                            id="suplente_2_apellido"
-                            value={formData.suplente_2_apellido}
-                            onChange={(e) => handleInputChange('suplente_2_apellido', e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    {/* Selección de otros jugadores */}
+                    {renderSeleccionJugadores()}
 
                     {/* Categoría y Contacto */}
                     <div className="grid md:grid-cols-2 gap-4">

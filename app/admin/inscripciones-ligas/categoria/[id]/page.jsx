@@ -53,14 +53,77 @@ export default function AdminInscripcionesCategoriaPage() {
       // Obtener todas las inscripciones de esta categoría
       const { data: inscripcionesData, error: inscripcionesError } = await supabase
         .from('ligainscripciones')
-        .select('*')
+        .select(`
+          *,
+          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          )
+        `)
         .eq('liga_categoria_id', id)
         .order('created_at', { ascending: false })
 
       if (inscripcionesError) throw inscripcionesError
 
+      // Procesar las inscripciones para usar información de la tabla jugador
+      const inscripcionesProcesadas = inscripcionesData.map(inscripcion => ({
+        ...inscripcion,
+        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
+        titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
+        titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
+        titular_1_telefono: inscripcion.titular_1?.telefono || 'N/A',
+        titular_1_ranking: inscripcion.titular_1?.ranking_puntos || 0,
+        
+        titular_2_nombre: inscripcion.titular_2?.nombre || inscripcion.titular_2_nombre || 'N/A',
+        titular_2_apellido: inscripcion.titular_2?.apellido || inscripcion.titular_2_apellido || '',
+        titular_2_email: inscripcion.titular_2?.email || inscripcion.titular_2_email || 'N/A',
+        titular_2_telefono: inscripcion.titular_2?.telefono || 'N/A',
+        titular_2_ranking: inscripcion.titular_2?.ranking_puntos || 0,
+        
+        suplente_1_nombre: inscripcion.suplente_1?.nombre || inscripcion.suplente_1_nombre || 'N/A',
+        suplente_1_apellido: inscripcion.suplente_1?.apellido || inscripcion.suplente_1_apellido || '',
+        suplente_1_email: inscripcion.suplente_1?.email || inscripcion.suplente_1_email || 'N/A',
+        suplente_1_telefono: inscripcion.suplente_1?.telefono || 'N/A',
+        suplente_1_ranking: inscripcion.suplente_1?.ranking_puntos || 0,
+        
+        suplente_2_nombre: inscripcion.suplente_2?.nombre || inscripcion.suplente_2_nombre || 'N/A',
+        suplente_2_apellido: inscripcion.suplente_2?.apellido || inscripcion.suplente_2_apellido || '',
+        suplente_2_email: inscripcion.suplente_2?.email || inscripcion.suplente_2_email || 'N/A',
+        suplente_2_telefono: inscripcion.suplente_2?.telefono || 'N/A',
+        suplente_2_ranking: inscripcion.suplente_2?.ranking_puntos || 0
+      }))
+
       setCategoria(categoriaData)
-      setInscripciones(inscripcionesData)
+      setInscripciones(inscripcionesProcesadas)
 
     } catch (error) {
       console.error('Error fetching categoria data:', error)
@@ -168,9 +231,21 @@ export default function AdminInscripcionesCategoriaPage() {
     const matchesSearch = searchTerm === '' || 
       inscripcion.titular_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.titular_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscripcion.titular_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inscripcion.contacto_celular.includes(searchTerm)
+      inscripcion.titular_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_1_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_1_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_1_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_2_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_2_apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.suplente_2_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inscripcion.contacto_celular.includes(searchTerm) ||
+      inscripcion.titular_1_telefono.includes(searchTerm) ||
+      inscripcion.titular_2_telefono.includes(searchTerm) ||
+      inscripcion.suplente_1_telefono.includes(searchTerm) ||
+      inscripcion.suplente_2_telefono.includes(searchTerm)
 
     return matchesEstado && matchesSearch
   })
@@ -328,10 +403,20 @@ export default function AdminInscripcionesCategoriaPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                       <div>
-                        <p><strong>Suplentes:</strong> {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido} & {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido}</p>
+                        <p><strong>Titulares:</strong></p>
+                        <div className="ml-2 space-y-1">
+                                          <p>• {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido} ({inscripcion.titular_1_ranking > 0 ? `${inscripcion.titular_1_ranking} pts` : 'Sin puntos'})</p>
+                <p>• {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido} ({inscripcion.titular_2_ranking > 0 ? `${inscripcion.titular_2_ranking} pts` : 'Sin puntos'})</p>
+                        </div>
+                        <p className="mt-2"><strong>Suplentes:</strong></p>
+                        <div className="ml-2 space-y-1">
+                                          <p>• {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido} ({inscripcion.suplente_1_ranking > 0 ? `${inscripcion.suplente_1_ranking} pts` : 'Sin puntos'})</p>
+                <p>• {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido} ({inscripcion.suplente_2_ranking > 0 ? `${inscripcion.suplente_2_ranking} pts` : 'Sin puntos'})</p>
+                        </div>
                       </div>
                       <div>
                         <p><strong>Fecha:</strong> {formatDate(inscripcion.created_at)}</p>
+                        <p><strong>Contacto:</strong> {inscripcion.contacto_celular}</p>
                         {inscripcion.aclaraciones && (
                           <p><strong>Aclaraciones:</strong> {inscripcion.aclaraciones}</p>
                         )}

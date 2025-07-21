@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 import { 
   Users, 
   Calendar, 
@@ -107,6 +108,38 @@ export default function AdminDashboard() {
             ligas (
               nombre
             )
+          ),
+          titular_1:jugador!ligainscripciones_titular_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          titular_2:jugador!ligainscripciones_titular_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_1:jugador!ligainscripciones_suplente_1_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
+          ),
+          suplente_2:jugador!ligainscripciones_suplente_2_id_fkey (
+            id,
+            nombre,
+            apellido,
+            email,
+            telefono,
+            ranking_puntos
           )
         `)
         .order('created_at', { ascending: false })
@@ -116,7 +149,27 @@ export default function AdminDashboard() {
       const inscripcionesProcesadas = data?.map(inscripcion => ({
         ...inscripcion,
         categoria: inscripcion.liga_categorias?.categoria || 'N/A',
-        liga: inscripcion.liga_categorias?.ligas?.nombre || 'N/A'
+        liga: inscripcion.liga_categorias?.ligas?.nombre || 'N/A',
+        // Usar datos de la tabla jugador si están disponibles, sino usar los campos directos
+        titular_1_nombre: inscripcion.titular_1?.nombre || inscripcion.titular_1_nombre || 'N/A',
+        titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
+        titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
+        titular_1_ranking: inscripcion.titular_1?.ranking_puntos || 0,
+        
+        titular_2_nombre: inscripcion.titular_2?.nombre || inscripcion.titular_2_nombre || 'N/A',
+        titular_2_apellido: inscripcion.titular_2?.apellido || inscripcion.titular_2_apellido || '',
+        titular_2_email: inscripcion.titular_2?.email || inscripcion.titular_2_email || 'N/A',
+        titular_2_ranking: inscripcion.titular_2?.ranking_puntos || 0,
+        
+        suplente_1_nombre: inscripcion.suplente_1?.nombre || inscripcion.suplente_1_nombre || 'N/A',
+        suplente_1_apellido: inscripcion.suplente_1?.apellido || inscripcion.suplente_1_apellido || '',
+        suplente_1_email: inscripcion.suplente_1?.email || inscripcion.suplente_1_email || 'N/A',
+        suplente_1_ranking: inscripcion.suplente_1?.ranking_puntos || 0,
+        
+        suplente_2_nombre: inscripcion.suplente_2?.nombre || inscripcion.suplente_2_nombre || 'N/A',
+        suplente_2_apellido: inscripcion.suplente_2?.apellido || inscripcion.suplente_2_apellido || '',
+        suplente_2_email: inscripcion.suplente_2?.email || inscripcion.suplente_2_email || 'N/A',
+        suplente_2_ranking: inscripcion.suplente_2?.ranking_puntos || 0
       })) || []
       
       setInscripcionesRecientes(inscripcionesProcesadas)
@@ -281,10 +334,10 @@ export default function AdminDashboard() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="p-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
                     {inscripcionesRecientes.length === 0 ? (
-                      <div className="text-center py-8">
+                      <div className="col-span-full text-center py-8">
                         <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                           <Users className="w-8 h-8 text-gray-400" />
                         </div>
@@ -293,36 +346,53 @@ export default function AdminDashboard() {
                       </div>
                     ) : (
                       inscripcionesRecientes.map((inscripcion) => (
-                        <div key={inscripcion.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200">
-                          <div className="flex flex-col gap-4">
-                            <div className="flex-shrink-0">
-                              <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
-                                <div className="flex items-center gap-1">
-                                  {getEstadoIcon(inscripcion.estado)}
-                                  <span className="text-xs font-medium">{getEstadoText(inscripcion.estado)}</span>
+                        <Link key={inscripcion.id} href={`/admin/inscripciones-ligas/detalle/${inscripcion.id}`}>
+                          <div className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200 h-full cursor-pointer">
+                            <div className="flex flex-col gap-3 h-full">
+                              <div className="flex items-center justify-between">
+                                <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
+                                  <div className="flex items-center gap-1">
+                                    {getEstadoIcon(inscripcion.estado)}
+                                    <span className="text-xs font-medium">{getEstadoText(inscripcion.estado)}</span>
+                                  </div>
+                                </Badge>
+                                <ArrowRight className="w-4 h-4 text-gray-400" />
+                              </div>
+                              
+                              <div className="flex flex-col gap-2">
+                                <div>
+                                  <p className="text-white font-medium text-sm">
+                                    {inscripcion.categoria} • {inscripcion.liga}
+                                  </p>
+                                  <p className="text-gray-500 text-xs flex items-center gap-1 mt-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {new Date(inscripcion.created_at).toLocaleDateString('es-AR', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
                                 </div>
-                              </Badge>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <p className="text-white font-medium">
-                                {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido}
-                              </p>
-                              <p className="text-gray-400 text-sm">
-                                {inscripcion.categoria} • {inscripcion.liga}
-                              </p>
-                              <p className="text-gray-500 text-xs flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(inscripcion.created_at).toLocaleDateString('es-AR', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </p>
+                                
+                                <div className="space-y-2">
+                                  <div>
+                                    <p className="text-gray-300 text-xs font-medium">Titulares:</p>
+                                    <p className="text-white text-xs">
+                                      {inscripcion.titular_1_nombre} {inscripcion.titular_1_apellido} & {inscripcion.titular_2_nombre} {inscripcion.titular_2_apellido}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-300 text-xs font-medium">Suplentes:</p>
+                                    <p className="text-white text-xs">
+                                      {inscripcion.suplente_1_nombre} {inscripcion.suplente_1_apellido} & {inscripcion.suplente_2_nombre} {inscripcion.suplente_2_apellido}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <ArrowRight className="w-4 h-4 text-gray-400" />
-                        </div>
+                        </Link>
                       ))
                     )}
                   </div>
