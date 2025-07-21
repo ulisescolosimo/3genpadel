@@ -108,41 +108,52 @@ export default function ProfilePage() {
 
         if (usuarioError) {
           if (usuarioError.code === 'PGRST116') {
-            // No se encontró usuario, crear uno nuevo
-            console.log('No se encontró usuario, creando uno nuevo...')
+            // No se encontró usuario, crear uno nuevo usando la API
+            console.log('No se encontró usuario, creando uno nuevo usando API...')
             
-            const { data: newUsuario, error: createError } = await supabase
-              .from('usuarios')
-              .insert({
-                id: user.id,
-                email: user.email.toLowerCase(),
-                nombre: user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || "",
-                apellido: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || "",
-                dni: null, // DNI como null inicialmente
-                ranking_puntos: 0,
-                cuenta_activada: true,
-                rol: 'user'
-                // No incluir created_at ni updated_at ya que se actualizan automáticamente
+            try {
+              const response = await fetch('/api/create-user-auto', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userId: user.id,
+                  email: user.email,
+                  fullName: user.user_metadata?.full_name || "",
+                  avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture
+                })
               })
-              .select()
-              .single()
 
-            if (createError) {
-              console.error('Error creando usuario:', createError)
+              const result = await response.json()
+
+              if (!response.ok) {
+                console.error('Error en API create-user-auto:', result.error)
+                toast.error('Error al crear perfil de usuario')
+                return
+              }
+
+              if (!result.success) {
+                console.error('API create-user-auto falló:', result)
+                toast.error('Error al crear perfil de usuario')
+                return
+              }
+
+              console.log('Usuario creado exitosamente:', result.user)
+              setUsuario(result.user)
+              setEditForm({
+                nombre: result.user.nombre || "",
+                apellido: result.user.apellido || "",
+                telefono: result.user.telefono || "",
+                nivel: result.user.nivel || "",
+                fecha_nacimiento: result.user.fecha_nacimiento || "",
+                dni: result.user.dni?.toString() || ""
+              })
+            } catch (apiError) {
+              console.error('Error llamando a create-user-auto:', apiError)
               toast.error('Error al crear perfil de usuario')
               return
             }
-
-            console.log('Usuario creado exitosamente:', newUsuario)
-            setUsuario(newUsuario)
-            setEditForm({
-              nombre: newUsuario.nombre || "",
-              apellido: newUsuario.apellido || "",
-              telefono: newUsuario.telefono || "",
-              nivel: newUsuario.nivel || "",
-              fecha_nacimiento: newUsuario.fecha_nacimiento || "",
-              dni: newUsuario.dni?.toString() || ""
-            })
           } else {
             // Otro tipo de error
             console.error('Error obteniendo usuario:', usuarioError)
@@ -297,35 +308,46 @@ export default function ProfilePage() {
           // El usuario no existe, intentar recrearlo
           console.log('Usuario no encontrado, recreando...')
           
-          const { data: newUsuario, error: createError } = await supabase
-            .from('usuarios')
-            .insert({
-              id: user.id,
-              email: user.email.toLowerCase(),
-              nombre: editForm.nombre.trim(),
-              apellido: editForm.apellido?.trim() || "",
-              dni: parseInt(dniClean), // Convertir a integer
-              nivel: editForm.nivel?.trim() || "",
-              telefono: editForm.telefono?.trim() || "",
-              fecha_nacimiento: editForm.fecha_nacimiento || null,
-              ranking_puntos: 0,
-              cuenta_activada: true,
-              rol: 'user'
-              // No incluir created_at ni updated_at ya que se actualizan automáticamente
+          // Usar la API para recrear el usuario
+          try {
+            const response = await fetch('/api/create-user-auto', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                email: user.email,
+                fullName: `${editForm.nombre.trim()} ${editForm.apellido?.trim() || ""}`.trim(),
+                avatarUrl: usuario.avatar_url
+              })
             })
-            .select()
-            .single()
 
-          if (createError) {
-            console.error('Error recreando usuario:', createError)
+            const result = await response.json()
+
+            if (!response.ok) {
+              console.error('Error en API create-user-auto:', result.error)
+              toast.error('Error al recrear el perfil')
+              return
+            }
+
+            if (!result.success) {
+              console.error('API create-user-auto falló:', result)
+              toast.error('Error al recrear el perfil')
+              return
+            }
+
+            const newUsuario = result.user
+
+            setUsuario(newUsuario)
+            toast.success('Perfil recreado y actualizado correctamente')
+            setIsEditModalOpen(false)
+            return
+          } catch (apiError) {
+            console.error('Error llamando a create-user-auto:', apiError)
             toast.error('Error al recrear el perfil')
             return
           }
-
-          setUsuario(newUsuario)
-          toast.success('Perfil recreado y actualizado correctamente')
-          setIsEditModalOpen(false)
-          return
         } else {
           throw checkError
         }

@@ -34,28 +34,35 @@ export default function Header() {
         
         // Si hay usuario autenticado, obtener datos de la tabla usuarios
         if (user) {
-          const { data: userDataFromDB, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('id', user.id)
-            .single()
-          
-          if (error) {
-            console.error('Error fetching user data:', error)
-            // Si no encuentra por ID, intentar por email como fallback
-            const { data: userDataByEmail, error: emailError } = await supabase
+          try {
+            const { data: userDataFromDB, error } = await supabase
               .from('usuarios')
               .select('*')
-              .eq('email', user.email.toLowerCase())
+              .eq('id', user.id)
               .single()
             
-            if (emailError) {
-              console.error('Error fetching user data by email:', emailError)
+            if (error) {
+              console.error('Error fetching user data:', error)
+              // Si no encuentra por ID, intentar por email como fallback
+              const { data: userDataByEmail, error: emailError } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('email', user.email.toLowerCase())
+                .single()
+              
+              if (emailError) {
+                console.error('Error fetching user data by email:', emailError)
+                // Si no encuentra el usuario, no mostrar error, solo no establecer userData
+                // El usuario será creado cuando acceda al perfil
+              } else {
+                setUserData(userDataByEmail)
+              }
             } else {
-              setUserData(userDataByEmail)
+              setUserData(userDataFromDB)
             }
-          } else {
-            setUserData(userDataFromDB)
+          } catch (error) {
+            console.error('Error getting user data:', error)
+            // No mostrar error al usuario, solo log
           }
         }
       } catch (error) {
@@ -72,28 +79,35 @@ export default function Header() {
       
       // Actualizar datos de usuario cuando cambia la sesión
       if (session?.user) {
-        const { data: userDataFromDB, error } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (error) {
-          console.error('Error fetching user data:', error)
-          // Si no encuentra por ID, intentar por email como fallback
-          const { data: userDataByEmail, error: emailError } = await supabase
+        try {
+          const { data: userDataFromDB, error } = await supabase
             .from('usuarios')
             .select('*')
-            .eq('email', session.user.email.toLowerCase())
+            .eq('id', session.user.id)
             .single()
           
-          if (emailError) {
-            console.error('Error fetching user data by email:', emailError)
+          if (error) {
+            console.error('Error fetching user data:', error)
+            // Si no encuentra por ID, intentar por email como fallback
+            const { data: userDataByEmail, error: emailError } = await supabase
+              .from('usuarios')
+              .select('*')
+              .eq('email', session.user.email.toLowerCase())
+              .single()
+            
+            if (emailError) {
+              console.error('Error fetching user data by email:', emailError)
+              // Si no encuentra el usuario, no mostrar error, solo no establecer userData
+              // El usuario será creado cuando acceda al perfil
+            } else {
+              setUserData(userDataByEmail)
+            }
           } else {
-            setUserData(userDataByEmail)
+            setUserData(userDataFromDB)
           }
-        } else {
-          setUserData(userDataFromDB)
+        } catch (error) {
+          console.error('Error getting user data:', error)
+          // No mostrar error al usuario, solo log
         }
       } else {
         setUserData(null)

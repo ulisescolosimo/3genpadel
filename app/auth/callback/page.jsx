@@ -73,42 +73,7 @@ export default function AuthCallback() {
               console.log('Usuario creado automáticamente:', result.user)
             } catch (apiError) {
               console.error('Error llamando a create-user-auto:', apiError)
-              
-              // Fallback: intentar crear manualmente
-              console.log('Intentando crear manualmente como fallback...')
-              
-              const fullName = session.user.user_metadata?.full_name || ""
-              const nameParts = fullName.split(" ")
-              const nombre = nameParts[0] || session.user.email?.split("@")[0] || ""
-              const apellido = nameParts.slice(1).join(" ") || ""
-
-              const userData = {
-                id: session.user.id,
-                email: session.user.email.toLowerCase(),
-                nombre: nombre,
-                apellido: apellido,
-                dni: null,
-                ranking_puntos: 0,
-                cuenta_activada: true,
-                rol: 'user',
-                avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-                nivel: "Principiante"
-              }
-
-              console.log('Datos a insertar (fallback):', userData)
-
-              const { data: newProfile, error: insertError } = await supabase
-                .from("usuarios")
-                .insert(userData)
-                .select()
-                .single()
-
-              if (insertError) {
-                console.error('Error en fallback manual:', insertError)
-                throw insertError
-              }
-
-              console.log('Usuario creado manualmente (fallback):', newProfile)
+              throw new Error('Error al crear usuario automáticamente: ' + apiError.message)
             }
           } else {
             console.log('Perfil existente encontrado:', profile)
