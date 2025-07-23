@@ -1447,7 +1447,7 @@ export default function LigaInscripcionPage() {
 
         {/* Búsqueda de usuarios mejorada */}
         <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="text-center">
               <h4 className="text-lg font-medium text-white mb-2">Buscar Jugador</h4>
               <p className="text-sm text-gray-400">
@@ -1455,34 +1455,35 @@ export default function LigaInscripcionPage() {
               </p>
             </div>
             
-                          <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex flex-col sm:flex-row gap-3 w-full">
-                  <Select value={tipoBusqueda} onValueChange={setTipoBusqueda}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white w-full sm:w-32 h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-white/20">
-                  <SelectItem value="email" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
-                      Email
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="dni" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
-                      DNI
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative">
+                <Select value={tipoBusqueda} onValueChange={setTipoBusqueda}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white w-full sm:w-36 h-12 rounded-lg transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20">
+                    <SelectValue placeholder="Tipo de búsqueda" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900/95 backdrop-blur-sm border border-white/20 rounded-lg shadow-2xl max-h-60 overflow-hidden">
+                    <SelectItem value="email" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B] transition-all duration-200">
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="w-2 h-2 bg-[#E2FF1B] rounded-full flex-shrink-0"></div>
+                        <span className="font-medium">Email</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="dni" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B] transition-all duration-200">
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="w-2 h-2 bg-[#E2FF1B] rounded-full flex-shrink-0"></div>
+                        <span className="font-medium">DNI</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div className="relative flex-1">
                 <Input
                   type={tipoBusqueda === 'email' ? 'email' : 'text'}
                   value={busqueda}
                   onChange={(e) => handleInputChange(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white h-12 text-base"
+                  className="bg-white/10 border-white/20 text-white h-12 text-base rounded-lg transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20"
                   placeholder={tipoBusqueda === 'email' ? 'usuario@email.com' : '42214710'}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -1500,7 +1501,7 @@ export default function LigaInscripcionPage() {
                 
                 {/* Dropdown de resultados mejorado */}
                 {mostrarDropdown && (
-                  <div className="absolute z-50 w-full mt-2 bg-gray-900 border border-white/20 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-3 bg-gray-900/95 backdrop-blur-sm border border-white/20 rounded-lg shadow-2xl max-h-80 overflow-hidden">
                     {usuariosEncontrados.length > 0 ? (
                       usuariosEncontrados.map((usuario) => {
                         return (
@@ -1621,11 +1622,10 @@ export default function LigaInscripcionPage() {
               </Button>
             </div>
           </div>
-          </div>
 
           {/* Resultado de búsqueda y opciones de posición */}
           {jugadorEncontrado && (
-            <div className={`rounded-lg p-4 border ${
+            <div className={`rounded-lg p-4 border mt-2 ${
               jugadorEncontrado.nuevo 
                 ? 'bg-yellow-500/10 border-yellow-500/20' 
                 : 'bg-green-500/10 border-green-500/20'
