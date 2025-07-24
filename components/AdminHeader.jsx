@@ -7,7 +7,9 @@ import {
   Users, 
   Settings,
   LogOut,
-  Menu
+  Menu,
+  Trophy,
+  Gamepad2
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import { useState } from 'react'
@@ -27,6 +29,16 @@ export default function AdminHeader() {
       title: 'Inscripciones Ligas',
       href: '/admin/inscripciones-ligas',
       icon: Users
+    },
+    {
+      title: 'Gestión Ligas',
+      href: '/admin/ligas',
+      icon: Trophy
+    },
+    {
+      title: 'Partidos',
+      href: '/admin/ligas/partidos',
+      icon: Gamepad2
     },
     {
       title: 'Configuración',

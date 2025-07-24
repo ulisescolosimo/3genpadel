@@ -8,6 +8,13 @@ import { motion } from "framer-motion"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import * as XLSX from "xlsx"
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { EffectFade, Autoplay as SwiperAutoplay, Pagination } from 'swiper/modules'
+
+// Import Swiper styles
+import 'swiper/css'
+import 'swiper/css/effect-fade'
+import 'swiper/css/pagination'
 
 export default function Home() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -95,19 +102,50 @@ export default function Home() {
     fetchExcelData()
   }, [])
 
+  // Array de imágenes del hero
+  const heroImages = [
+    '/images/home/1.jpg',
+    '/images/home/2.jpg',
+    '/images/home/3.jpg',
+    '/images/home/4.jpg',
+    '/images/home/5.jpg',
+    '/images/home/6.jpg',
+    '/images/home/7.jpg'
+  ]
+
   return (
     <div className="flex flex-col min-h-screen bg-black">
 
       {/* Hero Section */}
       <section className="relative flex w-full min-h-[100vh] items-center justify-center overflow-hidden -mt-16">
-        {/* Imagen de fondo */}
+        {/* Carrusel de imágenes de fondo con Swiper */}
         <div className="absolute inset-0">
-          <img
-            src="/images/background-padel.jpg"
-            alt="Fondo Pádel"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/70" /> {/* Overlay más transparente */}
+          <Swiper
+            modules={[EffectFade, SwiperAutoplay]}
+            effect="fade"
+            fadeEffect={{
+              crossFade: true
+            }}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+            }}
+            loop={true}
+            className="h-full w-full"
+          >
+            {heroImages.map((image, index) => (
+              <SwiperSlide key={index}>
+                <div className="relative w-full h-[100vh]">
+                  <img
+                    src={image}
+                    alt={`Imagen ${index + 1} de 3gen Padel Academy`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/60" />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
 
         {/* Efecto de partículas */}
@@ -119,7 +157,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#E2FF1B]/10 via-purple-500/10 to-[#E2FF1B]/10 animate-gradient-x" />
 
         {/* Contenido principal */}
-        <div className="container relative mx-auto px-4 md:px-6 max-w-7xl">
+        <div className="container relative mx-auto px-4 md:px-6 max-w-7xl z-20">
           <div className="flex flex-col items-center space-y-8 text-center">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -172,28 +210,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <div className="w-6 h-10 border-2 border-white/20 rounded-full p-1">
-            <motion.div
-              animate={{
-                y: [0, 12, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatType: "loop",
-              }}
-              className="w-1.5 h-1.5 bg-white/60 rounded-full mx-auto"
-            />
-          </div>
-        </motion.div>
       </section>
 
       {/* Stats Section */}

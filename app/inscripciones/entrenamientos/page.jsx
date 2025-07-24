@@ -16,7 +16,7 @@ export default function EntrenamientosPage() {
       name: "Clases Grupales",
       description: "Entrenamientos en grupo para mejorar técnica y táctica",
       type: "Grupales",
-      location: "Deportes Racionales",
+      location: "Sede Olleros",
       schedule: "Lunes, Miércoles, Viernes",
       time: "19:00 - 20:30",
       price: "$12.000/mes",
@@ -46,7 +46,7 @@ export default function EntrenamientosPage() {
       name: "Clases Intensivas",
       description: "Entrenamientos intensivos para mejorar rápidamente",
       type: "Grupales",
-      location: "Deportes Racionales",
+      location: "Sede Olleros",
       schedule: "Sábados",
       time: "10:00 - 12:00",
       price: "$8.000/mes",
@@ -192,7 +192,7 @@ export default function EntrenamientosPage() {
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-xl font-bold text-white">Deportes Racionales</CardTitle>
+              <CardTitle className="text-xl font-bold text-white">Sede Olleros</CardTitle>
               <CardDescription className="text-gray-400">
                 Sede principal para clases grupales e intensivas
               </CardDescription>
