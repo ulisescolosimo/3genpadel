@@ -9,7 +9,7 @@ export default function Nosotros() {
     {
       name: "Stefano Lorenzo",
       role: "Head Coach",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/stf.jpg",
       bio: "Profesor de pádel con más de 10 años de experiencia. Jugador AJPP desde 2012.",
       achievements: [
         "Ranking actual: Nº 99 de Argentina",
@@ -22,7 +22,7 @@ export default function Nosotros() {
     {
       name: "Ignacio Begher",
       role: "Head Coach",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/nacho2.jpg",
       bio: "Profesor de pádel con más de 15 años de experiencia. Jugador AJPP desde 2007.",
       achievements: [
         "Ranking actual: Nº 97 de Argentina",
@@ -38,7 +38,7 @@ export default function Nosotros() {
     {
       name: "Guido Lorenzo",
       role: "Coach",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/guido.jpg",
       bio: "3+ años de experiencia entrenando categorías intermedias y avanzadas. Sesiones individuales y grupales.",
       achievements: [
         "3+ años de experiencia entrenando categorías intermedias y avanzadas",
@@ -52,7 +52,7 @@ export default function Nosotros() {
     {
       name: "Ezequiel Rodríguez",
       role: "Coach",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/ezq.jpg",
       bio: "4+ años de experiencia como entrenador de pádel. Main Coach en Babolat Padel Center.",
       achievements: [
         "4+ años de experiencia como entrenador de pádel",
@@ -66,7 +66,7 @@ export default function Nosotros() {
     {
       name: "Alec Baltaián",
       role: "Coach",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/alec.jpg",
       bio: "Más de 5 años de experiencia como entrenador de pádel con enfoque en el desarrollo técnico y táctico de los jugadores.",
       achievements: [
         "Más de 5 años de experiencia como entrenador de pádel",
@@ -80,7 +80,7 @@ export default function Nosotros() {
     {
       name: "Rodrigo Saran",
       role: "Coach",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/rodri.jpg",
       bio: "Más de 10 años de experiencia como entrenador de pádel con enfoque en el desarrollo técnico y estratégico de los jugadores.",
       achievements: [
         "Más de 10 años de experiencia como entrenador de pádel",
@@ -98,7 +98,7 @@ export default function Nosotros() {
     {
       name: "Juan Cruz Cabello",
       role: "Preparador Físico",
-      image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      image: "/images/profesores/juan1.jpg",
       bio: "Más de 7 años diseñando entrenamientos físicos para jugadores amateur y profesionales.",
       achievements: [
         "Más de 7 años diseñando entrenamientos físicos para jugadores amateur y profesionales",
@@ -165,7 +165,7 @@ export default function Nosotros() {
                     <CardHeader className="relative pb-6">
                       <div className="flex items-start gap-6">
                         <div className="relative">
-                          <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-green-500/50 group-hover:border-green-400 transition-colors">
+                          <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-green-500/50 group-hover:border-green-400 transition-colors">
                             <img 
                               src={coach.image} 
                               alt={coach.name}
@@ -243,7 +243,7 @@ export default function Nosotros() {
                     <CardHeader className="relative pb-6">
                       <div className="flex items-start gap-6">
                         <div className="relative">
-                          <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-yellow-500/50 group-hover:border-yellow-400 transition-colors">
+                          <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-yellow-500/50 group-hover:border-yellow-400 transition-colors">
                             <img 
                               src={coach.image} 
                               alt={coach.name}
@@ -321,7 +321,7 @@ export default function Nosotros() {
                     <div className="p-8">
                       <div className="flex flex-col lg:flex-row items-start gap-8">
                         <div className="relative">
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-blue-500/50 group-hover:border-blue-400 transition-colors">
+                          <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-blue-500/50 group-hover:border-blue-400 transition-colors">
                             <img 
                               src={trainer.image} 
                               alt={trainer.name}

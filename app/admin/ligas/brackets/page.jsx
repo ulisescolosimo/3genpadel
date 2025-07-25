@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, RefreshCw, Award, ArrowLeft } from 'lucide-react'
+import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, RefreshCw, Award, ArrowLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
-import { SingleEliminationBracket, Match, SVGViewer } from '@g-loot/react-tournament-brackets'
 
 export default function AdminLigasBracketsPage() {
   const { toast } = useToast()
@@ -361,94 +360,6 @@ export default function AdminLigasBracketsPage() {
     }
   }
 
-  // Transform data for react-tournament-brackets
-  const bracketMatches = useMemo(() => {
-    if (!partidos.length) return []
-
-    const roundOrder = ['octavos', 'cuartos', 'semis', 'final']
-    const roundNames = {
-      'octavos': 'Octavos de Final',
-      'cuartos': 'Cuartos de Final', 
-      'semis': 'Semifinales',
-      'final': 'Final'
-    }
-
-    // Group matches by round
-    const matchesByRound = {}
-    partidos.forEach(partido => {
-      const ronda = partido.ronda.toLowerCase()
-      if (!matchesByRound[ronda]) {
-        matchesByRound[ronda] = []
-      }
-      matchesByRound[ronda].push(partido)
-    })
-
-    const matches = []
-
-    // Create matches array for the bracket component in proper order
-    roundOrder.forEach((ronda, roundIndex) => {
-      if (matchesByRound[ronda]) {
-        matchesByRound[ronda].forEach((partido, matchIndex) => {
-          // Determine next match ID based on round progression
-          let nextMatchId = null
-          if (ronda === 'octavos') {
-            // Octavos winners go to cuartos
-            const cuartosMatchIndex = Math.floor(matchIndex / 2)
-            const cuartosMatches = matchesByRound['cuartos'] || []
-            if (cuartosMatches[cuartosMatchIndex]) {
-              nextMatchId = cuartosMatches[cuartosMatchIndex].id
-            }
-          } else if (ronda === 'cuartos') {
-            // Cuartos winners go to semis
-            const semisMatchIndex = Math.floor(matchIndex / 2)
-            const semisMatches = matchesByRound['semis'] || []
-            if (semisMatches[semisMatchIndex]) {
-              nextMatchId = semisMatches[semisMatchIndex].id
-            }
-          } else if (ronda === 'semis') {
-            // Semis winners go to final
-            const finalMatches = matchesByRound['final'] || []
-            if (finalMatches[0]) {
-              nextMatchId = finalMatches[0].id
-            }
-          }
-          // Final has no next match
-
-          matches.push({
-            id: partido.id,
-            name: `${roundNames[ronda] || ronda} - Match ${matchIndex + 1}`,
-            nextMatchId: nextMatchId,
-            tournamentRoundText: roundNames[ronda] || ronda,
-            round: ronda,
-            startTime: partido.fecha ? new Date(partido.fecha).toISOString() : null,
-            state: partido.estado === 'jugado' ? 'DONE' : 
-                   partido.estado === 'cancelado' ? 'NO_SHOW' : 'NO_PARTY',
-            participants: [
-              {
-                id: partido.equipo_a?.id || `team-a-${partido.id}`,
-                resultText: partido.equipo_ganador?.id === partido.equipo_a?.id ? 'WON' : 
-                           partido.equipo_ganador?.id === partido.equipo_b?.id ? 'LOST' : null,
-                isWinner: partido.equipo_ganador?.id === partido.equipo_a?.id,
-                status: partido.estado === 'jugado' ? 'PLAYED' : null,
-                name: getEquipoNombre(partido.equipo_a)
-              },
-              {
-                id: partido.equipo_b?.id || `team-b-${partido.id}`,
-                resultText: partido.equipo_ganador?.id === partido.equipo_b?.id ? 'WON' : 
-                           partido.equipo_ganador?.id === partido.equipo_a?.id ? 'LOST' : null,
-                isWinner: partido.equipo_ganador?.id === partido.equipo_b?.id,
-                status: partido.estado === 'jugado' ? 'PLAYED' : null,
-                name: getEquipoNombre(partido.equipo_b)
-              }
-            ]
-          })
-        })
-      }
-    })
-
-    return matches
-  }, [partidos])
-
   const getCategoriaNombre = (categoriaId) => {
     const categoria = categorias.find(cat => cat.id === parseInt(categoriaId))
     if (!categoria) return 'N/A'
@@ -521,6 +432,20 @@ export default function AdminLigasBracketsPage() {
       setRefreshing(false)
     }
   }
+
+  // Organizar partidos por rondas
+  const getPartidosPorRonda = () => {
+    const rondas = ['octavos', 'cuartos', 'semis', 'final']
+    const partidosPorRonda = {}
+    
+    rondas.forEach(ronda => {
+      partidosPorRonda[ronda] = partidos.filter(p => p.ronda.toLowerCase() === ronda)
+    })
+    
+    return partidosPorRonda
+  }
+
+  const partidosPorRonda = getPartidosPorRonda()
 
   if (loading) {
     return (
@@ -595,208 +520,321 @@ export default function AdminLigasBracketsPage() {
             </div>
           )}
 
-          {/* Tournament Bracket */}
-          {selectedCategoria && partidos.length > 0 && bracketMatches.length > 0 ? (
+          {/* Custom Tournament Bracket */}
+          {selectedCategoria && partidos.length > 0 ? (
             <Card className="mb-8 bg-white/5 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white">Bracket del Torneo</CardTitle>
                 <CardDescription className="text-gray-400">
-                  Visualización interactiva de la estructura del torneo
+                  Visualización de la estructura del torneo
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="w-full overflow-x-auto">
-                  <div className="w-full min-w-max">
-                    <SingleEliminationBracket
-                      matches={bracketMatches}
-                      matchComponent={({ match, ...props }) => (
-                        <div style={{ 
-                          padding: '8px', 
-                          fontSize: '11px',
-                          minHeight: '140px',
-                          width: '280px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          backgroundColor: '#ffffff',
-                          borderRadius: '8px',
-                          border: '2px solid #e5e7eb',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                          overflow: 'hidden'
-                        }}>
-                          {/* Header con ronda */}
-                          <div style={{ 
-                            backgroundColor: '#E2FC1D', 
-                            padding: '4px 8px', 
-                            borderRadius: '4px', 
-                            marginBottom: '6px',
-                            fontSize: '10px',
-                            fontWeight: 'bold',
-                            color: '#ffffff',
-                            textAlign: 'center',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            border: '1px solid #d1d5db'
-                          }}>
-                            {match.tournamentRoundText || match.round || 'Ronda'}
-                          </div>
-                          
-                          {/* Estado del partido */}
-                          <div style={{
-                            fontSize: '9px',
-                            textAlign: 'center',
-                            marginBottom: '4px',
-                            padding: '2px 6px',
-                            borderRadius: '3px',
-                            backgroundColor: match.state === 'DONE' ? '#10b981' : 
-                                           match.state === 'NO_SHOW' ? '#ef4444' : '#f59e0b',
-                            color: 'white',
-                            fontWeight: 'bold'
-                          }}>
-                            {match.state === 'DONE' ? 'JUGADO' : 
-                             match.state === 'NO_SHOW' ? 'CANCELADO' : 'PENDIENTE'}
-                          </div>
-                          
-                          {/* Fecha del partido */}
-                          {match.startTime && (
-                            <div style={{
-                              fontSize: '9px',
-                              textAlign: 'center',
-                              marginBottom: '4px',
-                              padding: '3px 6px',
-                              backgroundColor: '#f8fafc',
-                              borderRadius: '3px',
-                              color: '#4b5563',
-                              fontWeight: '500',
-                              border: '1px solid #e5e7eb'
-                            }}>
-                              📅 {new Date(match.startTime).toLocaleDateString('es-ES', {
-                                weekday: 'short',
-                                day: '2-digit',
-                                month: 'short'
-                              })}
+                <div className="overflow-x-auto">
+                  <div className="flex gap-8 min-w-max">
+                    {/* Octavos de Final */}
+                    {partidosPorRonda.octavos.length > 0 && (
+                      <div className="flex flex-col gap-4">
+                        <h3 className="text-lg font-semibold text-white text-center mb-4">Octavos de Final</h3>
+                        {partidosPorRonda.octavos.map((partido, index) => (
+                          <div key={partido.id} className="bg-white/10 rounded-lg p-4 border border-white/20 min-w-[280px]">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="outline" className="text-xs text-white">
+                                {partido.ronda}
+                              </Badge>
+                              {getEstadoBadge(partido.estado)}
                             </div>
-                          )}
-                          
-                          {/* Contenido principal del match */}
-                          <div style={{ 
-                            flex: 1,
-                            minHeight: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <Match match={match} {...props} />
-                          </div>
-                          
-                          {/* Botones para setear/editar ganador */}
-                          {match.participants.length >= 2 && (
-                            <div style={{
-                              display: 'flex',
-                              gap: '4px',
-                              marginTop: '4px'
-                            }}>
-                              <button
-                                onClick={() => match.state === 'DONE' 
-                                  ? editarGanador(match.id, match.participants[0].id)
-                                  : setGanador(match.id, match.participants[0].id)
-                                }
-                                style={{
-                                  flex: 1,
-                                  fontSize: '8px',
-                                  padding: '3px 6px',
-                                  backgroundColor: match.state === 'DONE' && match.participants[0].isWinner 
-                                    ? '#10b981' 
-                                    : match.state === 'DONE' 
-                                      ? '#6b7280'
-                                      : '#3b82f6',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '3px',
-                                  cursor: 'pointer',
-                                  fontWeight: 'bold'
-                                }}
-                                title={`${match.state === 'DONE' ? 'Cambiar a' : 'Ganador'}: ${match.participants[0].name}`}
-                              >
-                                {match.state === 'DONE' && match.participants[0].isWinner ? '✅' : '🏆'} {match.participants[0].name?.split(' ')[0] || 'Equipo A'}
-                              </button>
-                              <button
-                                onClick={() => match.state === 'DONE' 
-                                  ? editarGanador(match.id, match.participants[1].id)
-                                  : setGanador(match.id, match.participants[1].id)
-                                }
-                                style={{
-                                  flex: 1,
-                                  fontSize: '8px',
-                                  padding: '3px 6px',
-                                  backgroundColor: match.state === 'DONE' && match.participants[1].isWinner 
-                                    ? '#10b981' 
-                                    : match.state === 'DONE' 
-                                      ? '#6b7280'
-                                      : '#3b82f6',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '3px',
-                                  cursor: 'pointer',
-                                  fontWeight: 'bold'
-                                }}
-                                title={`${match.state === 'DONE' ? 'Cambiar a' : 'Ganador'}: ${match.participants[1].name}`}
-                              >
-                                {match.state === 'DONE' && match.participants[1].isWinner ? '✅' : '🏆'} {match.participants[1].name?.split(' ')[0] || 'Equipo B'}
-                              </button>
+                            
+                            {partido.fecha && (
+                              <div className="text-xs text-gray-400 mb-3 text-center">
+                                📅 {new Date(partido.fecha).toLocaleDateString('es-ES', {
+                                  weekday: 'short',
+                                  day: '2-digit',
+                                  month: 'short'
+                                })}
+                              </div>
+                            )}
+                            
+                            <div className="space-y-2">
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_a?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_a)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_a?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                              
+                              <div className="text-center text-gray-400">vs</div>
+                              
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_b?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_b)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_b?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                          
-                          {/* Footer con ID y puntos */}
-                          <div style={{
-                            fontSize: '8px',
-                            textAlign: 'center',
-                            marginTop: '4px',
-                            padding: '2px 4px',
-                            backgroundColor: '#f3f4f6',
-                            borderRadius: '3px',
-                            color: '#374151',
-                            borderTop: '1px solid #e5e7eb',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
-                            <span>ID: {match.id}</span>
-                            <span style={{ 
-                              backgroundColor: '#E2FC1D', 
-                              color: '#1f2937',
-                              padding: '1px 4px',
-                              borderRadius: '2px',
-                              fontWeight: 'bold',
-                              fontSize: '7px'
-                            }}>
-                              +3 pts
-                            </span>
+                            
+                            {partido.equipo_a && partido.equipo_b && (
+                              <div className="flex gap-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_a.id)
+                                    : setGanador(partido.id, partido.equipo_a.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? '✅' : '🏆'} A
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_b.id)
+                                    : setGanador(partido.id, partido.equipo_b.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? '✅' : '🏆'} B
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      )}
-                      options={{
-                        style: {
-                          roundHeader: {
-                            backgroundColor: '#f8fafc',
-                            color: '#374151',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            padding: '8px 12px'
-                          },
-                          connectorColor: '#d1d5db',
-                          connectorColorHighlight: '#3b82f6',
-                          roundSeparatorWidth: 60,
-                          matchUpConnectorColor: '#d1d5db',
-                          matchUpConnectorColorHighlight: '#3b82f6'
-                        }
-                      }}
-                      svgWrapper={({ children, ...props }) => (
-                        <SVGViewer width="100%" height={700} {...props}>
-                          {children}
-                        </SVGViewer>
-                      )}
-                    />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Cuartos de Final */}
+                    {partidosPorRonda.cuartos.length > 0 && (
+                      <div className="flex flex-col gap-4">
+                        <h3 className="text-lg font-semibold text-white text-center mb-4">Cuartos de Final</h3>
+                        {partidosPorRonda.cuartos.map((partido, index) => (
+                          <div key={partido.id} className="bg-white/10 rounded-lg p-4 border border-white/20 min-w-[280px]">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="outline" className="text-xs text-white">
+                                {partido.ronda}
+                              </Badge>
+                              {getEstadoBadge(partido.estado)}
+                            </div>
+                            
+                            {partido.fecha && (
+                              <div className="text-xs text-gray-400 mb-3 text-center">
+                                📅 {new Date(partido.fecha).toLocaleDateString('es-ES', {
+                                  weekday: 'short',
+                                  day: '2-digit',
+                                  month: 'short'
+                                })}
+                              </div>
+                            )}
+                            
+                            <div className="space-y-2">
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_a?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_a)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_a?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                              
+                              <div className="text-center text-gray-400">vs</div>
+                              
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_b?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_b)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_b?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {partido.equipo_a && partido.equipo_b && (
+                              <div className="flex gap-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_a.id)
+                                    : setGanador(partido.id, partido.equipo_a.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? '✅' : '🏆'} A
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_b.id)
+                                    : setGanador(partido.id, partido.equipo_b.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? '✅' : '🏆'} B
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Semifinales */}
+                    {partidosPorRonda.semis.length > 0 && (
+                      <div className="flex flex-col gap-4">
+                        <h3 className="text-lg font-semibold text-white text-center mb-4">Semifinales</h3>
+                        {partidosPorRonda.semis.map((partido, index) => (
+                          <div key={partido.id} className="bg-white/10 rounded-lg p-4 border border-white/20 min-w-[280px]">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="outline" className="text-xs text-white">
+                                {partido.ronda}
+                              </Badge>
+                              {getEstadoBadge(partido.estado)}
+                            </div>
+                            
+                            {partido.fecha && (
+                              <div className="text-xs text-gray-400 mb-3 text-center">
+                                📅 {new Date(partido.fecha).toLocaleDateString('es-ES', {
+                                  weekday: 'short',
+                                  day: '2-digit',
+                                  month: 'short'
+                                })}
+                              </div>
+                            )}
+                            
+                            <div className="space-y-2">
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_a?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_a)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_a?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                              
+                              <div className="text-center text-gray-400">vs</div>
+                              
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_b?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_b)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_b?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {partido.equipo_a && partido.equipo_b && (
+                              <div className="flex gap-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_a.id)
+                                    : setGanador(partido.id, partido.equipo_a.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? '✅' : '🏆'} A
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_b.id)
+                                    : setGanador(partido.id, partido.equipo_b.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? '✅' : '🏆'} B
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Final */}
+                    {partidosPorRonda.final.length > 0 && (
+                      <div className="flex flex-col gap-4">
+                        <h3 className="text-lg font-semibold text-white text-center mb-4">Final</h3>
+                        {partidosPorRonda.final.map((partido, index) => (
+                          <div key={partido.id} className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-4 border border-yellow-500/50 min-w-[280px]">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400">
+                                {partido.ronda}
+                              </Badge>
+                              {getEstadoBadge(partido.estado)}
+                            </div>
+                            
+                            {partido.fecha && (
+                              <div className="text-xs text-gray-400 mb-3 text-center">
+                                📅 {new Date(partido.fecha).toLocaleDateString('es-ES', {
+                                  weekday: 'short',
+                                  day: '2-digit',
+                                  month: 'short'
+                                })}
+                              </div>
+                            )}
+                            
+                            <div className="space-y-2">
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_a?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_a)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_a?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                              
+                              <div className="text-center text-gray-400">vs</div>
+                              
+                              <div className={`p-2 rounded ${partido.equipo_ganador?.id === partido.equipo_b?.id ? 'bg-green-500/20 border border-green-500/50' : 'bg-gray-700/50'}`}>
+                                <div className="text-sm font-medium text-white">
+                                  {getEquipoNombre(partido.equipo_b)}
+                                </div>
+                                {partido.equipo_ganador?.id === partido.equipo_b?.id && (
+                                  <div className="text-xs text-green-400">🏆 Ganador</div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {partido.equipo_a && partido.equipo_b && (
+                              <div className="flex gap-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_a.id)
+                                    : setGanador(partido.id, partido.equipo_a.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_a.id ? '✅' : '🏆'} A
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? "default" : "outline"}
+                                  onClick={() => partido.estado === 'jugado' 
+                                    ? editarGanador(partido.id, partido.equipo_b.id)
+                                    : setGanador(partido.id, partido.equipo_b.id)
+                                  }
+                                  className="text-xs flex-1"
+                                >
+                                  {partido.estado === 'jugado' && partido.equipo_ganador?.id === partido.equipo_b.id ? '✅' : '🏆'} B
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

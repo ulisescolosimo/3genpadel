@@ -19,6 +19,7 @@ export default function Merchandising() {
   const [excelData, setExcelData] = useState(null)
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedTalles, setSelectedTalles] = useState({})
 
   useEffect(() => {
     const fetchExcelData = async () => {
@@ -58,20 +59,60 @@ export default function Merchandising() {
         console.log('Datos filtrados (columnas 0-4):', filteredData)
         console.log('Total de productos:', filteredData.length)
         
-        // Convertir datos del Excel a productos
-        const excelProducts = filteredData.map((item, index) => ({
-          id: index + 1,
-          name: item.nombre,
-          description: `${item.nombre} - Talle: ${item.talle}`,
-          price: item.precio3GEN, // Usar precio 3GEN como precio principal
-          originalPrice: item.precioRegular,
-          talle: item.talle,
-          stock: item.stock,
-          image: item.imagen, // Usar imagen del Excel o placeholder
-          category: "indumentaria" // Categoría por defecto
-        }))
+        // Convertir datos del Excel a productos agrupados por nombre
+        const productMap = new Map()
         
-        console.log('Productos convertidos:', excelProducts)
+        filteredData.forEach((item, index) => {
+          const productName = item.nombre.trim()
+          const productTalle = item.talle?.trim() || ''
+          const stockValue = parseInt(item.stock) || 0
+          
+          if (productMap.has(productName)) {
+            // Si ya existe el producto, agregar o actualizar el talle
+            const existingProduct = productMap.get(productName)
+            
+            // Buscar si ya existe este talle
+            const existingTalle = existingProduct.talles.find(t => t.talle === productTalle)
+            
+            if (existingTalle) {
+              // Si ya existe el talle, sumar el stock
+              existingTalle.stock += stockValue
+            } else {
+              // Si no existe el talle, agregarlo
+              existingProduct.talles.push({
+                talle: productTalle,
+                stock: stockValue
+              })
+            }
+            
+            // Mantener el precio más bajo
+            if (item.precio3GEN < existingProduct.price) {
+              existingProduct.price = item.precio3GEN
+              existingProduct.originalPrice = item.precioRegular
+            }
+          } else {
+            // Crear nuevo producto
+            productMap.set(productName, {
+              id: index + 1,
+              name: productName,
+              description: productName,
+              price: item.precio3GEN,
+              originalPrice: item.precioRegular,
+              stock: stockValue,
+              image: item.imagen,
+              category: "indumentaria",
+              talles: [{
+                talle: productTalle,
+                stock: stockValue
+              }]
+            })
+          }
+        })
+        
+        // Convertir el Map a array
+        const excelProducts = Array.from(productMap.values())
+        
+        console.log('Productos combinados:', excelProducts)
         setProducts(excelProducts)
         setExcelData(filteredData)
       } catch (error) {
@@ -89,6 +130,22 @@ export default function Merchandising() {
       style: 'currency',
       currency: 'ARS'
     }).format(price)
+  }
+
+  const handleTalleClick = (productId, talle) => {
+    setSelectedTalles(prev => ({
+      ...prev,
+      [productId]: talle
+    }))
+  }
+
+  const getSelectedTalleStock = (product) => {
+    const selectedTalle = selectedTalles[product.id]
+    if (selectedTalle) {
+      const talleInfo = product.talles.find(t => t.talle === selectedTalle)
+      return talleInfo ? talleInfo.stock : 0
+    }
+    return product.talles.reduce((total, t) => total + (parseInt(t.stock) || 0), 0)
   }
 
   const filteredProducts = selectedCategory === "todos" 
@@ -164,7 +221,31 @@ export default function Merchandising() {
                 </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-white mb-2">{product.name}</h3>
-                <p className="text-sm text-gray-400 mb-4">{product.description}</p>
+                
+                {/* Talles disponibles */}
+                {product.talles && product.talles.length > 0 && (
+                  <div className="mb-3">
+                    <div className="flex flex-wrap gap-2">
+                      {product.talles.map((talleInfo, index) => {
+                        const isSelected = selectedTalles[product.id] === talleInfo.talle
+                        return (
+                          <span 
+                            key={index}
+                            onClick={() => handleTalleClick(product.id, talleInfo.talle)}
+                            className={`inline-block px-3 py-1 text-sm font-bold rounded-full cursor-pointer transition-colors ${
+                              isSelected 
+                                ? 'bg-white text-black' 
+                                : 'bg-[#E2FF1B] text-black hover:bg-[#C7E61A]'
+                            }`}
+                          >
+                            {talleInfo.talle}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-lg font-bold text-[#E2FF1B]">{formatPrice(product.price)}</span>
@@ -172,9 +253,11 @@ export default function Merchandising() {
                       <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
                     )}
                   </div>
-                  {product.stock > 0 && (
-                    <span className="text-xs text-green-400">Stock: {product.stock}</span>
-                  )}
+                  <div className="text-right">
+                    <span className="text-xs text-green-400">
+                      {selectedTalles[product.id] ? `Stock: ${getSelectedTalleStock(product)}` : `Total: ${product.talles.reduce((total, t) => total + (parseInt(t.stock) || 0), 0)}`}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -51,6 +51,51 @@ export default function InscripcionesPage() {
         </div>
       </div>
 
+      {/* Champions Section */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white mb-4">Últimos Campeones</h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Conoce a los ganadores de nuestras últimas ligas y torneos
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="text-center group">
+            <div className="relative overflow-hidden rounded-lg mb-4">
+              <img 
+                src="/images/campeones/campeon1.jpg" 
+                alt="Campeón 1" 
+                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+          </div>
+          
+          <div className="text-center group">
+            <div className="relative overflow-hidden rounded-lg mb-4">
+              <img 
+                src="/images/campeones/campeon2.jpg" 
+                alt="Campeón 2" 
+                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+          </div>
+          
+          <div className="text-center group">
+            <div className="relative overflow-hidden rounded-lg mb-4">
+              <img 
+                src="/images/campeones/campeon3.jpg" 
+                alt="Campeón 3" 
+                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="container mx-auto px-4 pb-16">
         <div className="text-center mb-12">

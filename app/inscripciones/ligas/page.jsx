@@ -87,12 +87,14 @@ export default function LigasPage() {
   }
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
+    if (!dateString) return ''
+    // Para fechas en formato YYYY-MM-DD, crear la fecha directamente
+    const [year, month, day] = dateString.split('-')
+    const monthNames = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ]
+    return `${day} de ${monthNames[parseInt(month) - 1]} de ${year}`
   }
 
   if (loading) {
