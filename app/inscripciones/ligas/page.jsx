@@ -51,12 +51,19 @@ export default function LigasPage() {
           }
         })
         
-        const categoriasDisponibles = categorias.map(cat => cat.categoria).join(', ')
+        // Ordenar categorías: C8, C7, C6, C5, C4 (de menor a mayor nivel)
+        const categoriasOrdenadas = categoriasConInscripciones.sort((a, b) => {
+          const nivelA = parseInt(a.categoria.replace('C', ''))
+          const nivelB = parseInt(b.categoria.replace('C', ''))
+          return nivelA - nivelB // Orden ascendente (C8, C7, C6, C5, C4)
+        })
+        
+        const categoriasDisponibles = categoriasOrdenadas.map(cat => cat.categoria).join(', ')
         
         return {
           ...liga,
           categorias: categoriasDisponibles,
-          categoriasDetalle: categoriasConInscripciones,
+          categoriasDetalle: categoriasOrdenadas,
           inscripcionesActuales: categorias.reduce((total, cat) => {
             const inscripcionesAprobadas = cat.ligainscripciones?.filter(ins => ins.estado === 'aprobada')?.length || 0
             return total + inscripcionesAprobadas

@@ -123,11 +123,25 @@ export default function Contacto() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-8">
-          {/* Información de Contacto y Horario en la misma fila */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Información de Contacto */}
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Información de Contacto</h3>
+          {/* Información de Contacto */}
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+            <h3 className="text-xl font-semibold text-white mb-6">Información de contacto</h3>
+            <div className="space-y-6">
+              {/* Horario de Atención */}
+              <div className="bg-gray-800/30 rounded-lg p-4">
+                <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#E2FF1B]" />
+                  Horario de Atención
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Lunes a Viernes</span>
+                    <span className="text-white font-medium">8:00 - 10:00</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de contacto */}
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-[#E2FF1B] mt-1" />
@@ -189,100 +203,117 @@ export default function Contacto() {
                 </div>
               </div>
             </div>
-
-            {/* Horario de Atención */}
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Horario de Atención</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Lunes a Viernes</span>
-                  <span className="text-white">7:00 - 23:00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Sábados</span>
-                  <span className="text-white">8:00 - 22:00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Domingos</span>
-                  <span className="text-white">8:00 - 20:00</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Formulario y Mapa en la misma fila */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Formulario de Contacto */}
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-6">Envíanos un Mensaje</h3>
+            <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-8 shadow-2xl">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-12 h-12 bg-[#E2FF1B]/20 rounded-xl flex items-center justify-center">
+                  <Send className="w-6 h-6 text-[#E2FF1B]" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">Envíanos un mensaje</h3>
+                  <p className="text-gray-400 text-sm">Estamos aquí para ayudarte</p>
+                </div>
+              </div>
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-white">Nombre</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                      placeholder="Tu nombre"
-                      required
-                    />
+                  <div className="group">
+                    <Label htmlFor="name" className="text-white font-medium mb-2 block">Nombre completo</Label>
+                    <div className="relative">
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 h-12"
+                        placeholder="Tu nombre completo"
+                        required
+                      />
+                      <div className="absolute inset-y-0 right-0 w-1 bg-[#E2FF1B] opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 rounded-r-md" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                      placeholder="tu@email.com"
-                      required
-                    />
+                  <div className="group">
+                    <Label htmlFor="email" className="text-white font-medium mb-2 block">Email</Label>
+                    <div className="relative">
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 h-12"
+                        placeholder="tu@email.com"
+                        required
+                      />
+                      <div className="absolute inset-y-0 right-0 w-1 bg-[#E2FF1B] opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 rounded-r-md" />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message" className="text-white">Mensaje</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="min-h-[150px] bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-                    placeholder="¿En qué podemos ayudarte?"
-                    required
-                  />
+                
+                <div className="group">
+                  <Label htmlFor="message" className="text-white font-medium mb-2 block">Mensaje</Label>
+                  <div className="relative">
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      className="min-h-[120px] bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 resize-none"
+                      placeholder="Cuéntanos en qué podemos ayudarte..."
+                      required
+                    />
+                    <div className="absolute inset-y-0 right-0 w-1 bg-[#E2FF1B] opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 rounded-r-md" />
+                  </div>
                 </div>
+                
                 <Button 
                   type="submit" 
-                  className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                  className="w-full bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black font-semibold hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] transform hover:scale-[1.02] transition-all duration-300 h-12 text-lg shadow-lg"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Enviando...
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Enviando mensaje...</span>
                     </div>
                   ) : (
-                    'Enviar Mensaje'
+                    <div className="flex items-center gap-3">
+                      <Send className="w-5 h-5" />
+                      <span>Enviar mensaje</span>
+                    </div>
                   )}
                 </Button>
               </form>
             </div>
 
             {/* Mapa */}
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden h-full">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.1234567890123!2d-58.4558858!3d-34.578475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e78893fb43%3A0xb3403f99edbe45fb!2sLa%20Normanda%20Padel%20%26%20Gym!5e0!3m2!1ses!2sar!4v1234567890"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+            <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-white">Ubicación</h4>
+                    <p className="text-gray-400 text-sm">Delgado 864, Colegiales, CABA</p>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[400px]">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.1234567890123!2d-58.4558858!3d-34.578475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e78893fb43%3A0xb3403f99edbe45fb!2sLa%20Normanda%20Padel%20%26%20Gym!5e0!3m2!1ses!2sar!4v1234567890"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
             </div>
           </div>
         </div>
