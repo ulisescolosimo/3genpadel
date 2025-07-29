@@ -21,6 +21,13 @@ export default function Merchandising() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTalles, setSelectedTalles] = useState({})
 
+  // Función para verificar si un producto tiene talles válidos
+  const hasValidTalles = (talle) => {
+    if (!talle || talle.trim() === '') return false
+    const talleLower = talle.toLowerCase()
+    return talleLower !== 'na' && talleLower !== 'n/a' && talleLower !== 'no aplica'
+  }
+
   useEffect(() => {
     const fetchExcelData = async () => {
       setIsLoading(true)
@@ -41,22 +48,69 @@ export default function Merchandising() {
         const filteredData = jsonData.slice(1)
           .filter(row => row[0] && row[0].trim() !== '') // Filtrar filas vacías
           .map(row => {
-            // Limpiar y convertir precios
-            const precioRegularStr = (row[2] || '').toString().replace(/[^\d,]/g, '').replace(',', '.')
-            const precio3GENStr = (row[3] || '').toString().replace(/[^\d,]/g, '').replace(',', '.')
+            // Función para limpiar y convertir precios argentinos
+            const cleanPrice = (priceStr) => {
+              if (!priceStr) return 0
+              
+              console.log('Precio original:', priceStr)
+              
+              // Convertir a string y remover símbolos de moneda
+              let cleanStr = priceStr.toString()
+                .replace(/[$%\s]/g, '') // Remover $, %, espacios
+                .trim()
+              
+              console.log('Después de limpiar símbolos:', cleanStr)
+              
+              // Si no hay caracteres válidos, retornar 0
+              if (!cleanStr) return 0
+              
+              // Si hay coma, es formato argentino (300.000,00)
+              if (cleanStr.includes(',')) {
+                // Remover puntos de miles y cambiar coma por punto
+                cleanStr = cleanStr.replace(/\./g, '').replace(',', '.')
+                console.log('Después de procesar coma:', cleanStr)
+              }
+              // Si no hay coma pero hay punto, verificar si es decimal
+              else if (cleanStr.includes('.')) {
+                // Contar cuántos puntos hay
+                const dotCount = (cleanStr.match(/\./g) || []).length
+                
+                if (dotCount > 1) {
+                  // Hay múltiples puntos, son separadores de miles
+                  cleanStr = cleanStr.replace(/\./g, '')
+                  console.log('Múltiples puntos detectados, removiendo:', cleanStr)
+                } else {
+                  // Un solo punto, verificar si es decimal
+                  const parts = cleanStr.split('.')
+                  if (parts.length === 2 && parts[1].length <= 2) {
+                    // Es decimal, mantener como está
+                    console.log('Es decimal, manteniendo:', cleanStr)
+                  } else {
+                    // Es separador de miles, remover
+                    cleanStr = cleanStr.replace(/\./g, '')
+                    console.log('Es separador de miles, removiendo puntos:', cleanStr)
+                  }
+                }
+              }
+              
+              const result = parseFloat(cleanStr)
+              console.log('Resultado final:', result)
+              return isNaN(result) ? 0 : result
+            }
             
             return {
               nombre: row[0]?.trim() || '',
               talle: row[1]?.trim() || '',
-              precioRegular: parseFloat(precioRegularStr) || 0,
-              precio3GEN: parseFloat(precio3GENStr) || 0,
+              precioRegular: cleanPrice(row[2]),
+              precio3GEN: cleanPrice(row[3]),
               stock: parseInt(row[4]) || 0,
-              imagen: row[5]?.trim() || '' // Nueva columna de imagen
+              imagen: row[5]?.trim() || '', // Columna F
+              categoria: row[6]?.trim()?.toLowerCase() || 'indumentaria' // Columna G
             }
           })
         
         console.log('Headers del Excel:', headers)
-        console.log('Datos filtrados (columnas 0-4):', filteredData)
+        console.log('Datos filtrados:', filteredData)
         console.log('Total de productos:', filteredData.length)
         
         // Convertir datos del Excel a productos agrupados por nombre
@@ -66,23 +120,30 @@ export default function Merchandising() {
           const productName = item.nombre.trim()
           const productTalle = item.talle?.trim() || ''
           const stockValue = parseInt(item.stock) || 0
+          const category = item.categoria
+          const hasTalles = hasValidTalles(productTalle)
           
           if (productMap.has(productName)) {
             // Si ya existe el producto, agregar o actualizar el talle
             const existingProduct = productMap.get(productName)
             
-            // Buscar si ya existe este talle
-            const existingTalle = existingProduct.talles.find(t => t.talle === productTalle)
-            
-            if (existingTalle) {
-              // Si ya existe el talle, sumar el stock
-              existingTalle.stock += stockValue
+            if (hasTalles) {
+              // Buscar si ya existe este talle
+              const existingTalle = existingProduct.talles.find(t => t.talle === productTalle)
+              
+              if (existingTalle) {
+                // Si ya existe el talle, sumar el stock
+                existingTalle.stock += stockValue
+              } else {
+                // Si no existe el talle, agregarlo
+                existingProduct.talles.push({
+                  talle: productTalle,
+                  stock: stockValue
+                })
+              }
             } else {
-              // Si no existe el talle, agregarlo
-              existingProduct.talles.push({
-                talle: productTalle,
-                stock: stockValue
-              })
+              // Para productos sin talles, sumar al stock general
+              existingProduct.stock += stockValue
             }
             
             // Mantener el precio más bajo
@@ -92,7 +153,7 @@ export default function Merchandising() {
             }
           } else {
             // Crear nuevo producto
-            productMap.set(productName, {
+            const newProduct = {
               id: index + 1,
               name: productName,
               description: productName,
@@ -100,12 +161,21 @@ export default function Merchandising() {
               originalPrice: item.precioRegular,
               stock: stockValue,
               image: item.imagen,
-              category: "indumentaria",
-              talles: [{
+              category: category
+            }
+            
+            if (hasTalles) {
+              // Producto con talles
+              newProduct.talles = [{
                 talle: productTalle,
                 stock: stockValue
               }]
-            })
+            } else {
+              // Producto sin talles (como paletas, accesorios)
+              newProduct.talles = []
+            }
+            
+            productMap.set(productName, newProduct)
           }
         })
         
@@ -140,11 +210,25 @@ export default function Merchandising() {
   }
 
   const getSelectedTalleStock = (product) => {
+    // Si el producto no tiene talles, devolver el stock general
+    if (!product.talles || product.talles.length === 0) {
+      return product.stock || 0
+    }
+    
     const selectedTalle = selectedTalles[product.id]
     if (selectedTalle) {
       const talleInfo = product.talles.find(t => t.talle === selectedTalle)
       return talleInfo ? talleInfo.stock : 0
     }
+    return product.talles.reduce((total, t) => total + (parseInt(t.stock) || 0), 0)
+  }
+
+  const getTotalStock = (product) => {
+    // Si el producto no tiene talles, devolver el stock general
+    if (!product.talles || product.talles.length === 0) {
+      return product.stock || 0
+    }
+    // Si tiene talles, sumar todos los talles
     return product.talles.reduce((total, t) => total + (parseInt(t.stock) || 0), 0)
   }
 
@@ -255,7 +339,7 @@ export default function Merchandising() {
                   </div>
                   <div className="text-right">
                     <span className="text-xs text-green-400">
-                      {selectedTalles[product.id] ? `Stock: ${getSelectedTalleStock(product)}` : `Total: ${product.talles.reduce((total, t) => total + (parseInt(t.stock) || 0), 0)}`}
+                      {selectedTalles[product.id] ? `Stock: ${getSelectedTalleStock(product)}` : `Total: ${getTotalStock(product)}`}
                     </span>
                   </div>
                 </div>

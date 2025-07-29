@@ -26,6 +26,7 @@ export default function Home() {
 
   const [products, setProducts] = useState([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev()
@@ -34,6 +35,22 @@ export default function Home() {
   const scrollNext = useCallback(() => {
     if (emblaApi) emblaApi.scrollNext()
   }, [emblaApi])
+
+  // Hook para detectar el tamaño de pantalla
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768) // 768px es el breakpoint md de Tailwind
+    }
+
+    // Verificar al cargar
+    checkIsMobile()
+
+    // Escuchar cambios de tamaño de ventana
+    window.addEventListener('resize', checkIsMobile)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
 
   // Función para formatear precios
   const formatPrice = (price) => {
@@ -102,8 +119,8 @@ export default function Home() {
     fetchExcelData()
   }, [])
 
-  // Array de imágenes del hero
-  const heroImages = [
+  // Array de imágenes del hero para desktop
+  const heroImagesDesktop = [
     '/images/home/1.jpg',
     '/images/home/2.jpg',
     '/images/home/3.jpg',
@@ -113,11 +130,27 @@ export default function Home() {
     '/images/home/7.jpg'
   ]
 
+  // Array de imágenes del hero para móvil
+  const heroImagesMobile = [
+    '/images/home/mobile/1.jpg',
+    '/images/home/mobile/2.jpg',
+    '/images/home/mobile/3.jpg',
+    '/images/home/mobile/4.jpg',
+    '/images/home/mobile/5.jpg',
+    '/images/home/mobile/6.jpg',
+    '/images/home/mobile/7.jpg',
+    '/images/home/mobile/8.jpg',
+    '/images/home/mobile/9.jpg'
+  ]
+
+  // Seleccionar el array de imágenes según el dispositivo
+  const heroImages = isMobile ? heroImagesMobile : heroImagesDesktop
+
   return (
     <div className="flex flex-col min-h-screen bg-black">
 
       {/* Hero Section */}
-      <section className="relative flex w-full min-h-[100vh] items-center justify-center overflow-hidden -mt-16">
+      <section className={`relative flex w-full items-center justify-center overflow-hidden -mt-16 ${isMobile ? 'min-h-[120vh]' : 'min-h-[100vh]'}`}>
         {/* Carrusel de imágenes de fondo con Swiper */}
         <div className="absolute inset-0">
           <Swiper
@@ -135,7 +168,7 @@ export default function Home() {
           >
             {heroImages.map((image, index) => (
               <SwiperSlide key={index}>
-                <div className="relative w-full h-[100vh]">
+                <div className={`relative w-full ${isMobile ? 'h-[120vh]' : 'h-[100vh]'}`}>
                   <img
                     src={image}
                     alt={`Imagen ${index + 1} de 3gen Padel Academy`}

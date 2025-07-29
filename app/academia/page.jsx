@@ -17,31 +17,33 @@ export default function AcademiaPage() {
   const turnos = [
     {
       id: 1,
-      horario: 'Lunes y Miércoles',
-      horarios: ['18:00 - 20:00', '20:00 - 22:00'],
-      nivel: 'Principiante - Intermedio',
-      cupo: '8 jugadores por turno'
+      horario: 'Lunes',
+      horarios: ['08:00 - 10:00'],
+      nivel: 'Iniciantes'
     },
     {
       id: 2,
-      horario: 'Martes y Jueves',
-      horarios: ['18:00 - 20:00', '20:00 - 22:00'],
-      nivel: 'Intermedio - Avanzado',
-      cupo: '8 jugadores por turno'
+      horario: 'Martes',
+      horarios: ['08:00 - 10:00'],
+      nivel: 'Intermedio'
     },
     {
       id: 3,
-      horario: 'Viernes',
-      horarios: ['18:00 - 20:00'],
-      nivel: 'Todos los niveles',
-      cupo: '12 jugadores'
+      horario: 'Miércoles',
+      horarios: ['08:00 - 10:00'],
+      nivel: 'Femenino'
     },
     {
       id: 4,
-      horario: 'Sábados',
-      horarios: ['10:00 - 12:00', '14:00 - 16:00'],
-      nivel: 'Todos los niveles',
-      cupo: '8 jugadores por turno'
+      horario: 'Jueves',
+      horarios: ['08:00 - 10:00'],
+      nivel: 'Avanzado'
+    },
+    {
+      id: 5,
+      horario: 'Viernes',
+      horarios: ['08:00 - 10:00'],
+      nivel: 'Intermedio'
     }
   ]
 
@@ -233,18 +235,10 @@ export default function AcademiaPage() {
                         <div className="flex items-start gap-3">
                           <Target className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
                           <div className="flex-1">
-                            <h4 className="font-semibold text-white mb-1">Nivel:</h4>
+                            <h4 className="font-semibold text-white mb-1">
+                              {turno.nivel === 'Femenino' ? '' : 'Nivel:'}
+                            </h4>
                             <p className="text-gray-300 text-sm md:text-base">{turno.nivel}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-3">
-                          <Users className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-white mb-1">Cupo:</h4>
-                            <p className="text-gray-300 text-sm md:text-base">{turno.cupo}</p>
                           </div>
                         </div>
                       </div>
