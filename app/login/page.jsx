@@ -152,17 +152,10 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-6 space-y-4 text-center">
-              <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
-                <span>¿No tienes una cuenta?</span>
+              <div className="flex items-center justify-center gap-2 flex-col text-gray-400 text-sm">
+                <span>¿Fuiste registrado por otro integrante de tu equipo?</span>
                 <Link href="/activar-cuenta" className="text-[#E2FF1B] hover:underline">
                   Activar cuenta
-                </Link>
-              </div>
-              
-              <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
-                <span>¿Olvidaste tu contraseña?</span>
-                <Link href="/recuperar-password" className="text-[#E2FF1B] hover:underline">
-                  Recuperar
                 </Link>
               </div>
             </div>
