@@ -1011,8 +1011,6 @@ export default function LigaInscripcionPage() {
       const requiredFieldsValidation = [
         { field: 'titular_1_email', message: 'El email del Titular 1 es requerido' },
         { field: 'titular_2_email', message: 'El email del Titular 2 es requerido' },
-        { field: 'suplente_1_email', message: 'El email del Suplente 1 es requerido' },
-        { field: 'suplente_2_email', message: 'El email del Suplente 2 es requerido' },
         { field: 'liga_categoria_id', message: 'Debes seleccionar una categoría' },
         { field: 'contacto_celular', message: 'El número de contacto es requerido' }
       ]
@@ -1034,8 +1032,8 @@ export default function LigaInscripcionPage() {
         throw new Error('Debes configurar tu DNI en tu perfil antes de inscribirte')
       }
 
-      // Validar que todos los jugadores estén asignados
-      const jugadoresRequeridos = ['titular_2', 'suplente_1', 'suplente_2']
+      // Validar que los titulares estén asignados (suplentes son opcionales)
+      const jugadoresRequeridos = ['titular_2']
       for (const posicion of jugadoresRequeridos) {
         if (!jugadoresSeleccionados[posicion]) {
           throw new Error(`Debes asignar un jugador como ${posicion.replace('_', ' ')}`)
@@ -1058,27 +1056,45 @@ export default function LigaInscripcionPage() {
         dnisAsignados.add(usuarioLogueado.dni.toString())
       }
       
-      for (const posicion of jugadoresRequeridos) {
+      // Verificar duplicados solo para jugadores asignados (incluyendo suplentes si están asignados)
+      const todasLasPosiciones = ['titular_2', 'suplente_1', 'suplente_2']
+      for (const posicion of todasLasPosiciones) {
         const jugador = jugadoresSeleccionados[posicion]
-        if (emailsAsignados.has(jugador.email.toLowerCase())) {
-          throw new Error(`El usuario ${jugador.nombre} ${jugador.apellido || ''} está asignado a múltiples posiciones`)
-        }
-        if (dnisAsignados.has(jugador.dni?.toString())) {
-          throw new Error(`El DNI ${jugador.dni} está siendo usado por múltiples jugadores`)
-        }
-        emailsAsignados.add(jugador.email.toLowerCase())
-        if (jugador.dni) {
-          dnisAsignados.add(jugador.dni.toString())
+        if (jugador) { // Solo verificar si el jugador está asignado
+          if (emailsAsignados.has(jugador.email.toLowerCase())) {
+            throw new Error(`El usuario ${jugador.nombre} ${jugador.apellido || ''} está asignado a múltiples posiciones`)
+          }
+          if (dnisAsignados.has(jugador.dni?.toString())) {
+            throw new Error(`El DNI ${jugador.dni} está siendo usado por múltiples jugadores`)
+          }
+          emailsAsignados.add(jugador.email.toLowerCase())
+          if (jugador.dni) {
+            dnisAsignados.add(jugador.dni.toString())
+          }
         }
       }
 
       // Verificar que ningún jugador del equipo ya tenga una inscripción pendiente o confirmada
       const todosLosJugadores = [
         { id: formData.titular_1_id, nombre: formData.titular_1_nombre, apellido: formData.titular_1_apellido },
-        { id: jugadoresSeleccionados.titular_2.id, nombre: jugadoresSeleccionados.titular_2.nombre, apellido: jugadoresSeleccionados.titular_2.apellido },
-        { id: jugadoresSeleccionados.suplente_1.id, nombre: jugadoresSeleccionados.suplente_1.nombre, apellido: jugadoresSeleccionados.suplente_1.apellido },
-        { id: jugadoresSeleccionados.suplente_2.id, nombre: jugadoresSeleccionados.suplente_2.nombre, apellido: jugadoresSeleccionados.suplente_2.apellido }
+        { id: jugadoresSeleccionados.titular_2.id, nombre: jugadoresSeleccionados.titular_2.nombre, apellido: jugadoresSeleccionados.titular_2.apellido }
       ]
+
+      // Agregar suplentes solo si están asignados
+      if (jugadoresSeleccionados.suplente_1) {
+        todosLosJugadores.push({
+          id: jugadoresSeleccionados.suplente_1.id,
+          nombre: jugadoresSeleccionados.suplente_1.nombre,
+          apellido: jugadoresSeleccionados.suplente_1.apellido
+        })
+      }
+      if (jugadoresSeleccionados.suplente_2) {
+        todosLosJugadores.push({
+          id: jugadoresSeleccionados.suplente_2.id,
+          nombre: jugadoresSeleccionados.suplente_2.nombre,
+          apellido: jugadoresSeleccionados.suplente_2.apellido
+        })
+      }
 
       for (const jugador of todosLosJugadores) {
         const { data: inscripcionesExistentes, error: errorInscripciones } = await supabase
@@ -1114,8 +1130,8 @@ export default function LigaInscripcionPage() {
       const usuariosIds = {
         titular_1: formData.titular_1_id || user.id, // Usar formData.titular_1_id o user.id como respaldo
         titular_2: jugadoresSeleccionados.titular_2.id,
-        suplente_1: jugadoresSeleccionados.suplente_1.id,
-        suplente_2: jugadoresSeleccionados.suplente_2.id
+        suplente_1: jugadoresSeleccionados.suplente_1?.id || null, // Suplente 1 opcional
+        suplente_2: jugadoresSeleccionados.suplente_2?.id || null  // Suplente 2 opcional
       }
       
       console.log('Debug - usuariosIds:', usuariosIds)
@@ -1129,19 +1145,27 @@ export default function LigaInscripcionPage() {
       const fileData = await uploadFile(comprobanteFile)
 
       // Guardar inscripción en la base de datos
+      const inscripcionData = {
+        liga_categoria_id: parseInt(formData.liga_categoria_id),
+        titular_1_id: usuariosIds.titular_1,
+        titular_2_id: usuariosIds.titular_2,
+        contacto_celular: formData.contacto_celular,
+        aclaraciones: formData.aclaraciones,
+        comprobante_url: fileData.url,
+        comprobante_filename: fileData.filename
+      }
+
+      // Agregar suplentes solo si están asignados
+      if (usuariosIds.suplente_1) {
+        inscripcionData.suplente_1_id = usuariosIds.suplente_1
+      }
+      if (usuariosIds.suplente_2) {
+        inscripcionData.suplente_2_id = usuariosIds.suplente_2
+      }
+
       const { error } = await supabase
         .from('ligainscripciones')
-        .insert({
-          liga_categoria_id: parseInt(formData.liga_categoria_id),
-          titular_1_id: usuariosIds.titular_1,
-          titular_2_id: usuariosIds.titular_2,
-          suplente_1_id: usuariosIds.suplente_1,
-          suplente_2_id: usuariosIds.suplente_2,
-          contacto_celular: formData.contacto_celular,
-          aclaraciones: formData.aclaraciones,
-          comprobante_url: fileData.url,
-          comprobante_filename: fileData.filename
-        })
+        .insert(inscripcionData)
 
       if (error) {
         if (error.message.includes('máximo')) {
@@ -1209,7 +1233,8 @@ export default function LigaInscripcionPage() {
   }
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString)
+    // Asegurar que la fecha se interprete correctamente en formato ISO
+    const date = new Date(dateString + 'T00:00:00')
     return date.toLocaleDateString('es-ES', {
       day: 'numeric',
       month: 'long',
@@ -1441,9 +1466,24 @@ export default function LigaInscripcionPage() {
 
     return (
       <div className="space-y-6">
-        <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
-          Selección de Jugadores
-        </h3>
+        <div>
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Selección de Jugadores
+          </h3>
+          <div className="mt-2 p-3 bg-[#E2FC1D]/10 border border-[#E2FC1D]/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-[#E2FC1D] rounded-full mt-2 flex-shrink-0"></div>
+              <div className="text-sm text-[#E2FC1D]">
+                <p className="font-medium mb-1">Información importante:</p>
+                <ul className="space-y-1 text-xs">
+                  <li>• <strong>Titular 1:</strong> Tú (asignado automáticamente)</li>
+                  <li>• <strong>Titular 2:</strong> Requerido para completar la inscripción</li>
+                  <li>• <strong>Suplente 1 y 2:</strong> Opcionales - puedes inscribirte sin ellos</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Búsqueda de usuarios mejorada */}
         <div className="bg-white/5 border border-white/10 rounded-lg p-6">
@@ -1860,36 +1900,51 @@ export default function LigaInscripcionPage() {
         <div className="space-y-4">
           <h4 className="text-lg font-medium text-white">Usuarios Asignados</h4>
           
-          {Object.entries(jugadoresSeleccionados).map(([posicion, jugador]) => (
-            <div key={posicion} className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-[#E2FF1B] text-black text-xs">
-                      {posicion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </Badge>
-                    <span className="text-white font-medium">
-                      {jugador ? `${jugador.nombre} ${jugador.apellido || ''}` : 'Sin asignar'}
-                    </span>
+          {Object.entries(jugadoresSeleccionados).map(([posicion, jugador]) => {
+            const esOpcional = posicion.startsWith('suplente')
+            const esRequerido = posicion === 'titular_2'
+            
+            return (
+              <div key={posicion} className="bg-white/5 border border-white/10 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                                         <div className="flex items-center gap-2">
+                       <Badge className="bg-[#E2FF1B] text-black text-xs">
+                         {posicion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                         {esOpcional && ' (Opcional)'}
+                         {esRequerido && ' (Requerido)'}
+                       </Badge>
+                     </div>
+                     <div className="mt-1">
+                       {jugador ? (
+                         <>
+                           <span className="text-white font-medium">
+                             {jugador.nombre} {jugador.apellido || ''}
+                           </span>
+                           <p className="text-sm text-gray-400">{jugador.email}</p>
+                         </>
+                       ) : (
+                         <span className="text-gray-400 font-medium pt-2">
+                           Sin asignar
+                         </span>
+                       )}
+                     </div>
                   </div>
                   {jugador && (
-                    <p className="text-sm text-gray-400 mt-1">{jugador.email}</p>
+                    <Button
+                      type="button"
+                      onClick={() => quitarJugadorDePosicion(posicion)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   )}
                 </div>
-                {jugador && (
-                  <Button
-                    type="button"
-                    onClick={() => quitarJugadorDePosicion(posicion)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     )
@@ -2022,7 +2077,9 @@ export default function LigaInscripcionPage() {
                 <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-4">
                   <h4 className="font-semibold text-[#E2FF1B] mb-3">Categorías Disponibles</h4>
                   <div className="space-y-2">
-                    {categorias.map((categoria) => (
+                    {categorias
+                      .sort((a, b) => a.categoria.localeCompare(b.categoria))
+                      .map((categoria) => (
                       <div key={categoria.id} className="flex justify-between items-center text-sm">
                         <span className="text-white font-medium">{categoria.categoria}</span>
                         <div className="flex items-center gap-2">
@@ -2163,6 +2220,7 @@ export default function LigaInscripcionPage() {
                           <SelectContent className="bg-gray-900 border-white/20">
                             {categorias
                               .filter(cat => cat.disponible)
+                              .sort((a, b) => a.categoria.localeCompare(b.categoria))
                               .map((categoria) => (
                                 <SelectItem 
                                   key={categoria.id} 

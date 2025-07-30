@@ -85,7 +85,7 @@ export default function Rankings() {
       // Transformar datos según el formato de cada categoría
       const transformedData = rawData.map(row => ({
         id: row.id,
-        nombre: row.Jugador || row['Jugador '] || '',
+        nombre: capitalizarNombre(row.Jugador || row['Jugador '] || ''),
         categoria: categoria,
         puntos: parseInt(row['Puntos'] || row['Puntos Re'] || '0') || 0,
         año: '2025'
@@ -124,7 +124,7 @@ export default function Rankings() {
       // Transformar datos de títulos
       const titulosTransformed = titulosRaw.map(row => ({
         id: row.id,
-        nombre: row.Jugador || row['Jugador '] || row['Jugador'] || '',
+        nombre: capitalizarNombre(row.Jugador || row['Jugador '] || row['Jugador'] || ''),
         categoria: row.Categoria || row['Categoria'] || '',
         titulos: parseInt(row['Titulos'] || row['Titulos '] || '0') || 0,
         año: row.Año || row['Año'] || '2025'
@@ -136,26 +136,36 @@ export default function Rankings() {
     }
   }
 
+  // Función para capitalizar nombres (primera letra de cada palabra en mayúscula)
+  const capitalizarNombre = (nombre) => {
+    return nombre
+      .toLowerCase()
+      .split(' ')
+      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+      .join(' ')
+  }
+
   // Función para agrupar títulos por jugador
   const agruparTitulosPorJugador = (titulosData) => {
     const jugadoresAgrupados = {}
     
     titulosData.forEach(row => {
       const nombre = row.nombre.trim()
+      const nombreCapitalizado = capitalizarNombre(nombre)
       
-      if (jugadoresAgrupados[nombre]) {
+      if (jugadoresAgrupados[nombreCapitalizado]) {
         // Si el jugador ya existe, sumar títulos y agregar categoría
-        jugadoresAgrupados[nombre].titulos += row.titulos
-        jugadoresAgrupados[nombre].categorias.push({
+        jugadoresAgrupados[nombreCapitalizado].titulos += row.titulos
+        jugadoresAgrupados[nombreCapitalizado].categorias.push({
           categoria: row.categoria,
           año: row.año,
           titulos: row.titulos
         })
       } else {
         // Si es la primera vez que aparece este jugador
-        jugadoresAgrupados[nombre] = {
+        jugadoresAgrupados[nombreCapitalizado] = {
           id: row.id,
-          nombre: nombre,
+          nombre: nombreCapitalizado,
           titulos: row.titulos,
           categorias: [{
             categoria: row.categoria,
@@ -449,9 +459,6 @@ export default function Rankings() {
                               </div>
                               <div className="absolute top-1/2 right-full transform -translate-y-1/2 mr-2 hidden group-hover:block z-[9999] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 <div className="bg-gray-800 border border-yellow-500/30 rounded-lg p-2 shadow-xl text-xs backdrop-blur-sm">
-                                  <div className="text-yellow-400 font-semibold mb-1 text-center border-b border-yellow-500/20 pb-1">
-                                    Títulos
-                                  </div>
                                   {row.categorias.map((cat, idx) => (
                                     <div key={idx} className="text-white flex items-center gap-2 py-1">
                                       <span className="bg-blue-600/20 text-blue-300 px-1.5 py-0.5 rounded text-xs border border-blue-500/30">

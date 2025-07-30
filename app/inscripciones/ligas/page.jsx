@@ -290,7 +290,7 @@ export default function LigasPage() {
                         <Button 
                           className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors py-4 sm:py-6 text-base sm:text-lg font-semibold"
                         >
-                          ¡Inscribirse Ahora!
+                          ¡Inscribirse!
                         </Button>
                       </Link>
                     ) : (
