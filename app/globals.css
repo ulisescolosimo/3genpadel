@@ -413,3 +413,48 @@
 .swiper-slide-next {
   opacity: 0;
 }
+
+/* Estilos personalizados para inputs de fecha y hora */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Para Firefox */
+input[type="date"]::-moz-calendar-picker-indicator,
+input[type="time"]::-moz-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-moz-calendar-picker-indicator:hover,
+input[type="time"]::-moz-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Responsive para los iconos nativos */
+@media (max-width: 640px) {
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (min-width: 641px) {
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    width: 20px;
+    height: 20px;
+  }
+}

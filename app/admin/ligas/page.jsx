@@ -435,7 +435,7 @@ export default function AdminLigasPage() {
               </Card>
             </Link>
             
-            <Link href="/admin/ligas/brackets">
+            <Link href="/admin/ligas/partidos">
               <Card className="bg-white/5 border-white/10 hover:border-purple-500/30 transition-all duration-300 cursor-pointer group">
                 <CardContent className="p-2">
                   <div className="flex items-center gap-3">
@@ -443,8 +443,8 @@ export default function AdminLigasPage() {
                       <BarChart3 className="h-6 w-6 text-purple-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">Brackets</p>
-                      <p className="text-sm text-gray-400">Ver brackets de torneos</p>
+                      <p className="font-semibold text-white">Partidos</p>
+                      <p className="text-sm text-gray-400">Ver partidos de torneos</p>
                     </div>
                   </div>
                 </CardContent>
@@ -658,7 +658,7 @@ export default function AdminLigasPage() {
                           {partido.puntos_por_jugador && (
                             <span>Puntos: {partido.puntos_por_jugador}</span>
                           )}
-                          {partido.equipo_ganador && (
+                          {partido.estado === 'jugado' && partido.equipo_ganador_id && partido.equipo_ganador && (
                             <span className="text-green-400 font-medium">
                               Ganador: {partido.equipo_ganador.id === partido.equipo_a?.id ? 'Equipo A' : 'Equipo B'}
                             </span>

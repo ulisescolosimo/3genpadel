@@ -7,9 +7,214 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, Search, RefreshCw, Plus, Edit, Trash2, Award } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, Search, RefreshCw, Plus, Edit, Trash2, Award, Filter, BarChart3, Activity, Target, Gamepad2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
+import Link from 'next/link'
+
+// Función de utilidad para formatear fechas
+const formatearFecha = (fecha) => {
+  if (!fecha) return null
+  
+  try {
+    const fechaObj = new Date(fecha)
+    return {
+      fecha: fechaObj.toLocaleDateString('es-ES', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short'
+      }),
+      hora: fechaObj.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+  } catch (error) {
+    console.error('Error formateando fecha:', error)
+    return null
+  }
+}
+
+// Componente para estado vacío
+const EmptyState = ({ searchTerm, filterCategoria, filterEstado }) => {
+  const tieneFiltros = searchTerm || filterCategoria !== 'all' || filterEstado !== 'all'
+  
+  return (
+    <Card className="bg-gray-900/50 border-gray-800">
+      <CardContent className="pt-8 pb-8 text-center">
+        <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+          <Gamepad2 className="h-10 w-10 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-white mb-2">No se encontraron partidos</h3>
+        <p className="text-gray-400 max-w-md mx-auto">
+          {tieneFiltros 
+            ? 'Intenta ajustar los filtros de búsqueda'
+            : 'Crea el primer partido para comenzar'
+          }
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Componente para renderizar un partido individual
+const PartidoCard = ({ 
+  partido, 
+  onEdit, 
+  onDelete, 
+  onSetWinner, 
+  getEquipoNombre, 
+  getCategoriaNombre, 
+  getEstadoBadge 
+}) => {
+  // Memoizar cálculos costosos
+  const equipoANombre = getEquipoNombre(partido.equipo_a)
+  const equipoBNombre = getEquipoNombre(partido.equipo_b)
+  const categoriaNombre = getCategoriaNombre(partido)
+  const fechaFormateada = formatearFecha(partido.fecha)
+  // Solo mostrar ganador si el partido está jugado Y tiene un equipo ganador asignado
+  const ganadorNombre = (partido.estado === 'jugado' && partido.equipo_ganador_id && partido.equipo_ganador) 
+    ? getEquipoNombre(partido.equipo_ganador) 
+    : null
+  const necesitaGanador = partido.estado === 'jugado' && !partido.equipo_ganador_id
+
+  return (
+    <Card className="bg-gray-900/50 border-gray-800 hover:bg-gray-900/70 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+      <CardContent className="p-6">
+        {/* Header con badges - Mobile responsive */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10">
+            {partido.ronda}
+          </Badge>
+          {getEstadoBadge(partido.estado)}
+          <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">
+            {categoriaNombre}
+          </span>
+        </div>
+
+        {/* Layout responsive para equipos y fecha */}
+        <div className="space-y-4">
+          {/* Equipos y VS - Mobile first */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            {/* Equipo A */}
+            <div className={`text-center p-3 rounded-lg border border-gray-700/50 flex flex-col items-center justify-center ${
+              ganadorNombre && partido.equipo_ganador_id === partido.equipo_a?.id 
+                ? "bg-[#E2FC1D]" 
+                : "bg-gray-800/30"
+            }`}>
+              <p className={`font-medium text-sm sm:text-base ${
+                ganadorNombre && partido.equipo_ganador_id === partido.equipo_a?.id 
+                  ? "text-black" 
+                  : "text-white"
+              }`}>Equipo A</p>
+              <p className={`text-xs sm:text-sm mt-1 leading-tight ${
+                ganadorNombre && partido.equipo_ganador_id === partido.equipo_a?.id 
+                  ? "text-black" 
+                  : "text-gray-300"
+              }`}>
+                {equipoANombre}
+              </p>
+            </div>
+
+            {/* VS y Fecha - Centrado */}
+            <div className="text-center flex flex-col items-center justify-center">
+              <div className="bg-[#E2FF1B]/20 rounded-full p-2 mb-2">
+                <p className="font-bold text-[#E2FF1B] text-lg sm:text-xl">VS</p>
+              </div>
+              {fechaFormateada ? (
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs sm:text-sm text-[#E2FF1B] font-medium">
+                    {fechaFormateada.fecha}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {fechaFormateada.hora}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs text-gray-500">Fecha por definir</span>
+              )}
+            </div>
+
+            {/* Equipo B */}
+            <div className={`text-center p-3 rounded-lg border border-gray-700/50 flex flex-col items-center justify-center ${
+              ganadorNombre && partido.equipo_ganador_id === partido.equipo_b?.id 
+                ? "bg-[#E2FC1D]" 
+                : "bg-gray-800/30"
+            }`}>
+              <p className={`font-medium text-sm sm:text-base ${
+                ganadorNombre && partido.equipo_ganador_id === partido.equipo_b?.id 
+                  ? "text-black" 
+                  : "text-white"
+              }`}>Equipo B</p>
+              <p className={`text-xs sm:text-sm mt-1 leading-tight ${
+                ganadorNombre && partido.equipo_ganador_id === partido.equipo_b?.id 
+                  ? "text-black" 
+                  : "text-gray-300"
+              }`}>
+                {equipoBNombre}
+              </p>
+            </div>
+          </div>
+
+          {/* Categoría en mobile */}
+          <div className="sm:hidden">
+            <span className="text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded">
+              {categoriaNombre}
+            </span>
+          </div>
+
+          {/* Ganador */}
+          {ganadorNombre && (
+            <div className="text-center">
+                             <Badge 
+                 variant="default" 
+                 className="flex items-center gap-1 mx-auto w-fit text-black font-bold bg-[#E2FC1D]"
+               >
+                <Award className="h-3 w-3" />
+                Ganador: {ganadorNombre}
+                <span className="ml-1">(+{partido.puntos_por_jugador} pts)</span>
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        {/* Botones de acción - Responsive */}
+        <div className="flex justify-center sm:justify-end gap-2 mt-4 pt-4 border-t border-gray-800/50">
+          {necesitaGanador && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onSetWinner(partido)}
+              className="border-[#E2FF1B]/30 text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+              title="Establecer ganador"
+            >
+              <Award className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(partido)}
+            className="border-white/20 text-white hover:bg-white/10"
+            title="Editar partido"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(partido)}
+            className="border-red-400/30 text-red-400 hover:bg-red-400/10"
+            title="Eliminar partido"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function AdminLigasPartidosPage() {
   const { toast } = useToast()
@@ -23,6 +228,8 @@ export default function AdminLigasPartidosPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingPartido, setEditingPartido] = useState(null)
+  const [showWinnerModal, setShowWinnerModal] = useState(false)
+  const [selectedPartido, setSelectedPartido] = useState(null)
   const [formData, setFormData] = useState({
     liga_categoria_id: '',
     ronda: '',
@@ -34,7 +241,7 @@ export default function AdminLigasPartidosPage() {
     estado: 'pendiente'
   })
 
-  const rondas = ['Octavos', 'Cuartos', 'Semis', 'Final']
+  const rondas = ['Grupos', 'Octavos', 'Cuartos', 'Semifinal', 'Final']
   const estados = ['pendiente', 'jugado', 'cancelado']
 
   useEffect(() => {
@@ -228,14 +435,25 @@ export default function AdminLigasPartidosPage() {
     e.preventDefault()
     
     try {
+      // Crear la fecha respetando la zona horaria local
+      let fechaISO = null
+      if (formData.fecha) {
+        // Crear la fecha en la zona horaria local
+        const [fecha, hora] = formData.fecha.split('T')
+        const fechaLocal = new Date(`${fecha}T${hora}:00`)
+        // Convertir a ISO string manteniendo la zona horaria local
+        const offset = fechaLocal.getTimezoneOffset() * 60000
+        fechaISO = new Date(fechaLocal.getTime() - offset).toISOString()
+      }
+
       const partidoData = {
         ...formData,
         liga_categoria_id: parseInt(formData.liga_categoria_id),
         equipo_a_id: parseInt(formData.equipo_a_id),
         equipo_b_id: parseInt(formData.equipo_b_id),
-        equipo_ganador_id: formData.equipo_ganador_id ? parseInt(formData.equipo_ganador_id) : null,
+        equipo_ganador_id: formData.equipo_ganador_id && formData.equipo_ganador_id !== 'none' ? parseInt(formData.equipo_ganador_id) : null,
         puntos_por_jugador: parseInt(formData.puntos_por_jugador),
-        fecha: formData.fecha ? new Date(formData.fecha).toISOString() : null
+        fecha: fechaISO
       }
 
       if (editingPartido) {
@@ -279,16 +497,29 @@ export default function AdminLigasPartidosPage() {
 
   const handleEdit = (partido) => {
     setEditingPartido(partido)
-    setFormData({
-      liga_categoria_id: partido.liga_categoria_id.toString(),
-      ronda: partido.ronda,
-      equipo_a_id: partido.equipo_a_id.toString(),
-      equipo_b_id: partido.equipo_b_id.toString(),
-      equipo_ganador_id: partido.equipo_ganador_id?.toString() || '',
-      puntos_por_jugador: partido.puntos_por_jugador,
-      fecha: partido.fecha ? new Date(partido.fecha).toISOString().slice(0, 16) : '',
-      estado: partido.estado
-    })
+    
+    // Manejar la fecha correctamente para la zona horaria local
+    let fechaFormateada = ''
+    if (partido.fecha) {
+      const fechaLocal = new Date(partido.fecha)
+      const year = fechaLocal.getFullYear()
+      const month = String(fechaLocal.getMonth() + 1).padStart(2, '0')
+      const day = String(fechaLocal.getDate()).padStart(2, '0')
+      const hours = String(fechaLocal.getHours()).padStart(2, '0')
+      const minutes = String(fechaLocal.getMinutes()).padStart(2, '0')
+      fechaFormateada = `${year}-${month}-${day}T${hours}:${minutes}`
+    }
+
+         setFormData({
+       liga_categoria_id: partido.liga_categoria_id.toString(),
+       ronda: partido.ronda,
+       equipo_a_id: partido.equipo_a_id.toString(),
+       equipo_b_id: partido.equipo_b_id.toString(),
+       equipo_ganador_id: partido.equipo_ganador_id?.toString() || 'none',
+       puntos_por_jugador: partido.puntos_por_jugador,
+       fecha: fechaFormateada,
+       estado: partido.estado
+     })
     setShowCreateForm(true)
   }
 
@@ -320,6 +551,47 @@ export default function AdminLigasPartidosPage() {
     }
   }
 
+  const handleSetWinner = (partido) => {
+    setSelectedPartido(partido)
+    setShowWinnerModal(true)
+  }
+
+  const handleWinnerSelection = async (equipoId) => {
+    if (!selectedPartido) return
+
+    try {
+      const nuevoGanadorId = parseInt(equipoId)
+
+      // Actualizar el partido con el nuevo ganador
+      const { error } = await supabase
+        .from('liga_partidos')
+        .update({ 
+          equipo_ganador_id: nuevoGanadorId,
+          estado: 'jugado'
+        })
+        .eq('id', selectedPartido.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Ganador establecido",
+        description: "Se estableció el ganador del partido correctamente.",
+        variant: "default"
+      })
+
+      setShowWinnerModal(false)
+      setSelectedPartido(null)
+      fetchPartidos()
+    } catch (error) {
+      console.error('Error setting winner:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo establecer el ganador",
+        variant: "destructive"
+      })
+    }
+  }
+
   const getInscripcionesByCategoria = (categoriaId) => {
     return inscripciones.filter(ins => ins.liga_categoria_id === parseInt(categoriaId))
   }
@@ -337,336 +609,529 @@ export default function AdminLigasPartidosPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-black pt-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-2 border-[#E2FF1B] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Gestión de Partidos</h1>
-          <p className="text-gray-600">Administra los partidos de las ligas</p>
-        </div>
-        <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Nuevo Partido
-        </Button>
-      </div>
+    <div className="min-h-screen bg-black">
+      <div className="container mx-auto px-4">
+                 {/* Header Mejorado - Mobile Responsive */}
+         <div className="pt-4 sm:pt-8 pb-6 sm:pb-8">
+           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6">
+             <div className="text-center sm:text-left">
+               <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                 <Gamepad2 className="h-6 w-6 sm:h-8 sm:w-8 text-[#E2FF1B]" />
+                 <span className="hidden sm:inline">Gestión de Partidos</span>
+                 <span className="sm:hidden">Partidos</span>
+               </h1>
+               <p className="text-gray-400 mt-1 text-sm sm:text-base">
+                 Administra y organiza los partidos de las ligas
+               </p>
+             </div>
+             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+               <Link href="/admin/ligas/tabla-posiciones">
+                 <Button 
+                   variant="outline"
+                   className="border-[#E2FF1B]/30 text-[#E2FF1B] hover:bg-[#E2FF1B]/10 hover:border-[#E2FF1B]/50 flex items-center justify-center gap-2 w-full sm:w-auto transition-all duration-200"
+                 >
+                   <Trophy className="h-4 w-4" />
+                   <span className="hidden sm:inline">Tabla de Posiciones</span>
+                   <span className="sm:hidden">Posiciones</span>
+                 </Button>
+               </Link>
+               <Button 
+                 onClick={() => setShowCreateForm(true)} 
+                 className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 flex items-center justify-center gap-2 w-full sm:w-auto"
+               >
+                 <Plus className="h-4 w-4" />
+                 <span className="hidden sm:inline">Nuevo Partido</span>
+                 <span className="sm:hidden">Crear</span>
+               </Button>
+             </div>
+           </div>
 
-      {/* Filtros */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Categoría</label>
-              <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas las categorías" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {categorias.map(categoria => (
-                    <SelectItem key={categoria.id} value={categoria.id.toString()}>
-                      {categoria.ligas?.nombre} - {categoria.categoria}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Estado</label>
-              <Select value={filterEstado} onValueChange={setFilterEstado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos los estados" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  {estados.map(estado => (
-                    <SelectItem key={estado} value={estado}>
-                      {estado}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Buscar</label>
-              <Input
-                placeholder="Buscar equipos o ronda..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex items-end">
-              <Button 
-                variant="outline" 
-                onClick={fetchData}
-                disabled={refreshing}
-                className="w-full"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                Actualizar
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                     {/* Filtros Mejorados - Mobile Responsive */}
+           <Card className="mb-6 bg-gray-900/50 border-gray-800">
+             <CardHeader className="pb-4">
+               <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                 <Filter className="h-5 w-5 text-[#E2FF1B]" />
+                 <span className="hidden sm:inline">Filtros y Búsqueda</span>
+                 <span className="sm:hidden">Filtros</span>
+               </CardTitle>
+               <CardDescription className="text-gray-400 text-sm">
+                 Filtra y busca partidos específicos
+               </CardDescription>
+             </CardHeader>
+             <CardContent>
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                 <div>
+                   <label className="text-sm font-medium mb-2 block text-white">Categoría</label>
+                   <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+                     <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectValue placeholder="Todas las categorías" />
+                     </SelectTrigger>
+                     <SelectContent className="bg-gray-800 border-gray-700">
+                       <SelectItem value="all">Todas las categorías</SelectItem>
+                       {categorias.map(categoria => (
+                         <SelectItem key={categoria.id} value={categoria.id.toString()}>
+                           {categoria.ligas?.nombre} - {categoria.categoria}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div>
+                   <label className="text-sm font-medium mb-2 block text-white">Estado</label>
+                   <Select value={filterEstado} onValueChange={setFilterEstado}>
+                     <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectValue placeholder="Todos los estados" />
+                     </SelectTrigger>
+                     <SelectContent className="bg-gray-800 border-gray-700">
+                       <SelectItem value="all">Todos los estados</SelectItem>
+                       {estados.map(estado => (
+                         <SelectItem key={estado} value={estado}>
+                           {estado}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div className="sm:col-span-2 lg:col-span-1">
+                   <label className="text-sm font-medium mb-2 block text-white">Buscar</label>
+                   <Input
+                     placeholder="Buscar equipos o ronda..."
+                     value={searchTerm}
+                     onChange={(e) => setSearchTerm(e.target.value)}
+                     className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                   />
+                 </div>
+                 <div className="sm:col-span-2 lg:col-span-1 flex items-end">
+                   <Button 
+                     variant="outline" 
+                     onClick={fetchData}
+                     disabled={refreshing}
+                     className="w-full border-white/20 text-white hover:bg-white/10 h-10 sm:h-9"
+                   >
+                     <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                     <span className="hidden sm:inline">Actualizar</span>
+                     <span className="sm:hidden">Refrescar</span>
+                   </Button>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+  
+                     {/* Estadísticas Rápidas - Mobile Responsive */}
+           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+             <Card className="bg-gray-900/50 border-gray-800">
+               <CardContent className="p-3 sm:p-4">
+                 <div className="flex items-center gap-2 sm:gap-3">
+                   <div className="bg-blue-500/20 rounded-full p-1.5 sm:p-2">
+                     <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                   </div>
+                   <div>
+                     <p className="text-lg sm:text-2xl font-bold text-white">{filteredPartidos.length}</p>
+                     <p className="text-xs sm:text-sm text-gray-400">Total</p>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+             <Card className="bg-gray-900/50 border-gray-800">
+               <CardContent className="p-3 sm:p-4">
+                 <div className="flex items-center gap-2 sm:gap-3">
+                   <div className="bg-green-500/20 rounded-full p-1.5 sm:p-2">
+                     <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
+                   </div>
+                   <div>
+                     <p className="text-lg sm:text-2xl font-bold text-white">
+                       {filteredPartidos.filter(p => p.estado === 'jugado').length}
+                     </p>
+                     <p className="text-xs sm:text-sm text-gray-400">Jugados</p>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+             <Card className="bg-gray-900/50 border-gray-800">
+               <CardContent className="p-3 sm:p-4">
+                 <div className="flex items-center gap-2 sm:gap-3">
+                   <div className="bg-yellow-500/20 rounded-full p-1.5 sm:p-2">
+                     <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
+                   </div>
+                   <div>
+                     <p className="text-lg sm:text-2xl font-bold text-white">
+                       {filteredPartidos.filter(p => p.estado === 'pendiente').length}
+                     </p>
+                     <p className="text-xs sm:text-sm text-gray-400">Pendientes</p>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+             <Card className="bg-gray-900/50 border-gray-800">
+               <CardContent className="p-3 sm:p-4">
+                 <div className="flex items-center gap-2 sm:gap-3">
+                   <div className="bg-red-500/20 rounded-full p-1.5 sm:p-2">
+                     <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
+                   </div>
+                   <div>
+                     <p className="text-lg sm:text-2xl font-bold text-white">
+                       {filteredPartidos.filter(p => p.estado === 'cancelado').length}
+                     </p>
+                     <p className="text-xs sm:text-sm text-gray-400">Cancelados</p>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+           </div>
 
-      {/* Lista de partidos */}
-      <div className="grid gap-4">
-        {filteredPartidos.map(partido => (
-          <Card key={partido.id}>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-2">
-                    <Badge variant="outline">{partido.ronda}</Badge>
-                    {getEstadoBadge(partido.estado)}
-                    <span className="text-sm text-gray-500">
-                      {getCategoriaNombre(partido)}
+                     {/* Lista de partidos mejorada */}
+           <div className="grid gap-4">
+             {filteredPartidos.map(partido => (
+               <PartidoCard
+                 key={partido.id}
+                 partido={partido}
+                 onEdit={handleEdit}
+                 onDelete={handleDelete}
+                 onSetWinner={handleSetWinner}
+                 getEquipoNombre={getEquipoNombre}
+                 getCategoriaNombre={getCategoriaNombre}
+                 getEstadoBadge={getEstadoBadge}
+               />
+             ))}
+           </div>
+
+                     {filteredPartidos.length === 0 && (
+             <EmptyState 
+               searchTerm={searchTerm}
+               filterCategoria={filterCategoria}
+               filterEstado={filterEstado}
+             />
+           )}
+
+                     {/* Modal de creación/edición mejorado - Mobile Responsive */}
+           <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+             <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 mx-4 sm:mx-0">
+               <DialogHeader>
+                 <DialogTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                   <Gamepad2 className="h-5 w-5 text-[#E2FF1B]" />
+                   <span className="hidden sm:inline">
+                     {editingPartido ? 'Editar Partido' : 'Crear Nuevo Partido'}
+                   </span>
+                   <span className="sm:hidden">
+                     {editingPartido ? 'Editar' : 'Crear'} Partido
+                   </span>
+                 </DialogTitle>
+                 <DialogDescription className="text-gray-400 text-sm">
+                   {editingPartido ? 'Modifica los datos del partido' : 'Define un nuevo partido para la liga'}
+                 </DialogDescription>
+               </DialogHeader>
+               <form onSubmit={handleSubmit} className="space-y-4">
+                 {/* Primera fila - Categoría y Ronda */}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Categoría</label>
+                     <Select 
+                       value={formData.liga_categoria_id} 
+                       onValueChange={(value) => handleInputChange('liga_categoria_id', value)}
+                       required
+                     >
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                         <SelectValue placeholder="Seleccionar categoría" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-gray-800 border-gray-700">
+                         {categorias.map(categoria => (
+                           <SelectItem key={categoria.id} value={categoria.id.toString()}>
+                             {categoria.ligas?.nombre} - {categoria.categoria}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Ronda</label>
+                     <Select 
+                       value={formData.ronda} 
+                       onValueChange={(value) => handleInputChange('ronda', value)}
+                       required
+                     >
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                         <SelectValue placeholder="Seleccionar ronda" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-gray-800 border-gray-700">
+                         {rondas.map(ronda => (
+                           <SelectItem key={ronda} value={ronda}>
+                             {ronda}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 </div>
+
+                 {/* Segunda fila - Equipos */}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Equipo A</label>
+                     <Select 
+                       value={formData.equipo_a_id} 
+                       onValueChange={(value) => handleInputChange('equipo_a_id', value)}
+                       required
+                     >
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                         <SelectValue placeholder="Seleccionar equipo A" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-gray-800 border-gray-700">
+                         {formData.liga_categoria_id && 
+                           getInscripcionesByCategoria(formData.liga_categoria_id).map(inscripcion => (
+                             <SelectItem key={inscripcion.id} value={inscripcion.id.toString()}>
+                               {getEquipoNombre(inscripcion)}
+                             </SelectItem>
+                           ))
+                         }
+                       </SelectContent>
+                     </Select>
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Equipo B</label>
+                     <Select 
+                       value={formData.equipo_b_id} 
+                       onValueChange={(value) => handleInputChange('equipo_b_id', value)}
+                       required
+                     >
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                         <SelectValue placeholder="Seleccionar equipo B" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-gray-800 border-gray-700">
+                         {formData.liga_categoria_id && 
+                           getInscripcionesByCategoria(formData.liga_categoria_id)
+                             .filter(ins => ins.id.toString() !== formData.equipo_a_id)
+                             .map(inscripcion => (
+                               <SelectItem key={inscripcion.id} value={inscripcion.id.toString()}>
+                                 {getEquipoNombre(inscripcion)}
+                               </SelectItem>
+                             ))
+                         }
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 </div>
+
+                 {/* Tercera fila - Configuración del partido */}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Puntos por jugador</label>
+                     <Input
+                       type="number"
+                       min="0"
+                       value={formData.puntos_por_jugador}
+                       onChange={(e) => handleInputChange('puntos_por_jugador', e.target.value)}
+                       required
+                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">
+                       Fecha del Partido
+                     </label>
+                     <Input
+                       type="date"
+                       value={formData.fecha && formData.fecha.includes('T') ? formData.fecha.split('T')[0] : ''}
+                       onChange={(e) => {
+                         const nuevaFecha = e.target.value
+                         // Preservar la hora existente o usar 12:00 como fallback
+                         const horaExistente = formData.fecha && formData.fecha.includes('T') 
+                           ? formData.fecha.split('T')[1] 
+                           : '12:00'
+                         handleInputChange('fecha', `${nuevaFecha}T${horaExistente}`)
+                       }}
+                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">
+                       Hora del Partido
+                     </label>
+                     <Input
+                       type="time"
+                       value={formData.fecha && formData.fecha.includes('T') ? formData.fecha.split('T')[1] : ''}
+                       onChange={(e) => {
+                         const nuevaHora = e.target.value
+                         // Preservar la fecha existente o usar la fecha actual como fallback
+                         const fechaExistente = formData.fecha && formData.fecha.includes('T') 
+                           ? formData.fecha.split('T')[0] 
+                           : new Date().toISOString().split('T')[0]
+                         handleInputChange('fecha', `${fechaExistente}T${nuevaHora}`)
+                       }}
+                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Estado</label>
+                     <Select 
+                       value={formData.estado} 
+                       onValueChange={(value) => handleInputChange('estado', value)}
+                       required
+                     >
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                         <SelectValue placeholder="Seleccionar estado" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-gray-800 border-gray-700">
+                         {estados.map(estado => (
+                           <SelectItem key={estado} value={estado}>
+                             {estado}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 </div>
+
+                 {/* Equipo Ganador - Condicional */}
+                 {formData.estado === 'jugado' && (
+                   <div>
+                     <label className="text-sm font-medium mb-2 block text-white">Equipo Ganador</label>
+                     <Select 
+                       value={formData.equipo_ganador_id} 
+                       onValueChange={(value) => handleInputChange('equipo_ganador_id', value)}
+                     >
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                         <SelectValue placeholder="Seleccionar ganador" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-gray-800 border-gray-700">
+                         <SelectItem value="none">Sin ganador</SelectItem>
+                         {formData.equipo_a_id && (
+                           <SelectItem value={formData.equipo_a_id}>
+                             {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_a_id))}
+                           </SelectItem>
+                         )}
+                         {formData.equipo_b_id && (
+                           <SelectItem value={formData.equipo_b_id}>
+                             {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_b_id))}
+                           </SelectItem>
+                         )}
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 )}
+
+                 {/* Botones de acción */}
+                 <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+                   <Button 
+                     type="button" 
+                     variant="outline" 
+                     onClick={resetForm} 
+                     className="border-white/20 text-white hover:bg-white/10 h-10 sm:h-9 w-full sm:w-auto"
+                   >
+                     Cancelar
+                   </Button>
+                   <Button 
+                     type="submit" 
+                     className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10 sm:h-9 w-full sm:w-auto"
+                   >
+                     {editingPartido ? 'Actualizar' : 'Crear'} Partido
+                   </Button>
+                 </div>
+               </form>
+             </DialogContent>
+           </Dialog>
+
+               {/* Modal para seleccionar ganador - Mobile Responsive */}
+        <Dialog open={showWinnerModal} onOpenChange={setShowWinnerModal}>
+          <DialogContent className="max-w-md bg-gray-900 border-gray-800 mx-4 sm:mx-0">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                <Award className="h-5 w-5 text-[#E2FF1B]" />
+                <span className="hidden sm:inline">Seleccionar Ganador</span>
+                <span className="sm:hidden">Ganador</span>
+              </DialogTitle>
+              <DialogDescription className="text-gray-400 text-sm">
+                Elige el equipo ganador del partido
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedPartido && (
+              <div className="space-y-4">
+                <div className="text-center p-4 bg-gray-800/30 rounded-lg">
+                  <p className="text-sm text-gray-400 mb-2">Partido</p>
+                  <p className="text-white font-medium text-sm sm:text-base">
+                    {getEquipoNombre(selectedPartido.equipo_a)} vs {getEquipoNombre(selectedPartido.equipo_b)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{selectedPartido.ronda}</p>
+                  <p className="text-xs text-[#E2FF1B] mt-2">
+                    +{selectedPartido.puntos_por_jugador || 3} puntos por jugador
+                  </p>
+                </div>
+
+                {/* Información sobre ganador actual */}
+                {selectedPartido.equipo_ganador_id && (
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <p className="text-xs text-yellow-400 mb-1">Ganador actual:</p>
+                    <p className="text-sm text-white font-medium">
+                      {getEquipoNombre(selectedPartido.equipo_ganador)}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Al cambiar el ganador, se restarán {selectedPartido.puntos_por_jugador || 3} puntos del ganador actual
+                    </p>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 gap-3">
+                  <Button
+                    onClick={() => handleWinnerSelection(selectedPartido.equipo_a_id)}
+                    className={`h-12 sm:h-10 ${
+                      selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id
+                        ? 'bg-yellow-600 hover:bg-yellow-700'
+                        : 'bg-green-600 hover:bg-green-700'
+                    } text-white`}
+                  >
+                    <Award className="h-4 w-4 mr-2" />
+                    <span className="text-sm sm:text-base">
+                      {getEquipoNombre(selectedPartido.equipo_a)}
                     </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="font-medium">Equipo A</p>
-                      <p className="text-sm text-gray-600">
-                        {getEquipoNombre(partido.equipo_a)}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-medium">VS</p>
-                      <p className="text-sm text-gray-500">
-                        {partido.fecha ? new Date(partido.fecha).toLocaleDateString() : 'Fecha por definir'}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-medium">Equipo B</p>
-                      <p className="text-sm text-gray-600">
-                        {getEquipoNombre(partido.equipo_b)}
-                      </p>
-                    </div>
-                  </div>
-                  {partido.equipo_ganador && (
-                    <div className="mt-2 text-center">
-                      <Badge variant="default" className="flex items-center gap-1 mx-auto w-fit">
-                        <Award className="h-3 w-3" />
-                        Ganador: {getEquipoNombre(partido.equipo_ganador)}
-                        <span className="ml-1">(+{partido.puntos_por_jugador} pts)</span>
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(partido)}
-                  >
-                    <Edit className="h-4 w-4" />
+                    {selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id && (
+                      <span className="text-xs ml-2 opacity-75">(Ganador actual)</span>
+                    )}
                   </Button>
+                  
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(partido)}
+                    onClick={() => handleWinnerSelection(selectedPartido.equipo_b_id)}
+                    className={`h-12 sm:h-10 ${
+                      selectedPartido.equipo_ganador_id === selectedPartido.equipo_b_id
+                        ? 'bg-yellow-600 hover:bg-yellow-700'
+                        : 'bg-green-600 hover:bg-green-700'
+                    } text-white`}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Award className="h-4 w-4 mr-2" />
+                    <span className="text-sm sm:text-base">
+                      {getEquipoNombre(selectedPartido.equipo_b)}
+                    </span>
+                    {selectedPartido.equipo_ganador_id === selectedPartido.equipo_b_id && (
+                      <span className="text-xs ml-2 opacity-75">(Ganador actual)</span>
+                    )}
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredPartidos.length === 0 && (
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <p className="text-gray-500">No se encontraron partidos</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Modal de creación/edición */}
-      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingPartido ? 'Editar Partido' : 'Crear Nuevo Partido'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingPartido ? 'Modifica los datos del partido' : 'Define un nuevo partido para la liga'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Categoría</label>
-                <Select 
-                  value={formData.liga_categoria_id} 
-                  onValueChange={(value) => handleInputChange('liga_categoria_id', value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categorias.map(categoria => (
-                      <SelectItem key={categoria.id} value={categoria.id.toString()}>
-                        {categoria.ligas?.nombre} - {categoria.categoria}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Ronda</label>
-                <Select 
-                  value={formData.ronda} 
-                  onValueChange={(value) => handleInputChange('ronda', value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar ronda" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rondas.map(ronda => (
-                      <SelectItem key={ronda} value={ronda}>
-                        {ronda}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Equipo A</label>
-                <Select 
-                  value={formData.equipo_a_id} 
-                  onValueChange={(value) => handleInputChange('equipo_a_id', value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar equipo A" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formData.liga_categoria_id && 
-                      getInscripcionesByCategoria(formData.liga_categoria_id).map(inscripcion => (
-                        <SelectItem key={inscripcion.id} value={inscripcion.id.toString()}>
-                          {getEquipoNombre(inscripcion)}
-                        </SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Equipo B</label>
-                <Select 
-                  value={formData.equipo_b_id} 
-                  onValueChange={(value) => handleInputChange('equipo_b_id', value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar equipo B" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formData.liga_categoria_id && 
-                      getInscripcionesByCategoria(formData.liga_categoria_id)
-                        .filter(ins => ins.id.toString() !== formData.equipo_a_id)
-                        .map(inscripcion => (
-                          <SelectItem key={inscripcion.id} value={inscripcion.id.toString()}>
-                            {getEquipoNombre(inscripcion)}
-                          </SelectItem>
-                        ))
-                    }
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Puntos por jugador</label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.puntos_por_jugador}
-                  onChange={(e) => handleInputChange('puntos_por_jugador', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Fecha</label>
-                <Input
-                  type="datetime-local"
-                  value={formData.fecha}
-                  onChange={(e) => handleInputChange('fecha', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Estado</label>
-                <Select 
-                  value={formData.estado} 
-                  onValueChange={(value) => handleInputChange('estado', value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {estados.map(estado => (
-                      <SelectItem key={estado} value={estado}>
-                        {estado}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {formData.estado === 'jugado' && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">Equipo Ganador</label>
-                <Select 
-                  value={formData.equipo_ganador_id} 
-                  onValueChange={(value) => handleInputChange('equipo_ganador_id', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar ganador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Sin ganador</SelectItem>
-                    {formData.equipo_a_id && (
-                      <SelectItem value={formData.equipo_a_id}>
-                        {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_a_id))}
-                      </SelectItem>
-                    )}
-                    {formData.equipo_b_id && (
-                      <SelectItem value={formData.equipo_b_id}>
-                        {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_b_id))}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowWinnerModal(false)}
+                    className="border-white/20 text-white hover:bg-white/10 h-10 sm:h-9"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             )}
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={resetForm}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {editingPartido ? 'Actualizar' : 'Crear'} Partido
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
-  )
+          </DialogContent>
+        </Dialog>
+     </div>
+     </div>
+     </div>
+   )
 } 
