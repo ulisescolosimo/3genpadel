@@ -20,9 +20,8 @@ export default function Home() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true,
     align: 'start',
-    slidesToScroll: 1,
-    containScroll: 'trimSnaps'
-  }, [Autoplay({ delay: 3000, stopOnInteraction: false })])
+    slidesToScroll: 1
+  }, [Autoplay({ delay: 3000, stopOnInteraction: false, playOnInit: true })])
 
   const [products, setProducts] = useState([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
@@ -108,7 +107,46 @@ export default function Home() {
           category: "indumentaria" // Categoría por defecto
         }))
         
-        setProducts(excelProducts)
+        // Filtrar productos únicos por nombre y excluir productos específicos
+        const uniqueProducts = excelProducts.filter((product, index, self) => 
+          index === self.findIndex(p => p.name === product.name) &&
+          product.name !== "Short Joma Negro y Gris" &&
+          product.name !== "Buzo Joma Azul Medio Cierre"
+        )
+        
+        // Agregar productos de categoría Paletas (si existen en los datos)
+        const productsWithPaletas = [...uniqueProducts]
+        
+        // Si no hay productos de paletas en los datos originales, agregar algunos de ejemplo
+        const paletasProducts = [
+          {
+            id: uniqueProducts.length + 1,
+            name: "Paleta Head Delta Pro",
+            description: "Paleta profesional de alta gama",
+            price: 45000,
+            originalPrice: 52000,
+            talle: "N/A",
+            stock: 10,
+            image: "/images/products/paleta-head.jpg",
+            category: "paletas"
+          },
+          {
+            id: uniqueProducts.length + 2,
+            name: "Paleta Bullpadel Vertex",
+            description: "Paleta de competición avanzada",
+            price: 38000,
+            originalPrice: 42000,
+            talle: "N/A",
+            stock: 8,
+            image: "/images/products/paleta-bullpadel.jpg",
+            category: "paletas"
+          }
+        ]
+        
+        // Combinar productos únicos con paletas
+        const finalProducts = [...uniqueProducts, ...paletasProducts]
+        
+        setProducts(finalProducts)
       } catch (error) {
         console.error('Error al obtener datos del Excel:', error)
       } finally {
@@ -416,7 +454,7 @@ export default function Home() {
             ) : (
               <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex">
-                  {products.map((product) => (
+                  {products.slice(0, 5).map((product) => (
                     <div key={product.id} className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_25%] p-2">
                       <div className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 h-full flex flex-col">
                         <div className="relative aspect-square overflow-hidden rounded-t-xl bg-black/20">
@@ -428,8 +466,7 @@ export default function Home() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
                         <div className="p-4 flex flex-col flex-grow">
-                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">{product.name}</h3>
-                          <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-grow">{product.description}</p>
+                          <h3 className="text-lg font-semibold text-white mb-4 line-clamp-1">{product.name}</h3>
                           <div className="flex items-center justify-between mt-auto">
                             <div className="flex flex-col">
                               <span className="text-lg font-bold text-[#E2FF1B]">{formatPrice(product.price)}</span>
@@ -437,9 +474,6 @@ export default function Home() {
                                 <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
                               )}
                             </div>
-                            {product.stock > 0 && (
-                              <span className="text-xs text-green-400">Stock: {product.stock}</span>
-                            )}
                           </div>
                         </div>
                       </div>
