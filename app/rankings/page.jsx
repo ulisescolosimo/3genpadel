@@ -67,8 +67,6 @@ export default function Rankings() {
   const [selectedCategoria, setSelectedCategoria] = useState('todos')
   const [selectedAño, setSelectedAño] = useState('todos')
   const [searchTerm, setSearchTerm] = useState('')
-  const [showRankings, setShowRankings] = useState(true)
-  const [showTitulos, setShowTitulos] = useState(true)
 
   // Función para cargar datos de una categoría específica
   const fetchCategoriaData = async (categoria) => {
@@ -251,8 +249,8 @@ export default function Rankings() {
   }
 
   return (
-    <div className="min-h-screen bg-black container mx-auto px-4 pb-8">
-      <main>
+    <div className="min-h-screen bg-black container mx-auto px-4 pb-8 flex flex-col">
+      <main className="flex-1 flex flex-col">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 pt-8">Rankings 2025</h1>
           <p className="text-sm sm:text-base text-gray-400">Los mejores jugadores de 3gen Padel por categorías</p>
@@ -311,10 +309,10 @@ export default function Rankings() {
         </div>
 
         {/* Contenedor de las dos tablas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 overflow-hidden">
           {/* Tabla de Rankings por Puntos */}
-          <div className="bg-gray-900/50 rounded-xl border border-gray-800">
-            <div className="p-4 sm:p-6">
+          <div className="bg-gray-900/50 rounded-xl border border-gray-800 flex flex-col">
+            <div className="p-4 sm:p-6 flex-1 flex flex-col">
               <div className="mb-4 sm:mb-6">
                 <div className="flex items-center justify-between mb-2 lg:mb-0">
                   <div className="flex items-center gap-2">
@@ -324,29 +322,15 @@ export default function Rankings() {
                     </h2>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="hidden lg:flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
                       <Users className="w-4 h-4" />
                       <span>{filteredRankings.length} Registros</span>
                     </div>
-                    <button 
-                      onClick={() => setShowRankings(!showRankings)}
-                      className="lg:hidden p-1 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showRankings ? (
-                        <ArrowUp className="w-4 h-4" />
-                      ) : (
-                        <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
                   </div>
-                </div>
-                <div className="lg:hidden flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-                  <Users className="w-4 h-4" />
-                  <span>{filteredRankings.length} Registros</span>
                 </div>
               </div>
 
-              <div className={`overflow-x-auto lg:overflow-visible transition-all duration-300 ease-in-out ${showRankings ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 lg:max-h-none lg:opacity-100 overflow-hidden'}`}>
+              <div className="overflow-x-auto lg:overflow-visible flex-1">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-800">
@@ -410,8 +394,8 @@ export default function Rankings() {
           </div>
 
           {/* Tabla de Títulos */}
-          <div className="bg-gray-900/50 rounded-xl border border-gray-800">
-            <div className="p-4 sm:p-6">
+          <div className="bg-gray-900/50 rounded-xl border border-gray-800 flex flex-col">
+            <div className="p-4 sm:p-6 flex-1 flex flex-col">
               <div className="mb-4 sm:mb-6">
                 <div className="flex items-center justify-between mb-2 lg:mb-0">
                   <div className="flex items-center gap-2">
@@ -419,29 +403,15 @@ export default function Rankings() {
                     <h2 className="text-lg sm:text-xl font-semibold text-white">Títulos por jugador</h2>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="hidden lg:flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
                       <Crown className="w-4 h-4" />
                       <span>{titulosAgrupados.length} Jugadores</span>
                     </div>
-                    <button 
-                      onClick={() => setShowTitulos(!showTitulos)}
-                      className="lg:hidden p-1 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showTitulos ? (
-                        <ArrowUp className="w-4 h-4" />
-                      ) : (
-                        <ArrowDown className="w-4 h-4" />
-                      )}
-                    </button>
                   </div>
-                </div>
-                <div className="lg:hidden flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-                  <Crown className="w-4 h-4" />
-                  <span>{titulosAgrupados.length} Jugadores</span>
                 </div>
               </div>
 
-              <div className={`overflow-x-auto lg:overflow-visible transition-all duration-300 ease-in-out ${showTitulos ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 lg:max-h-none lg:opacity-100 overflow-hidden'}`}>
+              <div className="overflow-x-auto lg:overflow-visible flex-1">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-800">
