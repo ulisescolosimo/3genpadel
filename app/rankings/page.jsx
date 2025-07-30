@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import { Spinner } from '@/components/ui/spinner'
-import { Trophy, Medal, Users, ArrowUp, ArrowDown, Filter, Crown, Info, Award, Target, Search } from 'lucide-react'
+import { Trophy, Medal, Users, ArrowUp, ArrowDown, Filter, Crown, Info, Award, Target, Search, X } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -13,6 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import Papa from 'papaparse'
 
 // URLs de los Google Sheets CSV para 2025
@@ -67,6 +73,7 @@ export default function Rankings() {
   const [selectedCategoria, setSelectedCategoria] = useState('todos')
   const [selectedAño, setSelectedAño] = useState('todos')
   const [searchTerm, setSearchTerm] = useState('')
+  const [showInfoDialog, setShowInfoDialog] = useState(false)
 
   // Función para cargar datos de una categoría específica
   const fetchCategoriaData = async (categoria) => {
@@ -209,6 +216,8 @@ export default function Rankings() {
         setError(err.message)
       } finally {
         setLoading(false)
+        // Mostrar el popup informativo después de cargar los datos
+        setShowInfoDialog(true)
       }
     }
 
@@ -262,8 +271,19 @@ export default function Rankings() {
     <div className="min-h-screen bg-black container mx-auto px-4 pb-8 flex flex-col">
       <main className="flex-1 flex flex-col">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 pt-8">Rankings 2025</h1>
-          <p className="text-sm sm:text-base text-gray-400">Los mejores jugadores de 3gen Padel por categorías</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 pt-8">Rankings 2025</h1>
+              <p className="text-sm sm:text-base text-gray-400">Los mejores jugadores de 3gen Padel por categorías</p>
+            </div>
+            <button
+              onClick={() => setShowInfoDialog(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600/20 text-blue-300 rounded-lg hover:bg-blue-600/30 transition-colors border border-blue-500/30 mt-3 sm:mt-0 w-fit"
+            >
+              <Info className="w-4 h-4" />
+              <span className="text-sm">Info puntos</span>
+            </button>
+          </div>
         </div>
 
         {/* Filtros */}
@@ -489,6 +509,81 @@ export default function Rankings() {
           </div>
         </div>
       </main>
+
+      {/* Popup informativo sobre puntos */}
+      <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white w-[calc(100vw-2rem)] sm:w-auto sm:max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold text-white">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#E2FF1B]" />
+              Sistema de Puntos 2025
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 sm:space-y-4">
+            <p className="text-gray-300 text-xs sm:text-sm">
+              Los puntos se otorgan según la fase del torneo en la que el jugador participe:
+            </p>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-600/20 text-green-300 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border border-green-500/30 flex-shrink-0">
+                    1
+                  </div>
+                  <span className="text-white text-xs sm:text-sm font-medium truncate">Fase de Grupos</span>
+                </div>
+                <span className="text-green-300 text-xs sm:text-sm font-bold ml-2 flex-shrink-0">1 punto</span>
+              </div>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600/20 text-blue-300 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border border-blue-500/30 flex-shrink-0">
+                    2
+                  </div>
+                  <span className="text-white text-xs sm:text-sm font-medium truncate">Octavos de Final</span>
+                </div>
+                <span className="text-blue-300 text-xs sm:text-sm font-bold ml-2 flex-shrink-0">2 puntos</span>
+              </div>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-600/20 text-purple-300 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border border-purple-500/30 flex-shrink-0">
+                    3
+                  </div>
+                  <span className="text-white text-xs sm:text-sm font-medium truncate">Cuartos de Final</span>
+                </div>
+                <span className="text-purple-300 text-xs sm:text-sm font-bold ml-2 flex-shrink-0">3 puntos</span>
+              </div>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-600/20 text-orange-300 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border border-orange-500/30 flex-shrink-0">
+                    4
+                  </div>
+                  <span className="text-white text-xs sm:text-sm font-medium truncate">Semifinales</span>
+                </div>
+                <span className="text-orange-300 text-xs sm:text-sm font-bold ml-2 flex-shrink-0">5 puntos</span>
+              </div>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-600/20 text-yellow-300 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border border-yellow-500/30 flex-shrink-0">
+                    5
+                  </div>
+                  <span className="text-white text-xs sm:text-sm font-medium truncate">Final</span>
+                </div>
+                <span className="text-yellow-300 text-xs sm:text-sm font-bold ml-2 flex-shrink-0">7 puntos</span>
+              </div>
+            </div>
+            <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+              <p className="text-blue-300 text-xs">
+                <strong>Nota:</strong> Los puntos se acumulan a lo largo de la temporada 2025. 
+                Cuanto más lejos llegues en los torneos, más puntos obtienes.
+              </p>
+            </div>
+            <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-yellow-600/10 border border-yellow-500/30 rounded-lg">
+              <p className="text-yellow-300 text-xs">
+                Ranking sujeto a pendiente actualización.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 
