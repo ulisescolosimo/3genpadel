@@ -30,6 +30,21 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/inscripciones" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
+                  Ligas
+                </Link>
+              </li>
+              <li>
+                <Link href="/academia" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
+                  Academia
+                </Link>
+              </li>
+              <li>
+                <Link href="/rankings" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
+                  Rankings
+                </Link>
+              </li>
+              <li>
                 <Link href="/merchandising" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
                   Merchandising
                 </Link>

@@ -2197,6 +2197,9 @@ export default function LigaInscripcionPage() {
                         <p className="text-sm text-[#E2FF1B] mb-2">
                           <strong>Alias:</strong> stefanolorenzo
                         </p>
+                        <p className="text-sm text-[#E2FF1B] mb-2">
+                          <strong>Inscripción:</strong> $20.000 por equipo
+                        </p>
                         <p className="text-xs text-gray-400 mb-4">
                           Arrastra un archivo o haz clic para seleccionar. Tamaño máximo: 10MB.
                         </p>
