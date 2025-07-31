@@ -8,6 +8,7 @@ import { Toaster as SonnerToaster } from 'sonner'
 import { Toaster as HotToaster } from 'react-hot-toast'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
+import ImpersonationBanner from '@/components/ImpersonationBanner'
 
 const inter = Inter({ subsets: ['latin'] })
 const montserrat = Montserrat({ 
@@ -136,6 +137,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={montserrat.className}>
         <AuthProvider>
+          <ImpersonationBanner />
           <ClientLayout>
             <main>
               {children}

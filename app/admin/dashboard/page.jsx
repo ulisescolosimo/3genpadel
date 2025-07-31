@@ -17,7 +17,8 @@ import {
   RefreshCw,
   BarChart3,
   Activity,
-  Zap
+  Zap,
+  Shield
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -443,6 +444,18 @@ export default function AdminDashboard() {
                        <div className="text-left">
                          <p className="font-medium text-xs sm:text-sm">Estadísticas</p>
                          <p className="text-xs text-gray-400">Análisis detallado</p>
+                       </div>
+                     </Button>
+                     
+                     <Button 
+                       variant="outline" 
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-sm sm:text-base"
+                       onClick={() => window.location.href = '/admin/master-access'}
+                     >
+                       <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-3" />
+                       <div className="text-left">
+                         <p className="font-medium text-xs sm:text-sm">Acceso Maestro</p>
+                         <p className="text-xs text-gray-400">Acceder a cualquier cuenta</p>
                        </div>
                      </Button>
                   </div>

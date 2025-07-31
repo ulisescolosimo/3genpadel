@@ -53,9 +53,14 @@ import { useAuth } from '@/components/AuthProvider'
 import { toast } from 'sonner'
 
 export default function ProfilePage() {
-  const { user, loading: authLoading, signOut } = useAuth()
+  const { user, loading: authLoading, signOut, impersonatedUser } = useAuth()
   const [usuario, setUsuario] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  // Debug logs
+  console.log('ProfilePage - user:', user)
+  console.log('ProfilePage - impersonatedUser:', impersonatedUser)
+  console.log('ProfilePage - authLoading:', authLoading)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [inscripcionesLigas, setInscripcionesLigas] = useState([])
@@ -83,20 +88,30 @@ export default function ProfilePage() {
       try {
         setLoading(true)
         
-        // Verificar si hay usuario autenticado
-        if (!user) {
+        // Verificar si hay usuario autenticado o impersonado
+        if (!user && !impersonatedUser) {
           console.log('No hay usuario autenticado')
           router.push('/login')
           return
         }
 
+        // Usar el usuario impersonado si existe, sino el usuario normal
+        const currentUser = impersonatedUser || user
+        console.log('Usuario actual:', currentUser)
+
+        // Evitar cargar si ya tenemos los datos del usuario
+        if (usuario && usuario.id === currentUser.id) {
+          setLoading(false)
+          return
+        }
+
         // Buscar usuario primero por ID (más confiable para usuarios de Google)
-        console.log('Buscando usuario con ID:', user.id)
+        console.log('Buscando usuario con ID:', currentUser.id)
         
         let { data: usuarioData, error: usuarioError } = await supabase
           .from('usuarios')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', currentUser.id)
           .single()
 
         // Si no se encuentra por ID, buscar por email como fallback
@@ -209,13 +224,13 @@ export default function ProfilePage() {
       }
     }
 
-    if (!authLoading && user) {
+    if (!authLoading && (user || impersonatedUser)) {
       loadUserAndProfile()
-    } else if (!authLoading && !user) {
+    } else if (!authLoading && !user && !impersonatedUser) {
       // Si no hay usuario autenticado y la autenticación ya terminó de cargar
       router.push('/login')
     }
-  }, [user, authLoading, router])
+  }, [user, impersonatedUser, authLoading, router])
 
   // Cargar inscripciones cuando el usuario esté disponible
   useEffect(() => {
@@ -415,7 +430,7 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     try {
       await signOut()
-      router.push('/')
+      // No necesitamos hacer router.push aquí porque signOut ya maneja la redirección
     } catch (error) {
       console.error('Error signing out:', error)
     }
@@ -786,6 +801,16 @@ export default function ProfilePage() {
                   Editar Perfil
                 </Button>
               </DialogTrigger>
+              
+              <Button 
+                onClick={handleSignOut}
+                variant="outline"
+                className="border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 text-sm sm:text-base"
+              >
+                <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                {impersonatedUser ? 'Salir del Modo Admin' : 'Cerrar Sesión'}
+              </Button>
+              
               <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-md">
                 <DialogHeader>
                   <DialogTitle>Editar Perfil de Jugador</DialogTitle>
