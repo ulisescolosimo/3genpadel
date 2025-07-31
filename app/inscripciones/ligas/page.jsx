@@ -279,8 +279,16 @@ export default function LigasPage() {
                   <div className="mt-4 sm:mt-6">
                     {!user ? (
                       <Button 
-                        className="w-full bg-gray-600 text-white cursor-not-allowed py-4 sm:py-6 text-base sm:text-lg font-semibold"
-                        disabled
+                        onClick={async () => {
+                          const { error } = await supabase.auth.signInWithOAuth({
+                            provider: 'google',
+                            options: {
+                              redirectTo: `${window.location.origin}/auth/callback`
+                            }
+                          })
+                          if (error) console.error('Error signing in:', error)
+                        }}
+                        className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors py-4 sm:py-6 text-base sm:text-lg font-semibold"
                       >
                         <LogIn className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                         <span className="text-sm sm:text-base">Inicia sesión para inscribirte</span>

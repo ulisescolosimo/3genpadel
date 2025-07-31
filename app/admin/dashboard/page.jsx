@@ -274,44 +274,44 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2 sm:px-4">
         {/* Header */}
-        <div className="pt-8 pb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="pt-6 sm:pt-8 pb-6 sm:pb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Dashboard Admin</h1>
-              <p className="text-gray-400">Panel de control y gestión de inscripciones</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Dashboard Admin</h1>
+              <p className="text-sm sm:text-base text-gray-400">Panel de control y gestión de inscripciones</p>
             </div>
             <Button
               onClick={fetchAllData}
               disabled={refreshing}
-              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base"
             >
               {refreshing ? (
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
               ) : (
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               )}
               Actualizar
             </Button>
           </div>
 
           {/* Estadísticas principales */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {statCards.map((stat) => (
               <Card key={stat.title} className={`bg-white/5 border-white/10 hover:${stat.borderColor} transition-all duration-300 group`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
-                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bgColor} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                      <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} />
                     </div>
                     <Badge variant="outline" className={`${stat.borderColor} ${stat.color} text-xs`}>
                       {stat.description}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
-                    <p className="text-sm text-gray-400">{stat.title}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white mb-1">{stat.value}</p>
+                    <p className="text-xs sm:text-sm text-gray-400">{stat.title}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -323,32 +323,32 @@ export default function AdminDashboard() {
             {/* Inscripciones Recientes */}
             <div className="lg:col-span-2">
               <Card className="bg-white/5 border-white/10">
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-3 sm:pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-[#E2FF1B]" />
-                      <CardTitle className="text-white">Inscripciones Recientes</CardTitle>
+                      <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                      <CardTitle className="text-white text-lg sm:text-xl">Inscripciones Recientes</CardTitle>
                     </div>
-                    <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B]">
+                    <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
                       {inscripcionesRecientes.length}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4">
                     {inscripcionesRecientes.length === 0 ? (
-                      <div className="col-span-full text-center py-8">
-                        <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Users className="w-8 h-8 text-gray-400" />
+                      <div className="col-span-full text-center py-6 sm:py-8">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                          <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">No hay inscripciones recientes</h3>
-                        <p className="text-gray-400">Las nuevas inscripciones aparecerán aquí</p>
+                        <h3 className="text-base sm:text-lg font-semibold text-white mb-2">No hay inscripciones recientes</h3>
+                        <p className="text-xs sm:text-sm text-gray-400">Las nuevas inscripciones aparecerán aquí</p>
                       </div>
                     ) : (
                       inscripcionesRecientes.map((inscripcion) => (
                         <Link key={inscripcion.id} href={`/admin/inscripciones-ligas/detalle/${inscripcion.id}`}>
-                          <div className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200 h-full cursor-pointer">
-                            <div className="flex flex-col gap-3 h-full">
+                          <div className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-200 h-full cursor-pointer">
+                            <div className="flex flex-col gap-2 sm:gap-3 h-full">
                               <div className="flex items-center justify-between">
                                 <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
                                   <div className="flex items-center gap-1">
@@ -356,12 +356,12 @@ export default function AdminDashboard() {
                                     <span className="text-xs font-medium">{getEstadoText(inscripcion.estado)}</span>
                                   </div>
                                 </Badge>
-                                <ArrowRight className="w-4 h-4 text-gray-400" />
+                                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                               </div>
                               
                               <div className="flex flex-col gap-2">
                                 <div>
-                                  <p className="text-white font-medium text-sm">
+                                  <p className="text-white font-medium text-xs sm:text-sm">
                                     {inscripcion.categoria} • {inscripcion.liga}
                                   </p>
                                   <p className="text-gray-500 text-xs flex items-center gap-1 mt-1">
@@ -375,7 +375,7 @@ export default function AdminDashboard() {
                                   </p>
                                 </div>
                                 
-                                <div className="space-y-2">
+                                <div className="space-y-1 sm:space-y-2">
                                   <div>
                                     <p className="text-gray-300 text-xs font-medium">Titulares:</p>
                                     <p className="text-white text-xs">
@@ -403,45 +403,45 @@ export default function AdminDashboard() {
             {/* Acciones Rápidas */}
             <div>
               <Card className="bg-white/5 border-white/10">
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-3 sm:pb-4">
                   <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-[#E2FF1B]" />
-                    <CardTitle className="text-white">Acciones Rápidas</CardTitle>
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                    <CardTitle className="text-white text-lg sm:text-xl">Acciones Rápidas</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                                          <Button 
                        variant="outline" 
-                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-sm sm:text-base"
                        onClick={() => window.location.href = '/admin/inscripciones-ligas'}
                      >
-                       <Users className="w-4 h-4 mr-3" />
+                       <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-3" />
                        <div className="text-left">
-                         <p className="font-medium">Gestionar Inscripciones</p>
+                         <p className="font-medium text-xs sm:text-sm">Gestionar Inscripciones</p>
                          <p className="text-xs text-gray-400">Ver y administrar todas</p>
                        </div>
                      </Button>
                      
                      <Button 
                        variant="outline" 
-                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-sm sm:text-base"
                        onClick={() => window.location.href = '/admin/ligas'}
                      >
-                       <Trophy className="w-4 h-4 mr-3" />
+                       <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-3" />
                        <div className="text-left">
-                         <p className="font-medium">Gestionar Ligas</p>
+                         <p className="font-medium text-xs sm:text-sm">Gestionar Ligas</p>
                          <p className="text-xs text-gray-400">Crear y administrar ligas</p>
                        </div>
                      </Button>
                      
                      <Button 
                        variant="outline" 
-                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                       className="w-full justify-start border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-sm sm:text-base"
                      >
-                       <BarChart3 className="w-4 h-4 mr-3" />
+                       <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-3" />
                        <div className="text-left">
-                         <p className="font-medium">Estadísticas</p>
+                         <p className="font-medium text-xs sm:text-sm">Estadísticas</p>
                          <p className="text-xs text-gray-400">Análisis detallado</p>
                        </div>
                      </Button>
@@ -450,17 +450,17 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Información adicional */}
-              <Card className="bg-white/5 border-white/10 mt-6">
-                <CardContent className="p-6">
+              <Card className="bg-white/5 border-white/10 mt-4 sm:mt-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <Trophy className="w-6 h-6 text-[#E2FF1B]" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#E2FF1B]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Sistema Activo</h3>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Sistema Activo</h3>
+                    <p className="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4">
                       El sistema está funcionando correctamente y procesando inscripciones
                     </p>
-                    <Badge variant="outline" className="border-green-500/30 text-green-400">
+                    <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
                       <div className="flex items-center gap-1">
                         <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                         Operativo

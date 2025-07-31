@@ -108,12 +108,12 @@ export default function Contacto() {
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2FF1B]/10 to-transparent" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-        <div className="relative container mx-auto px-4 py-12">
+        <div className="relative container mx-auto px-2 sm:px-4 py-8 sm:py-12">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
               Contáctanos
             </h1>
-            <p className="text-xl text-gray-400">
+            <p className="text-lg sm:text-xl text-gray-400">
               ¿Tienes alguna pregunta o sugerencia? Estamos aquí para ayudarte.
             </p>
           </div>
@@ -121,52 +121,52 @@ export default function Contacto() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {/* Información de Contacto */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-6">Información de contacto</h3>
-            <div className="space-y-6">
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Información de contacto</h3>
+            <div className="space-y-4 sm:space-y-6">
               {/* Horario de Atención */}
-              <div className="bg-gray-800/30 rounded-lg p-4">
-                <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-[#E2FF1B]" />
+              <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4">
+                <h4 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                   Horario de Atención
                 </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Lunes a Viernes</span>
-                    <span className="text-white font-medium">8:00 - 10:00</span>
+                    <span className="text-gray-400 text-sm sm:text-base">Lunes a Viernes</span>
+                    <span className="text-white font-medium text-sm sm:text-base">8:00 - 10:00</span>
                   </div>
                 </div>
               </div>
 
               {/* Información de contacto */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#E2FF1B] mt-1" />
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
                   <div>
-                    <p className="text-white font-medium">Dirección</p>
+                    <p className="text-white font-medium text-sm sm:text-base">Dirección</p>
                     <a 
                       href="https://g.co/kgs/FFU53qm" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
                     >
                       Delgado 864, Colegiales, CABA
                     </a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-[#E2FF1B] mt-1" />
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
                   <div>
-                    <p className="text-white font-medium">Teléfono</p>
+                    <p className="text-white font-medium text-sm sm:text-base">Teléfono</p>
                     <div className="space-y-1">
                       <a 
                         href="https://wa.me/5491135921988" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
                       >
                         +54 9 11 3592-1988
                       </a>
@@ -174,7 +174,7 @@ export default function Contacto() {
                         href="https://wa.me/5491149285316" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
                       >
                         +54 9 11 4928-5316
                       </a>
@@ -182,7 +182,7 @@ export default function Contacto() {
                         href="https://wa.me/5491132673029" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
                       >
                         +54 9 11 3267-3029
                       </a>
@@ -190,12 +190,12 @@ export default function Contacto() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-[#E2FF1B] mt-1" />
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
                   <div>
-                    <p className="text-white font-medium">Email</p>
+                    <p className="text-white font-medium text-sm sm:text-base">Email</p>
                     <a 
                       href="mailto:info@lanormanda.com" 
-                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
+                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
                     >
                       info@lanormanda.com
                     </a>
@@ -206,30 +206,30 @@ export default function Contacto() {
           </div>
 
           {/* Formulario y Mapa en la misma fila */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             {/* Formulario de Contacto */}
-            <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-8 shadow-2xl">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 bg-[#E2FF1B]/20 rounded-xl flex items-center justify-center">
-                  <Send className="w-6 h-6 text-[#E2FF1B]" />
+            <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#E2FF1B]/20 rounded-xl flex items-center justify-center">
+                  <Send className="w-5 h-5 sm:w-6 sm:h-6 text-[#E2FF1B]" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">Envíanos un mensaje</h3>
-                  <p className="text-gray-400 text-sm">Estamos aquí para ayudarte</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white">Envíanos un mensaje</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm">Estamos aquí para ayudarte</p>
                 </div>
               </div>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="group">
-                    <Label htmlFor="name" className="text-white font-medium mb-2 block">Nombre completo</Label>
+                    <Label htmlFor="name" className="text-white font-medium mb-2 block text-sm sm:text-base">Nombre completo</Label>
                     <div className="relative">
                       <Input
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 h-12"
+                        className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 h-10 sm:h-12 text-sm sm:text-base"
                         placeholder="Tu nombre completo"
                         required
                       />
@@ -237,7 +237,7 @@ export default function Contacto() {
                     </div>
                   </div>
                   <div className="group">
-                    <Label htmlFor="email" className="text-white font-medium mb-2 block">Email</Label>
+                    <Label htmlFor="email" className="text-white font-medium mb-2 block text-sm sm:text-base">Email</Label>
                     <div className="relative">
                       <Input
                         id="email"
@@ -245,7 +245,7 @@ export default function Contacto() {
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 h-12"
+                        className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 h-10 sm:h-12 text-sm sm:text-base"
                         placeholder="tu@email.com"
                         required
                       />
@@ -255,14 +255,14 @@ export default function Contacto() {
                 </div>
                 
                 <div className="group">
-                  <Label htmlFor="message" className="text-white font-medium mb-2 block">Mensaje</Label>
+                  <Label htmlFor="message" className="text-white font-medium mb-2 block text-sm sm:text-base">Mensaje</Label>
                   <div className="relative">
                     <Textarea
                       id="message"
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
-                      className="min-h-[120px] bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 resize-none"
+                      className="min-h-[100px] sm:min-h-[120px] bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20 transition-all duration-300 resize-none text-sm sm:text-base"
                       placeholder="Cuéntanos en qué podemos ayudarte..."
                       required
                     />
@@ -272,17 +272,17 @@ export default function Contacto() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black font-semibold hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] transform hover:scale-[1.02] transition-all duration-300 h-12 text-lg shadow-lg"
+                  className="w-full bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black font-semibold hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] transform hover:scale-[1.02] transition-all duration-300 h-10 sm:h-12 text-base sm:text-lg shadow-lg"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                       <span>Enviando mensaje...</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3">
-                      <Send className="w-5 h-5" />
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span>Enviar mensaje</span>
                     </div>
                   )}
@@ -292,18 +292,18 @@ export default function Contacto() {
 
             {/* Mapa */}
             <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-              <div className="p-6 border-b border-white/10">
+              <div className="p-4 sm:p-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-white">Ubicación</h4>
-                    <p className="text-gray-400 text-sm">Delgado 864, Colegiales, CABA</p>
+                    <h4 className="text-base sm:text-lg font-semibold text-white">Ubicación</h4>
+                    <p className="text-gray-400 text-xs sm:text-sm">Delgado 864, Colegiales, CABA</p>
                   </div>
                 </div>
               </div>
-              <div className="h-[400px]">
+              <div className="h-[300px] sm:h-[400px]">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.1234567890123!2d-58.4558858!3d-34.578475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e78893fb43%3A0xb3403f99edbe45fb!2sLa%20Normanda%20Padel%20%26%20Gym!5e0!3m2!1ses!2sar!4v1234567890"
                   width="100%"

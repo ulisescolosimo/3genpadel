@@ -300,7 +300,7 @@ export default function Header() {
                       >
                         <span className="relative z-10 flex items-center gap-2">
                           <LogIn className="w-4 h-4" />
-                          Iniciar Sesión
+                          Iniciar sesión
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -496,7 +496,7 @@ export default function Header() {
                             fill="#EA4335"
                           />
                         </svg>
-                        Iniciar Sesión con Google
+                        Iniciar sesión con Google
                       </span>
                     </Button>
                     <Button 

@@ -1259,7 +1259,7 @@ export default function LigaInscripcionPage() {
 
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
+        <h3 className="text-base sm:text-lg font-semibold text-white border-b border-white/20 pb-2">
           {titulo} *
           {esTitular1Logueado && (
             <Badge className="ml-2 bg-[#E2FF1B] text-black text-xs">
@@ -1271,9 +1271,9 @@ export default function LigaInscripcionPage() {
         
         {/* Email y búsqueda */}
         <div className="space-y-2">
-          <Label htmlFor={`${tipo}_email`} className="text-white">Email {titulo} *</Label>
+          <Label htmlFor={`${tipo}_email`} className="text-white text-sm sm:text-base">Email {titulo} *</Label>
           {esTitular1Logueado && (
-            <p className="text-sm text-[#E2FF1B] mb-2">
+            <p className="text-xs sm:text-sm text-[#E2FF1B] mb-2">
               Tu email se asigna automáticamente como Titular 1
             </p>
           )}
@@ -1312,12 +1312,12 @@ export default function LigaInscripcionPage() {
             {jugador.encontrado ? (
               <div className="flex items-center gap-2 text-green-400">
                 <CheckCircle className="w-4 h-4" />
-                <span>Usuario encontrado: {jugador.nombre} {jugador.apellido || ''}</span>
+                <span className="text-sm sm:text-base">Usuario encontrado: {jugador.nombre} {jugador.apellido || ''}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-yellow-400">
                 <Plus className="w-4 h-4" />
-                <span>Crear nuevo usuario</span>
+                <span className="text-sm sm:text-base">Crear nuevo usuario</span>
               </div>
             )}
           </div>
@@ -1327,7 +1327,7 @@ export default function LigaInscripcionPage() {
         {jugador && !jugador.encontrado && (
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor={`${tipo}_nombre`} className="text-white">Nombre *</Label>
+              <Label htmlFor={`${tipo}_nombre`} className="text-white text-sm sm:text-base">Nombre *</Label>
               <Input
                 id={`${tipo}_nombre`}
                 value={nombre}
@@ -1338,7 +1338,7 @@ export default function LigaInscripcionPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${tipo}_apellido`} className="text-white">Apellido</Label>
+              <Label htmlFor={`${tipo}_apellido`} className="text-white text-sm sm:text-base">Apellido</Label>
               <Input
                 id={`${tipo}_apellido`}
                 value={apellido}
@@ -1348,7 +1348,7 @@ export default function LigaInscripcionPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${tipo}_dni`} className="text-white">DNI *</Label>
+              <Label htmlFor={`${tipo}_dni`} className="text-white text-sm sm:text-base">DNI *</Label>
               <Input
                 id={`${tipo}_dni`}
                 value={formData[`${tipo}_dni`]}
@@ -1467,13 +1467,13 @@ export default function LigaInscripcionPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-white border-b border-white/20 pb-2">
             Selección de Jugadores
           </h3>
           <div className="mt-2 p-3 bg-[#E2FC1D]/10 border border-[#E2FC1D]/20 rounded-lg">
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-[#E2FC1D] rounded-full mt-2 flex-shrink-0"></div>
-              <div className="text-sm text-[#E2FC1D]">
+              <div className="text-xs sm:text-sm text-[#E2FC1D]">
                 <p className="font-medium mb-1">Información importante:</p>
                 <ul className="space-y-1 text-xs">
                   <li>• <strong>Titular 1:</strong> Tú (asignado automáticamente)</li>
@@ -1486,11 +1486,11 @@ export default function LigaInscripcionPage() {
         </div>
 
         {/* Búsqueda de usuarios mejorada */}
-        <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-          <div className="space-y-6">
+        <div className="bg-white/5 border border-white/10 rounded-lg p-4 sm:p-6">
+          <div className="space-y-4 sm:space-y-6">
             <div className="text-center">
-              <h4 className="text-lg font-medium text-white mb-2">Buscar Jugador</h4>
-              <p className="text-sm text-gray-400">
+              <h4 className="text-base sm:text-lg font-medium text-white mb-2">Buscar Jugador</h4>
+              <p className="text-xs sm:text-sm text-gray-400">
                 Busca por email o DNI para encontrar jugadores disponibles
               </p>
             </div>
@@ -1498,20 +1498,20 @@ export default function LigaInscripcionPage() {
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative">
                 <Select value={tipoBusqueda} onValueChange={setTipoBusqueda}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white w-full sm:w-36 h-12 rounded-lg transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20">
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white w-full sm:w-36 h-10 sm:h-12 rounded-lg transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20">
                     <SelectValue placeholder="Tipo de búsqueda" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900/95 backdrop-blur-sm border border-white/20 rounded-lg shadow-2xl max-h-60 overflow-hidden">
                     <SelectItem value="email" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B] transition-all duration-200">
                       <div className="flex items-center gap-3 py-1">
                         <div className="w-2 h-2 bg-[#E2FF1B] rounded-full flex-shrink-0"></div>
-                        <span className="font-medium">Email</span>
+                        <span className="font-medium text-sm sm:text-base">Email</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="dni" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] data-[highlighted]:bg-[#E2FF1B]/20 data-[highlighted]:text-[#E2FF1B] transition-all duration-200">
                       <div className="flex items-center gap-3 py-1">
                         <div className="w-2 h-2 bg-[#E2FF1B] rounded-full flex-shrink-0"></div>
-                        <span className="font-medium">DNI</span>
+                        <span className="font-medium text-sm sm:text-base">DNI</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -1523,7 +1523,7 @@ export default function LigaInscripcionPage() {
                   type={tipoBusqueda === 'email' ? 'email' : 'text'}
                   value={busqueda}
                   onChange={(e) => handleInputChange(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white h-12 text-base rounded-lg transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20"
+                  className="bg-white/10 border-white/20 text-white h-10 sm:h-12 text-sm sm:text-base rounded-lg transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20"
                   placeholder={tipoBusqueda === 'email' ? 'usuario@email.com' : '42214710'}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -1655,9 +1655,9 @@ export default function LigaInscripcionPage() {
                 type="button"
                 onClick={handleBuscarUsuarios}
                 disabled={!busqueda || busqueda.trim() === ''}
-                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-12 px-6 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10 sm:h-12 px-4 sm:px-6 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto text-sm sm:text-base"
               >
-                <Search className="w-5 h-5 mr-2" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Buscar
               </Button>
             </div>
@@ -1898,14 +1898,14 @@ export default function LigaInscripcionPage() {
 
         {/* Usuarios asignados */}
         <div className="space-y-4">
-          <h4 className="text-lg font-medium text-white">Usuarios Asignados</h4>
+          <h4 className="text-base sm:text-lg font-medium text-white">Usuarios Asignados</h4>
           
           {Object.entries(jugadoresSeleccionados).map(([posicion, jugador]) => {
             const esOpcional = posicion.startsWith('suplente')
             const esRequerido = posicion === 'titular_2'
             
             return (
-              <div key={posicion} className="bg-white/5 border border-white/10 rounded-lg p-4">
+              <div key={posicion} className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
                                          <div className="flex items-center gap-2">
@@ -1918,13 +1918,13 @@ export default function LigaInscripcionPage() {
                      <div className="mt-1">
                        {jugador ? (
                          <>
-                           <span className="text-white font-medium">
+                           <span className="text-white font-medium text-sm sm:text-base">
                              {jugador.nombre} {jugador.apellido || ''}
                            </span>
-                           <p className="text-sm text-gray-400">{jugador.email}</p>
+                           <p className="text-xs sm:text-sm text-gray-400">{jugador.email}</p>
                          </>
                        ) : (
-                         <span className="text-gray-400 font-medium pt-2">
+                         <span className="text-gray-400 font-medium pt-2 text-sm sm:text-base">
                            Sin asignar
                          </span>
                        )}
@@ -1997,22 +1997,22 @@ export default function LigaInscripcionPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
-      <div className="pt-12 pb-8 px-4">
+      <div className="pt-8 sm:pt-12 pb-6 sm:pb-8 px-2 sm:px-4">
         <div className="container mx-auto">
-          <Link href="/inscripciones/ligas" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-6">
-            <ArrowLeft className="w-4 h-4" />
+          <Link href="/inscripciones/ligas" className="inline-flex items-center gap-2 text-[#E2FF1B] hover:text-[#E2FF1B]/80 transition-colors mb-4 sm:mb-6">
+            <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
             Volver a Ligas
           </Link>
           
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
               <span className="text-[#E2FF1B]">{liga.nombre}</span>
             </h1>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-2 sm:px-4 pb-12 sm:pb-16">
         <div className="grid lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
           {/* Descripción de la Liga */}
           <div className="lg:col-span-3">
@@ -2022,37 +2022,37 @@ export default function LigaInscripcionPage() {
           <div className="lg:col-span-1">
             <Card className="bg-white/5 border-white/10 sticky top-8">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
-                  <Trophy className="w-6 h-6 text-[#E2FF1B]" />
+                <CardTitle className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#E2FF1B]" />
                   Información de la Liga
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="flex items-center gap-3 text-gray-300">
-                    <Calendar className="w-5 h-5 text-[#E2FF1B]" />
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
-                      <p className="font-semibold">Inicio</p>
-                      <p className="text-sm">{formatDate(liga.fecha_inicio)}</p>
+                      <p className="font-semibold text-sm sm:text-base">Inicio</p>
+                      <p className="text-xs sm:text-sm">{formatDate(liga.fecha_inicio)}</p>
                     </div>
                   </div>
                   
                   {liga.formato && (
                     <div className="flex items-center gap-3 text-gray-300">
-                      <Users className="w-5 h-5 text-[#E2FF1B]" />
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                       <div>
-                        <p className="font-semibold">Formato</p>
-                        <p className="text-sm">{liga.formato}</p>
+                        <p className="font-semibold text-sm sm:text-base">Formato</p>
+                        <p className="text-xs sm:text-sm">{liga.formato}</p>
                       </div>
                     </div>
                   )}
                   
                   {liga.horarios && (
                     <div className="flex items-start gap-3 text-gray-300">
-                      <Clock className="w-5 h-5 text-[#E2FF1B] mt-1" />
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
                       <div>
-                        <p className="font-semibold">Horarios</p>
-                        <div className="text-sm">
+                        <p className="font-semibold text-sm sm:text-base">Horarios</p>
+                        <div className="text-xs sm:text-sm">
                           <HtmlContent content={liga.horarios} />
                         </div>
                       </div>
@@ -2061,12 +2061,12 @@ export default function LigaInscripcionPage() {
                   
                   {liga.costo_inscripcion && (
                     <div className="flex items-center gap-3 text-gray-300">
-                      <DollarSign className="w-5 h-5 text-[#E2FF1B]" />
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                       <div>
-                        <p className="font-semibold">Costos</p>
-                        <p className="text-sm">Inscripción ${liga.costo_inscripcion.toLocaleString()} por equipo</p>
+                        <p className="font-semibold text-sm sm:text-base">Costos</p>
+                        <p className="text-xs sm:text-sm">Inscripción ${liga.costo_inscripcion.toLocaleString()} por equipo</p>
                         {liga.costo_partido && (
-                          <p className="text-sm">Partido ${liga.costo_partido.toLocaleString()} por jugador</p>
+                          <p className="text-xs sm:text-sm">Partido ${liga.costo_partido.toLocaleString()} por jugador</p>
                         )}
                       </div>
                     </div>
@@ -2074,13 +2074,13 @@ export default function LigaInscripcionPage() {
                 </div>
 
                 {/* Categorías Disponibles */}
-                <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-[#E2FF1B] mb-3">Categorías Disponibles</h4>
+                <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-3 sm:p-4">
+                  <h4 className="font-semibold text-[#E2FF1B] mb-3 text-sm sm:text-base">Categorías Disponibles</h4>
                   <div className="space-y-2">
                     {categorias
                       .sort((a, b) => a.categoria.localeCompare(b.categoria))
                       .map((categoria) => (
-                      <div key={categoria.id} className="flex justify-between items-center text-sm">
+                      <div key={categoria.id} className="flex justify-between items-center text-xs sm:text-sm">
                         <span className="text-white font-medium">{categoria.categoria}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-white">
@@ -2099,21 +2099,21 @@ export default function LigaInscripcionPage() {
                 </div>
 
                 {liga.cronograma && (
-                  <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#E2FF1B] mb-2">Cronograma</h4>
-                    <div className="text-sm text-gray-300">
+                  <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-3 sm:p-4">
+                    <h4 className="font-semibold text-[#E2FF1B] mb-2 text-sm sm:text-base">Cronograma</h4>
+                    <div className="text-xs sm:text-sm text-gray-300">
                       <HtmlContent content={liga.cronograma} />
                     </div>
                   </div>
                 )}
 
                 {liga.importante && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                    <h4 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 sm:p-4">
+                    <h4 className="font-semibold text-red-400 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                      <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                       Importante
                     </h4>
-                    <div className="text-sm text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-300">
                       <HtmlContent content={liga.importante} />
                     </div>
                   </div>
@@ -2126,12 +2126,12 @@ export default function LigaInscripcionPage() {
           <div className="lg:col-span-2">
             {yaInscriptoEnLiga.inscripto ? (
               <Card className="bg-white/5 border-white/10">
-                <CardContent className="p-8 text-center">
-                  <Trophy className="w-16 h-16 text-[#E2FF1B] mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                <CardContent className="p-6 sm:p-8 text-center">
+                  <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-[#E2FF1B] mx-auto mb-4" />
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                     Inscripción ya realizada
                   </h3>
-                  <p className="text-gray-400 mb-6">
+                  <p className="text-gray-400 mb-6 text-sm sm:text-base">
                     {yaInscriptoEnLiga.mensaje}
                   </p>
                   <Link href="/inscripciones/ligas">
@@ -2143,12 +2143,12 @@ export default function LigaInscripcionPage() {
               </Card>
             ) : !ligaDisponible ? (
               <Card className="bg-white/5 border-white/10">
-                <CardContent className="p-8 text-center">
-                  <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                <CardContent className="p-6 sm:p-8 text-center">
+                  <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                     {liga.estado === 'cerrada' ? 'Inscripciones Cerradas' : 'Todas las Categorías Completas'}
                   </h3>
-                  <p className="text-gray-400 mb-6">
+                  <p className="text-gray-400 mb-6 text-sm sm:text-base">
                     {liga.estado === 'cerrada' 
                       ? 'Las inscripciones para esta liga han sido cerradas.'
                       : 'Todas las categorías de esta liga han alcanzado su cupo máximo.'
@@ -2164,20 +2164,20 @@ export default function LigaInscripcionPage() {
                     ) : (
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-white">Formulario de Inscripción</CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-white">Formulario de Inscripción</CardTitle>
+              <CardDescription className="text-gray-400 text-sm sm:text-base">
                 Busca usuarios existentes por email o crea nuevos usuarios para tu equipo
               </CardDescription>
             </CardHeader>
 
                                                   <CardContent>
                   {!dniConfigurado && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div className="mb-6 p-3 sm:p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                       <div className="flex items-center gap-2 text-red-400">
-                        <AlertCircle className="w-5 h-5" />
+                        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                         <div>
-                          <h4 className="font-semibold">DNI requerido</h4>
-                          <p className="text-sm text-red-300">
+                          <h4 className="font-semibold text-sm sm:text-base">DNI requerido</h4>
+                          <p className="text-xs sm:text-sm text-red-300">
                             Debes configurar tu DNI en tu perfil antes de poder inscribirte en ligas.
                           </p>
                           <Button
@@ -2192,12 +2192,12 @@ export default function LigaInscripcionPage() {
                     </div>
                   )}
                   {bloquearPorInscripcion.bloquear && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div className="mb-6 p-3 sm:p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                       <div className="flex items-center gap-2 text-red-400">
-                        <AlertCircle className="w-5 h-5" />
+                        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                         <div>
-                          <h4 className="font-semibold">No puedes inscribirte</h4>
-                          <p className="text-sm text-red-300">{bloquearPorInscripcion.mensaje}</p>
+                          <h4 className="font-semibold text-sm sm:text-base">No puedes inscribirte</h4>
+                          <p className="text-xs sm:text-sm text-red-300">{bloquearPorInscripcion.mensaje}</p>
                         </div>
                       </div>
                     </div>
@@ -2212,7 +2212,7 @@ export default function LigaInscripcionPage() {
                     {/* Categoría y Contacto */}
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="categoria" className="text-white">Categoría *</Label>
+                        <Label htmlFor="categoria" className="text-white text-sm sm:text-base">Categoría *</Label>
                         <Select value={formData.liga_categoria_id} onValueChange={(value) => handleInputChange('liga_categoria_id', value)} required>
                           <SelectTrigger className="bg-white/10 border-white/20 text-white">
                             <SelectValue placeholder="Selecciona una categoría" />
@@ -2235,7 +2235,7 @@ export default function LigaInscripcionPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contacto_celular" className="text-white">Contacto/Celular *</Label>
+                        <Label htmlFor="contacto_celular" className="text-white text-sm sm:text-base">Contacto/Celular *</Label>
                         <Input
                           id="contacto_celular"
                           type="tel"
@@ -2250,12 +2250,12 @@ export default function LigaInscripcionPage() {
 
                     {/* Comprobante de Pago */}
                     <div className="space-y-2">
-                      <Label htmlFor="comprobante" className="text-white">Comprobante de Inscripción (Transferencia) *</Label>
-                      <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-4">
-                        <p className="text-sm text-[#E2FF1B] mb-2">
+                      <Label htmlFor="comprobante" className="text-white text-sm sm:text-base">Comprobante de Inscripción (Transferencia) *</Label>
+                      <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-[#E2FF1B] mb-2">
                           <strong>Alias:</strong> stefanolorenzo
                         </p>
-                        <p className="text-sm text-[#E2FF1B] mb-2">
+                        <p className="text-xs sm:text-sm text-[#E2FF1B] mb-2">
                           <strong>Inscripción:</strong> $20.000 por equipo
                         </p>
                         <p className="text-xs text-gray-400 mb-4">
@@ -2264,7 +2264,7 @@ export default function LigaInscripcionPage() {
                         
                         {/* Drag & Drop Zone */}
                         <div
-                          className={`relative w-full p-6 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
+                          className={`relative w-full p-4 sm:p-6 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
                             isDragOver 
                               ? 'border-[#E2FF1B] bg-[#E2FF1B]/10' 
                               : 'border-gray-600 bg-gray-800/50 hover:border-gray-500 hover:bg-gray-800/70'
@@ -2283,17 +2283,17 @@ export default function LigaInscripcionPage() {
                             required
                           />
                           
-                          <div className="flex flex-col items-center justify-center space-y-3">
-                            <div className={`p-3 rounded-full ${
+                          <div className="flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                            <div className={`p-2 sm:p-3 rounded-full ${
                               isDragOver ? 'bg-[#E2FF1B]/20' : 'bg-gray-700/50'
                             }`}>
-                              <Upload className={`w-6 h-6 ${
+                              <Upload className={`w-5 h-5 sm:w-6 sm:h-6 ${
                                 isDragOver ? 'text-[#E2FF1B]' : 'text-gray-400'
                               }`} />
                             </div>
                             
                             <div className="text-center">
-                              <p className={`text-sm font-medium ${
+                              <p className={`text-xs sm:text-sm font-medium ${
                                 isDragOver ? 'text-[#E2FF1B]' : 'text-gray-300'
                               }`}>
                                 {isDragOver ? 'Suelta el archivo aquí' : 'Arrastra un archivo o haz clic'}
@@ -2308,9 +2308,9 @@ export default function LigaInscripcionPage() {
                         {comprobanteFile && (
                           <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                             <div className="flex items-center gap-2">
-                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
                               <div>
-                                <p className="text-sm text-green-400 font-medium">
+                                <p className="text-xs sm:text-sm text-green-400 font-medium">
                                   Archivo seleccionado
                                 </p>
                                 <p className="text-xs text-gray-300">
@@ -2325,7 +2325,7 @@ export default function LigaInscripcionPage() {
 
                     {/* Aclaraciones */}
                     <div className="space-y-2">
-                      <Label htmlFor="aclaraciones" className="text-white">Aclaraciones</Label>
+                      <Label htmlFor="aclaraciones" className="text-white text-sm sm:text-base">Aclaraciones</Label>
                       <Textarea
                         id="aclaraciones"
                         value={formData.aclaraciones}
@@ -2339,15 +2339,15 @@ export default function LigaInscripcionPage() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors py-3 text-lg font-semibold"
+                      className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 transition-colors py-3 text-base sm:text-lg font-semibold"
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                           Enviando inscripción...
                         </div>
                       ) : (
-                        'Enviar Inscripción'
+                        'Enviar inscripción'
                       )}
                     </Button>
                   </form>

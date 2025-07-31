@@ -86,7 +86,7 @@ export default function LoginPage() {
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-white">
-              Iniciar Sesión
+              Iniciar sesión
             </CardTitle>
             <CardDescription className="text-gray-400">
               Ingresa tus credenciales para acceder a tu cuenta
@@ -147,7 +147,7 @@ export default function LoginPage() {
                 disabled={loading || !email || !password}
                 className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
               >
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
               </Button>
             </form>
 

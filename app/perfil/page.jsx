@@ -724,50 +724,50 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+          <div className="flex items-center gap-4 sm:gap-6">
             {/* Avatar Section */}
             <div className="relative">
-              <Avatar className="h-20 w-20">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
                 <AvatarImage
                   src={usuario.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture}
                   alt={getUserDisplayName()}
                 />
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="text-base sm:text-lg">
                   {getInitials(getUserDisplayName())}
                 </AvatarFallback>
               </Avatar>
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 border-gray-600 bg-gray-800 hover:bg-gray-700"
+                className="absolute -bottom-2 -right-2 h-6 w-6 sm:h-8 sm:w-8 rounded-full p-0 border-gray-600 bg-gray-800 hover:bg-gray-700"
                 onClick={() => setIsAvatarModalOpen(true)}
               >
-                <Camera className="h-4 w-4" />
+                <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
             
             <div>
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">
                 Mi Perfil
-                <span className="block text-xl text-[#E2FF1B] mt-1">
+                <span className="block text-lg sm:text-xl text-[#E2FF1B] mt-1">
                   {usuario.nombre} {usuario.apellido}
                 </span>
               </h1>
-              <p className="text-gray-400 mt-1">Gestiona tu información personal</p>
+              <p className="text-sm sm:text-base text-gray-400 mt-1">Gestiona tu información personal</p>
             </div>
           </div>
 
           {/* Alerta de DNI requerido */}
           {!usuario.dni && (
-            <div className="mt-4 sm:mt-0 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="mt-4 sm:mt-0 p-3 sm:p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
               <div className="flex items-center gap-2 text-red-400">
-                <AlertCircle className="w-5 h-5" />
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 <div>
-                  <h4 className="font-semibold">DNI requerido</h4>
-                  <p className="text-sm text-red-300">
+                  <h4 className="font-semibold text-sm sm:text-base">DNI requerido</h4>
+                  <p className="text-xs sm:text-sm text-red-300">
                     Debes configurar tu DNI para poder inscribirte en ligas.
                   </p>
                 </div>
@@ -780,9 +780,9 @@ export default function ProfilePage() {
               <DialogTrigger asChild>
                 <Button 
                   onClick={handleEditProfile}
-                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                   Editar Perfil
                 </Button>
               </DialogTrigger>
@@ -836,25 +836,6 @@ export default function ProfilePage() {
                       placeholder="01112345678"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Nivel
-                    </label>
-                    <Select 
-                      value={editForm.nivel} 
-                      onValueChange={(value) => setEditForm(prev => ({ ...prev, nivel: value }))}
-                    >
-                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                        <SelectValue placeholder="Selecciona tu nivel" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-700">
-                        <SelectItem value="Principiante">Principiante</SelectItem>
-                        <SelectItem value="Intermedio">Intermedio</SelectItem>
-                        <SelectItem value="Avanzado">Avanzado</SelectItem>
-                        <SelectItem value="Profesional">Profesional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -900,47 +881,47 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Información del Perfil */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <User className="w-5 h-5" />
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   Información Personal
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
-                    <User className="w-5 h-5 text-[#E2FF1B]" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
-                      <p className="text-sm text-gray-400">Nombre Completo</p>
-                      <p className="text-white">
+                      <p className="text-xs sm:text-sm text-gray-400">Nombre Completo</p>
+                      <p className="text-sm sm:text-base text-white">
                         {usuario.nombre} {usuario.apellido}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-[#E2FF1B]" />
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
-                      <p className="text-sm text-gray-400">Email</p>
-                      <p className="text-white">{user.email}</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Email</p>
+                      <p className="text-sm sm:text-base text-white">{user.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-[#E2FF1B]" />
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
-                      <p className="text-sm text-gray-400">Teléfono</p>
-                      <p className="text-white">{usuario.telefono || 'No especificado'}</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Teléfono</p>
+                      <p className="text-sm sm:text-base text-white">{usuario.telefono || 'No especificado'}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-[#E2FF1B]" />
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
-                      <p className="text-sm text-gray-400">Fecha de Nacimiento</p>
-                      <p className="text-white">
+                      <p className="text-xs sm:text-sm text-gray-400">Fecha de Nacimiento</p>
+                      <p className="text-sm sm:text-base text-white">
                         {usuario.fecha_nacimiento 
                           ? format(new Date(usuario.fecha_nacimiento), "d 'de' MMMM 'de' yyyy", { locale: es })
                           : 'No especificada'
@@ -949,10 +930,10 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <User className="w-5 h-5 text-[#E2FF1B]" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
-                      <p className="text-sm text-gray-400">DNI</p>
-                      <p className="text-white">
+                      <p className="text-xs sm:text-sm text-gray-400">DNI</p>
+                      <p className="text-sm sm:text-base text-white">
                         {usuario.dni?.toString() || 'No especificado'}
                       </p>
                     </div>
@@ -961,38 +942,11 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Información Deportiva
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3">
-                  <Star className="w-5 h-5 text-[#E2FF1B]" />
-                  <div>
-                    <p className="text-sm text-gray-400">Nivel</p>
-                    <p className="text-white">{usuario.nivel || 'No especificado'}</p>
-                  </div>
-                </div>
-                {usuario.ranking_puntos !== undefined && (
-                  <div className="flex items-center gap-3 mt-3">
-                    <TrendingUp className="w-5 h-5 text-[#E2FF1B]" />
-                    <div>
-                      <p className="text-sm text-gray-400">Puntos de Ranking</p>
-                      <p className="text-white">{usuario.ranking_puntos}</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Inscripciones Activas */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                   Inscripciones
                 </CardTitle>
               </CardHeader>
@@ -1000,7 +954,7 @@ export default function ProfilePage() {
                 {loadingInscripciones ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E2FF1B] mx-auto"></div>
-                    <p className="text-gray-400 mt-2">Cargando inscripciones...</p>
+                    <p className="text-gray-400 mt-2 text-sm">Cargando inscripciones...</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1010,13 +964,13 @@ export default function ProfilePage() {
                           <div key={inscripcion.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
                             <div className="flex items-start justify-between mb-2">
                               <div>
-                                <h5 className="text-white font-medium">
+                                <h5 className="text-white font-medium text-sm sm:text-base">
                                   {inscripcion.liga_categorias?.ligas?.nombre || 'Liga'}
                                 </h5>
-                                <p className="text-sm text-gray-400">
+                                <p className="text-xs sm:text-sm text-gray-400">
                                   Categoría: {inscripcion.liga_categorias?.categoria || 'N/A'}
                                 </p>
-                                <p className="text-sm text-gray-400">
+                                <p className="text-xs sm:text-sm text-gray-400">
                                   Rol: {getRolUsuario(inscripcion)}
                                 </p>
                               </div>
@@ -1059,8 +1013,8 @@ export default function ProfilePage() {
           <div className="space-y-6">
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                   Acciones Rápidas
                 </CardTitle>
               </CardHeader>
@@ -1072,14 +1026,6 @@ export default function ProfilePage() {
                 >
                   <Trophy className="w-4 h-4 mr-2" />
                   Ver Ligas
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/inscripciones/entrenamientos')}
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Ver Entrenamientos
                 </Button>
                 <Button 
                   variant="outline" 

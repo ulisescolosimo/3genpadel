@@ -215,12 +215,10 @@ export default function AdminLigasPage() {
   }
 
   const saveLiga = async () => {
-    if (!editingLiga) return
-
     try {
       setSaving(true)
       
-      const updateData = {
+      const ligaData = {
         nombre: editForm.nombre,
         fecha_inicio: editForm.fecha_inicio,
         estado: editForm.estado,
@@ -233,25 +231,36 @@ export default function AdminLigasPage() {
         importante: editForm.importante
       }
 
-      const { error } = await supabase
-        .from('ligas')
-        .update(updateData)
-        .eq('id', editingLiga.id)
+      let error
+      if (editingLiga) {
+        // Actualizar liga existente
+        const { error: updateError } = await supabase
+          .from('ligas')
+          .update(ligaData)
+          .eq('id', editingLiga.id)
+        error = updateError
+      } else {
+        // Crear nueva liga
+        const { error: insertError } = await supabase
+          .from('ligas')
+          .insert(ligaData)
+        error = insertError
+      }
 
       if (error) throw error
 
       toast({
         title: "Éxito",
-        description: "Liga actualizada correctamente",
+        description: editingLiga ? "Liga actualizada correctamente" : "Liga creada correctamente",
       })
 
       closeEditModal()
       fetchData() // Recargar datos
     } catch (error) {
-      console.error('Error updating liga:', error)
+      console.error('Error saving liga:', error)
       toast({
         title: "Error",
-        description: "No se pudo actualizar la liga",
+        description: editingLiga ? "No se pudo actualizar la liga" : "No se pudo crear la liga",
         variant: "destructive"
       })
     } finally {
@@ -312,89 +321,107 @@ export default function AdminLigasPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2 sm:px-4">
         {/* Header */}
-        <div className="pt-8 pb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                  <div className="pt-4 sm:pt-8 pb-4 sm:pb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Gestión de Ligas</h1>
-              <p className="text-gray-400">Administra ligas, categorías y partidos</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Gestión de Ligas</h1>
+              <p className="text-sm sm:text-base text-gray-400">Administra ligas, categorías y partidos</p>
             </div>
             <div className="flex gap-2">
               <Button 
                 onClick={fetchData} 
                 disabled={refreshing} 
-                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                 Actualizar
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
+                onClick={() => {
+                  setEditForm({
+                    nombre: '',
+                    fecha_inicio: '',
+                    estado: 'abierta',
+                    descripcion: '',
+                    formato: '',
+                    horarios: '',
+                    costo_inscripcion: '',
+                    costo_partido: '',
+                    cronograma: '',
+                    importante: ''
+                  })
+                  setEditingLiga(null)
+                  setIsEditModalOpen(true)
+                }}
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                 Nueva Liga
               </Button>
             </div>
           </div>
 
           {/* Estadísticas generales */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <Card className="bg-white/5 border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300 group">
-              <CardContent className="p-2">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <Trophy className="h-6 w-6 text-[#E2FF1B]" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                    <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-[#E2FF1B]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">{ligas.length}</p>
-                    <p className="text-sm text-gray-400">Ligas Activas</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white">{ligas.length}</p>
+                    <p className="text-xs sm:text-sm text-gray-400">Ligas Activas</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/5 border-white/10 hover:border-purple-500/30 transition-all duration-300 group">
-              <CardContent className="p-2">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <Gamepad2 className="h-6 w-6 text-purple-400" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                    <Gamepad2 className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">{partidos.length}</p>
-                    <p className="text-sm text-gray-400">Partidos</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white">{partidos.length}</p>
+                    <p className="text-xs sm:text-sm text-gray-400">Partidos</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-white/5 border-white/10 hover:border-orange-500/30 transition-all duration-300 group">
-              <CardContent className="p-2">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <BarChart3 className="h-6 w-6 text-orange-400" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                    <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-orange-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-xl sm:text-2xl font-bold text-white">
                       {ligas.reduce((total, liga) => {
                         return total + liga.liga_categorias?.reduce((catTotal, cat) => {
                           return catTotal + (cat.ligainscripciones?.filter(ins => ins.estado === 'aprobada')?.length || 0)
                         }, 0) || 0
                       }, 0)}
                     </p>
-                    <p className="text-sm text-gray-400">Inscripciones Aprobadas</p>
+                    <p className="text-xs sm:text-sm text-gray-400">Inscripciones Aprobadas</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-white/5 border-white/10 hover:border-purple-500/30 transition-all duration-300 group">
-              <CardContent className="p-2">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <Gamepad2 className="h-6 w-6 text-purple-400" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                    <Gamepad2 className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-xl sm:text-2xl font-bold text-white">
                       {partidos.filter(p => p.estado === 'jugado').length}
                     </p>
-                    <p className="text-sm text-gray-400">Partidos Jugados</p>
+                    <p className="text-xs sm:text-sm text-gray-400">Partidos Jugados</p>
                   </div>
                 </div>
               </CardContent>
@@ -402,17 +429,17 @@ export default function AdminLigasPage() {
           </div>
 
           {/* Enlaces rápidos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <Link href="/admin/ligas/categorias">
               <Card className="bg-white/5 border-white/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer group">
-                <CardContent className="p-2">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                      <Trophy className="h-6 w-6 text-blue-400" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                      <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">Categorías</p>
-                      <p className="text-sm text-gray-400">Gestionar categorías</p>
+                      <p className="font-semibold text-white text-sm sm:text-base">Categorías</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Gestionar categorías</p>
                     </div>
                   </div>
                 </CardContent>
@@ -421,14 +448,14 @@ export default function AdminLigasPage() {
             
             <Link href="/admin/ligas/partidos">
               <Card className="bg-white/5 border-white/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer group">
-                <CardContent className="p-2">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                      <Gamepad2 className="h-6 w-6 text-green-400" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                      <Gamepad2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">Partidos</p>
-                      <p className="text-sm text-gray-400">Crear y gestionar partidos</p>
+                      <p className="font-semibold text-white text-sm sm:text-base">Partidos</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Crear y gestionar partidos</p>
                     </div>
                   </div>
                 </CardContent>
@@ -437,14 +464,14 @@ export default function AdminLigasPage() {
             
             <Link href="/admin/ligas/partidos">
               <Card className="bg-white/5 border-white/10 hover:border-purple-500/30 transition-all duration-300 cursor-pointer group">
-                <CardContent className="p-2">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                      <BarChart3 className="h-6 w-6 text-purple-400" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                      <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">Partidos</p>
-                      <p className="text-sm text-gray-400">Ver partidos de torneos</p>
+                      <p className="font-semibold text-white text-sm sm:text-base">Partidos</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Ver partidos de torneos</p>
                     </div>
                   </div>
                 </CardContent>
@@ -453,14 +480,14 @@ export default function AdminLigasPage() {
             
             <Link href="/admin/inscripciones-ligas">
               <Card className="bg-white/5 border-white/10 hover:border-orange-500/30 transition-all duration-300 cursor-pointer group">
-                <CardContent className="p-2">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                      <Users className="h-6 w-6 text-orange-400" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                      <Users className="h-5 w-5 sm:h-6 sm:w-6 text-orange-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">Inscripciones</p>
-                      <p className="text-sm text-gray-400">Revisar inscripciones</p>
+                      <p className="font-semibold text-white text-sm sm:text-base">Inscripciones</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Revisar inscripciones</p>
                     </div>
                   </div>
                 </CardContent>
@@ -471,26 +498,26 @@ export default function AdminLigasPage() {
           {/* Lista de ligas */}
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Trophy className="h-5 w-5 text-[#E2FF1B]" />
+              <CardTitle className="flex items-center gap-2 text-white text-lg sm:text-xl">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-[#E2FF1B]" />
                 Ligas Activas
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className="text-gray-400 text-sm sm:text-base">
                 Gestiona las ligas y sus configuraciones
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
                 {ligas.map(liga => (
-                  <div key={liga.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:border-[#E2FF1B]/30 transition-all duration-200">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg text-white">{liga.nombre}</h3>
+                  <div key={liga.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white/5 border border-white/10 rounded-lg hover:border-[#E2FF1B]/30 transition-all duration-200">
+                    <div className="flex-1 mb-3 sm:mb-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <h3 className="font-semibold text-base sm:text-lg text-white">{liga.nombre}</h3>
                         {getEstadoBadge(liga.estado)}
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-400">
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                           {formatDate(liga.fecha_inicio)}
                         </span>
                         <span>
@@ -520,35 +547,35 @@ export default function AdminLigasPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30"
+                        className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-xs sm:text-sm"
                         onClick={() => openEditModal(liga)}
                       >
-                        <Edit className="h-4 w-4 mr-2" />
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Editar
                       </Button>
                       <Link href={`/admin/ligas/categorias`}>
-                        <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30">
-                          <Eye className="h-4 w-4 mr-2" />
+                        <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-xs sm:text-sm">
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                           Ver Categorías
                         </Button>
                       </Link>
-                      <Link href={`/admin/ligas/brackets`}>
-                        <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30">
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          Brackets
+                      <Link href={`/admin/ligas/partidos`}>
+                        <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-xs sm:text-sm">
+                          <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Partidos
                         </Button>
                       </Link>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30"
+                        className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30 text-xs sm:text-sm"
                         onClick={() => confirmDeleteLiga(liga)}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Eliminar
                       </Button>
                     </div>
@@ -557,11 +584,11 @@ export default function AdminLigasPage() {
               </div>
               
               {ligas.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Trophy className="h-8 w-8 text-gray-400" />
+                <div className="text-center py-6 sm:py-8">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-400">No hay ligas activas</p>
+                  <p className="text-gray-400 text-sm sm:text-base">No hay ligas activas</p>
                 </div>
               )}
             </CardContent>
@@ -569,27 +596,27 @@ export default function AdminLigasPage() {
 
           {/* Partidos recientes */}
           {partidos.length > 0 && (
-            <Card className="mt-8 bg-white/5 border-white/10">
+            <Card className="mt-6 sm:mt-8 bg-white/5 border-white/10">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Gamepad2 className="h-5 w-5 text-[#E2FF1B]" />
+                <CardTitle className="flex items-center gap-2 text-white text-lg sm:text-xl">
+                  <Gamepad2 className="h-4 w-4 sm:h-5 sm:w-5 text-[#E2FF1B]" />
                   Partidos Recientes
                 </CardTitle>
-                <CardDescription className="text-gray-400">
+                <CardDescription className="text-gray-400 text-sm sm:text-base">
                   Últimos partidos creados o actualizados
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3">
                   {partidos.slice(0, 5).map(partido => (
-                    <div key={partido.id} className="p-4 bg-white/5 border border-white/10 rounded-lg hover:border-[#E2FF1B]/30 transition-all duration-200">
+                    <div key={partido.id} className="p-3 sm:p-4 bg-white/5 border border-white/10 rounded-lg hover:border-[#E2FF1B]/30 transition-all duration-200">
                       {/* Header del partido */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <Badge variant={partido.estado === 'jugado' ? 'default' : 'secondary'} className="text-xs">
                             {partido.estado}
                           </Badge>
-                          <span className="text-[#E2FF1B] font-medium text-sm">
+                          <span className="text-[#E2FF1B] font-medium text-xs sm:text-sm">
                             {partido.ronda}
                           </span>
                         </div>
@@ -605,17 +632,17 @@ export default function AdminLigasPage() {
 
                       {/* Información de liga y categoría */}
                       <div className="mb-3">
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                           <span className="text-white font-medium">
                             {partido.liga_categorias?.ligas?.nombre || 'Liga N/A'}
                           </span>
-                          <span className="text-gray-400">•</span>
+                          <span className="text-gray-400 hidden sm:inline">•</span>
                           <span className="text-[#E2FF1B] font-medium">
                             {partido.liga_categorias?.categoria || 'Categoría N/A'}
                           </span>
                           {partido.fecha && (
                             <>
-                              <span className="text-gray-400">•</span>
+                              <span className="text-gray-400 hidden sm:inline">•</span>
                               <span className="text-gray-400">
                                 {new Date(partido.fecha).toLocaleDateString('es-AR')}
                               </span>
@@ -625,10 +652,10 @@ export default function AdminLigasPage() {
                       </div>
 
                       {/* Equipos */}
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="bg-white/5 rounded p-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3">
+                        <div className="bg-white/5 rounded p-2 sm:p-3">
                           <p className="text-xs text-gray-400 mb-1">Equipo A</p>
-                          <div className="text-sm text-white">
+                          <div className="text-xs sm:text-sm text-white">
                             <p>
                               {partido.equipo_a?.titular_1?.nombre} {partido.equipo_a?.titular_1?.apellido} & 
                               {partido.equipo_a?.titular_2?.nombre} {partido.equipo_a?.titular_2?.apellido}
@@ -638,9 +665,9 @@ export default function AdminLigasPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="bg-white/5 rounded p-2">
+                        <div className="bg-white/5 rounded p-2 sm:p-3">
                           <p className="text-xs text-gray-400 mb-1">Equipo B</p>
-                          <div className="text-sm text-white">
+                          <div className="text-xs sm:text-sm text-white">
                             <p>
                               {partido.equipo_b?.titular_1?.nombre} {partido.equipo_b?.titular_1?.apellido} & 
                               {partido.equipo_b?.titular_2?.nombre} {partido.equipo_b?.titular_2?.apellido}
@@ -653,8 +680,8 @@ export default function AdminLigasPage() {
                       </div>
 
                       {/* Información adicional */}
-                      <div className="flex items-center justify-between text-xs text-gray-400">
-                        <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-400 gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                           {partido.puntos_por_jugador && (
                             <span>Puntos: {partido.puntos_por_jugador}</span>
                           )}
@@ -671,7 +698,7 @@ export default function AdminLigasPage() {
                 </div>
                 <div className="mt-4 text-center">
                   <Link href="/admin/ligas/partidos">
-                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30">
+                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 hover:border-[#E2FF1B]/30 text-sm sm:text-base">
                       Ver Todos los Partidos
                     </Button>
                   </Link>
@@ -686,9 +713,11 @@ export default function AdminLigasPage() {
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="bg-gray-900 border-white/10 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Editar Liga</DialogTitle>
+            <DialogTitle className="text-white">
+              {editingLiga ? 'Editar Liga' : 'Crear Nueva Liga'}
+            </DialogTitle>
             <DialogDescription className="text-gray-400">
-              Modifica los datos de la liga seleccionada
+              {editingLiga ? 'Modifica los datos de la liga seleccionada' : 'Completa los datos para crear una nueva liga'}
             </DialogDescription>
           </DialogHeader>
           
@@ -830,13 +859,13 @@ export default function AdminLigasPage() {
             <Button variant="outline" onClick={closeEditModal} className="border-white/20 text-white hover:bg-white/10">
               Cancelar
             </Button>
-            <Button 
-              onClick={saveLiga} 
-              disabled={saving}
-              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
-            >
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
-            </Button>
+                            <Button 
+                  onClick={saveLiga} 
+                  disabled={saving}
+                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                >
+                  {saving ? 'Guardando...' : (editingLiga ? 'Guardar Cambios' : 'Crear Liga')}
+                </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
