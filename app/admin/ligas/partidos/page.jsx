@@ -64,6 +64,7 @@ const PartidoCard = ({
   onEdit, 
   onDelete, 
   onSetWinner, 
+  onWinnerSelection,
   getEquipoNombre, 
   getCategoriaNombre, 
   getEstadoBadge 
@@ -78,6 +79,7 @@ const PartidoCard = ({
     ? getEquipoNombre(partido.equipo_ganador) 
     : null
   const necesitaGanador = partido.estado === 'jugado' && !partido.equipo_ganador_id
+  const esPendiente = partido.estado === 'pendiente'
 
   return (
     <Card className="bg-gray-900/50 border-gray-800 hover:bg-gray-900/70 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
@@ -96,7 +98,7 @@ const PartidoCard = ({
         {/* Layout responsive para equipos y fecha */}
         <div className="space-y-4">
           {/* Equipos y VS - Mobile first */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4">
             {/* Equipo A */}
             <div className={`text-center p-3 rounded-lg border border-gray-700/50 flex flex-col items-center justify-center ${
               ganadorNombre && partido.equipo_ganador_id === partido.equipo_a?.id 
@@ -118,7 +120,7 @@ const PartidoCard = ({
             </div>
 
             {/* VS y Fecha - Centrado */}
-            <div className="text-center flex flex-col items-center justify-center">
+            <div className="text-center flex flex-col items-center justify-center order-first sm:order-none">
               <div className="bg-[#E2FF1B]/20 rounded-full p-2 mb-2">
                 <p className="font-bold text-[#E2FF1B] text-lg sm:text-xl">VS</p>
               </div>
@@ -167,48 +169,80 @@ const PartidoCard = ({
           {/* Ganador */}
           {ganadorNombre && (
             <div className="text-center">
-                             <Badge 
-                 variant="default" 
-                 className="flex items-center gap-1 mx-auto w-fit text-black font-bold bg-[#E2FC1D]"
-               >
+              <Badge 
+                variant="default" 
+                className="flex items-center gap-1 mx-auto w-fit text-black font-bold bg-[#E2FC1D]"
+              >
                 <Award className="h-3 w-3" />
                 Ganador: {ganadorNombre}
                 <span className="ml-1">(+{partido.puntos_por_jugador} pts)</span>
               </Badge>
             </div>
           )}
+
+          {/* Botones de selección de ganador para partidos pendientes */}
+          {esPendiente && (
+            <div className="text-center space-y-2">
+              <p className="text-xs text-gray-400 mb-2">Seleccionar ganador:</p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button
+                  size="sm"
+                  onClick={() => onWinnerSelection(partido.equipo_a_id)}
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
+                  title={`Ganador: ${equipoANombre}`}
+                >
+                  <Award className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">{equipoANombre}</span>
+                  <span className="sm:hidden">Equipo A</span>
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => onWinnerSelection(partido.equipo_b_id)}
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
+                  title={`Ganador: ${equipoBNombre}`}
+                >
+                  <Award className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">{equipoBNombre}</span>
+                  <span className="sm:hidden">Equipo B</span>
+                </Button>
+              </div>
+              <p className="text-xs text-[#E2FF1B] mt-1">
+                +{partido.puntos_por_jugador || 3} puntos por jugador
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Botones de acción - Responsive */}
-        <div className="flex justify-center sm:justify-end gap-2 mt-4 pt-4 border-t border-gray-800/50">
+        <div className="flex flex-wrap justify-center sm:justify-end gap-2 mt-4 pt-4 border-t border-gray-800/50">
           {necesitaGanador && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => onSetWinner(partido)}
-              className="border-[#E2FF1B]/30 text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+              className="border-[#E2FF1B]/30 text-[#E2FF1B] hover:bg-[#E2FF1B]/10 text-xs sm:text-sm"
               title="Establecer ganador"
             >
-              <Award className="h-4 w-4" />
+              <Award className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           )}
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(partido)}
-            className="border-white/20 text-white hover:bg-white/10"
+            className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm"
             title="Editar partido"
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(partido)}
-            className="border-red-400/30 text-red-400 hover:bg-red-400/10"
+            className="border-red-400/30 text-red-400 hover:bg-red-400/10 text-xs sm:text-sm"
             title="Eliminar partido"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </CardContent>
@@ -527,6 +561,58 @@ export default function AdminLigasPartidosPage() {
     if (!confirm('¿Estás seguro de que quieres eliminar este partido?')) return
 
     try {
+      const updates = []
+
+      // Si el partido tenía un ganador, restar sus puntos antes de eliminar
+      if (partido.equipo_ganador_id && partido.estado === 'jugado') {
+        const { data: equipoGanadorData, error: equipoError } = await supabase
+          .from('ligainscripciones')
+          .select(`
+            id,
+            titular_1_id,
+            titular_2_id
+          `)
+          .eq('id', partido.equipo_ganador_id)
+          .single()
+
+        if (!equipoError && equipoGanadorData) {
+          const puntos = partido.puntos_por_jugador || 3
+
+          if (equipoGanadorData.titular_1_id) {
+            updates.push(
+              supabase
+                .from('usuarios')
+                .update({ 
+                  ranking_puntos: supabase.raw(`GREATEST(COALESCE(ranking_puntos, 0) - ${puntos}, 0)`) 
+                })
+                .eq('id', equipoGanadorData.titular_1_id)
+            )
+          }
+
+          if (equipoGanadorData.titular_2_id) {
+            updates.push(
+              supabase
+                .from('usuarios')
+                .update({ 
+                  ranking_puntos: supabase.raw(`GREATEST(COALESCE(ranking_puntos, 0) - ${puntos}, 0)`) 
+                })
+                .eq('id', equipoGanadorData.titular_2_id)
+            )
+          }
+        }
+      }
+
+      // Ejecutar las actualizaciones de puntos si las hay
+      if (updates.length > 0) {
+        const updateResults = await Promise.all(updates)
+        const errors = updateResults.filter(result => result.error)
+        if (errors.length > 0) {
+          console.error('Errores al restar puntos:', errors)
+          throw new Error('Error al restar puntos de los jugadores')
+        }
+      }
+
+      // Eliminar el partido
       const { error } = await supabase
         .from('liga_partidos')
         .delete()
@@ -534,9 +620,13 @@ export default function AdminLigasPartidosPage() {
 
       if (error) throw error
 
+      const mensaje = partido.equipo_ganador_id && partido.estado === 'jugado'
+        ? "El partido se eliminó correctamente y se restaron los puntos del equipo ganador."
+        : "El partido se eliminó correctamente"
+
       toast({
         title: "Partido eliminado",
-        description: "El partido se eliminó correctamente",
+        description: mensaje,
         variant: "default"
       })
 
@@ -561,9 +651,48 @@ export default function AdminLigasPartidosPage() {
 
     try {
       const nuevoGanadorId = parseInt(equipoId)
+      const puntos = selectedPartido.puntos_por_jugador || 3
+      const updates = []
 
-      // Actualizar el partido con el nuevo ganador
-      const { error } = await supabase
+      // Paso 1: Si había un ganador anterior, restar sus puntos
+      if (selectedPartido.equipo_ganador_id && selectedPartido.equipo_ganador_id !== nuevoGanadorId) {
+        const { data: equipoAnteriorData, error: equipoAnteriorError } = await supabase
+          .from('ligainscripciones')
+          .select(`
+            id,
+            titular_1_id,
+            titular_2_id
+          `)
+          .eq('id', selectedPartido.equipo_ganador_id)
+          .single()
+
+        if (!equipoAnteriorError && equipoAnteriorData) {
+          if (equipoAnteriorData.titular_1_id) {
+            updates.push(
+              supabase
+                .from('usuarios')
+                .update({ 
+                  ranking_puntos: supabase.raw(`GREATEST(COALESCE(ranking_puntos, 0) - ${puntos}, 0)`) 
+                })
+                .eq('id', equipoAnteriorData.titular_1_id)
+            )
+          }
+
+          if (equipoAnteriorData.titular_2_id) {
+            updates.push(
+              supabase
+                .from('usuarios')
+                .update({ 
+                  ranking_puntos: supabase.raw(`GREATEST(COALESCE(ranking_puntos, 0) - ${puntos}, 0)`) 
+                })
+                .eq('id', equipoAnteriorData.titular_2_id)
+            )
+          }
+        }
+      }
+
+      // Paso 2: Actualizar el partido
+      const { error: updateError } = await supabase
         .from('liga_partidos')
         .update({ 
           equipo_ganador_id: nuevoGanadorId,
@@ -571,11 +700,64 @@ export default function AdminLigasPartidosPage() {
         })
         .eq('id', selectedPartido.id)
 
-      if (error) throw error
+      if (updateError) throw updateError
+
+      // Paso 3: Obtener equipo ganador con información de titulares
+      const { data: equipoGanadorData, error: equipoError } = await supabase
+        .from('ligainscripciones')
+        .select(`
+          id,
+          titular_1_id,
+          titular_2_id
+        `)
+        .eq('id', nuevoGanadorId)
+        .single()
+
+      if (equipoError) throw equipoError
+
+      // Paso 4: Sumar puntos a titulares del nuevo ganador
+      if (equipoGanadorData.titular_1_id) {
+        updates.push(
+          supabase
+            .from('usuarios')
+            .update({ 
+              ranking_puntos: supabase.raw(`COALESCE(ranking_puntos, 0) + ${puntos}`) 
+            })
+            .eq('id', equipoGanadorData.titular_1_id)
+        )
+      }
+
+      if (equipoGanadorData.titular_2_id) {
+        updates.push(
+          supabase
+            .from('usuarios')
+            .update({ 
+              ranking_puntos: supabase.raw(`COALESCE(ranking_puntos, 0) + ${puntos}`) 
+            })
+            .eq('id', equipoGanadorData.titular_2_id)
+        )
+      }
+
+      // Ejecutar todas las actualizaciones
+      if (updates.length > 0) {
+        const updateResults = await Promise.all(updates)
+        
+        // Verificar si hubo errores en las actualizaciones
+        const errors = updateResults.filter(result => result.error)
+        if (errors.length > 0) {
+          console.error('Errores al actualizar puntos:', errors)
+          throw new Error('Error al actualizar puntos de los jugadores')
+        }
+      }
+
+      // Mensaje personalizado según si se cambió el ganador o se estableció por primera vez
+      const mensaje = selectedPartido.equipo_ganador_id && selectedPartido.equipo_ganador_id !== nuevoGanadorId
+        ? `Se cambió el ganador del partido. Se restaron ${puntos} puntos al equipo anterior y se sumaron ${puntos} puntos al nuevo ganador.`
+        : `Se estableció el ganador del partido y se sumaron ${puntos} puntos a cada jugador del equipo ganador.`
 
       toast({
         title: "Ganador establecido",
-        description: "Se estableció el ganador del partido correctamente.",
+        description: mensaje,
         variant: "default"
       })
 
@@ -586,7 +768,140 @@ export default function AdminLigasPartidosPage() {
       console.error('Error setting winner:', error)
       toast({
         title: "Error",
-        description: "No se pudo establecer el ganador",
+        description: "No se pudo establecer el ganador ni actualizar puntos",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleDirectWinnerSelection = async (partido, equipoId) => {
+    try {
+      const nuevoGanadorId = parseInt(equipoId)
+      const puntos = partido.puntos_por_jugador || 3
+
+      // Paso 1: Si había un ganador anterior, restar sus puntos
+      if (partido.equipo_ganador_id && partido.equipo_ganador_id !== nuevoGanadorId) {
+        const { data: equipoAnteriorData, error: equipoAnteriorError } = await supabase
+          .from('ligainscripciones')
+          .select(`
+            id,
+            titular_1_id,
+            titular_2_id
+          `)
+          .eq('id', partido.equipo_ganador_id)
+          .single()
+
+        if (!equipoAnteriorError && equipoAnteriorData) {
+          // Restar puntos al titular 1 del equipo anterior
+          if (equipoAnteriorData.titular_1_id) {
+            const { data: user1Data, error: user1Error } = await supabase
+              .from('usuarios')
+              .select('ranking_puntos')
+              .eq('id', equipoAnteriorData.titular_1_id)
+              .single()
+
+            if (!user1Error && user1Data) {
+              const nuevosPuntos = Math.max((user1Data.ranking_puntos || 0) - puntos, 0)
+              await supabase
+                .from('usuarios')
+                .update({ ranking_puntos: nuevosPuntos })
+                .eq('id', equipoAnteriorData.titular_1_id)
+            }
+          }
+
+          // Restar puntos al titular 2 del equipo anterior
+          if (equipoAnteriorData.titular_2_id) {
+            const { data: user2Data, error: user2Error } = await supabase
+              .from('usuarios')
+              .select('ranking_puntos')
+              .eq('id', equipoAnteriorData.titular_2_id)
+              .single()
+
+            if (!user2Error && user2Data) {
+              const nuevosPuntos = Math.max((user2Data.ranking_puntos || 0) - puntos, 0)
+              await supabase
+                .from('usuarios')
+                .update({ ranking_puntos: nuevosPuntos })
+                .eq('id', equipoAnteriorData.titular_2_id)
+            }
+          }
+        }
+      }
+
+      // Paso 2: Actualizar el partido
+      const { error: updateError } = await supabase
+        .from('liga_partidos')
+        .update({ 
+          equipo_ganador_id: nuevoGanadorId,
+          estado: 'jugado'
+        })
+        .eq('id', partido.id)
+
+      if (updateError) throw updateError
+
+      // Paso 3: Obtener equipo ganador con información de titulares
+      const { data: equipoGanadorData, error: equipoError } = await supabase
+        .from('ligainscripciones')
+        .select(`
+          id,
+          titular_1_id,
+          titular_2_id
+        `)
+        .eq('id', nuevoGanadorId)
+        .single()
+
+      if (equipoError) throw equipoError
+
+      // Paso 4: Sumar puntos a titulares del nuevo ganador
+      if (equipoGanadorData.titular_1_id) {
+        const { data: user1Data, error: user1Error } = await supabase
+          .from('usuarios')
+          .select('ranking_puntos')
+          .eq('id', equipoGanadorData.titular_1_id)
+          .single()
+
+        if (!user1Error && user1Data) {
+          const nuevosPuntos = (user1Data.ranking_puntos || 0) + puntos
+          await supabase
+            .from('usuarios')
+            .update({ ranking_puntos: nuevosPuntos })
+            .eq('id', equipoGanadorData.titular_1_id)
+        }
+      }
+
+      if (equipoGanadorData.titular_2_id) {
+        const { data: user2Data, error: user2Error } = await supabase
+          .from('usuarios')
+          .select('ranking_puntos')
+          .eq('id', equipoGanadorData.titular_2_id)
+          .single()
+
+        if (!user2Error && user2Data) {
+          const nuevosPuntos = (user2Data.ranking_puntos || 0) + puntos
+          await supabase
+            .from('usuarios')
+            .update({ ranking_puntos: nuevosPuntos })
+            .eq('id', equipoGanadorData.titular_2_id)
+        }
+      }
+
+      // Mensaje personalizado según si se cambió el ganador o se estableció por primera vez
+      const mensaje = partido.equipo_ganador_id && partido.equipo_ganador_id !== nuevoGanadorId
+        ? `Se cambió el ganador del partido. Se restaron ${puntos} puntos al equipo anterior y se sumaron ${puntos} puntos al nuevo ganador.`
+        : `Se estableció el ganador del partido y se sumaron ${puntos} puntos a cada jugador del equipo ganador.`
+
+      toast({
+        title: "Ganador establecido",
+        description: mensaje,
+        variant: "default"
+      })
+
+      fetchPartidos()
+    } catch (error) {
+      console.error('Error setting winner:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo establecer el ganador ni actualizar puntos",
         variant: "destructive"
       })
     }
@@ -799,6 +1114,7 @@ export default function AdminLigasPartidosPage() {
                  onEdit={handleEdit}
                  onDelete={handleDelete}
                  onSetWinner={handleSetWinner}
+                 onWinnerSelection={(equipoId) => handleDirectWinnerSelection(partido, equipoId)}
                  getEquipoNombre={getEquipoNombre}
                  getCategoriaNombre={getCategoriaNombre}
                  getEstadoBadge={getEstadoBadge}

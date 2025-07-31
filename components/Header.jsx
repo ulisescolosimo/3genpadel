@@ -451,7 +451,7 @@ export default function Header() {
                       onClick={closeMenu}
                     >
                       <User className="w-4 h-4" />
-                      Mi Perfil
+                      Mi perfil
                     </Link>
                     <Button 
                       variant="ghost" 

@@ -54,10 +54,26 @@ export async function POST(request) {
     console.log('Usuario encontrado:', usuario)
     console.log('Campos del usuario:', Object.keys(usuario))
 
-    // Verificar si ya tiene cuenta completamente activa
-    if (usuario.cuenta_activada) {
+    // Verificar si es admin
+    if (usuario.rol === 'admin') {
       return NextResponse.json(
-        { error: 'Este usuario ya tiene una cuenta activa' },
+        { error: 'Los usuarios administradores no pueden usar esta funcionalidad' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar si ya tiene auth_id (ya configuró su contraseña)
+    if (usuario.auth_id) {
+      return NextResponse.json(
+        { error: 'Este usuario ya configuró su contraseña' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar si ya tiene password seteada
+    if (usuario.password) {
+      return NextResponse.json(
+        { error: 'Este usuario ya tiene una contraseña configurada' },
         { status: 400 }
       )
     }
@@ -200,15 +216,13 @@ export async function POST(request) {
       )
     }
 
-    // Actualizar usuario y marcar como activado
+    // Actualizar usuario con auth_id y marcar como activado
     const updateData = {
+      auth_id: authData.user.id,
       password: password, // Guardar la contraseña también en usuario
       cuenta_activada: true,
       updated_at: new Date().toISOString()
     }
-    
-    // Si el campo created_at existe, no lo actualizamos (debe mantener su valor original)
-    // El trigger se encargará de actualizar updated_at automáticamente
     
     console.log('Datos a actualizar en usuario:', updateData)
     
@@ -230,13 +244,10 @@ export async function POST(request) {
 
     // Determinar el mensaje según el estado previo del usuario
     const wasAlreadyActivated = usuario.cuenta_activada
-    const wasNewUser = !usuario.cuenta_activada
     
     let message = 'Cuenta activada exitosamente. Ya puedes hacer login.'
     if (wasAlreadyActivated) {
       message = 'Contraseña configurada exitosamente. Ya puedes hacer login.'
-    } else if (wasNewUser) {
-      message = 'Cuenta activada exitosamente. Ya puedes hacer login.'
     }
 
     return NextResponse.json({

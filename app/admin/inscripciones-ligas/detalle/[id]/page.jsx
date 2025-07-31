@@ -507,8 +507,6 @@ export default function AdminInscripcionDetallePage() {
                   </div>
                 </div>
 
-                <Separator />
-
                 {/* Acciones */}
                 <div className="space-y-1 sm:space-y-2">
                   

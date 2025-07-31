@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, Search, RefreshCw, ArrowLeft, User, Phone } from 'lucide-react'
+import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, Search, RefreshCw, ArrowLeft, User, Phone, Filter, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
@@ -227,58 +227,118 @@ export default function AdminInscripcionesCategoriasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        {/* Header mejorado */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
-            <Link href="/admin/inscripciones-ligas">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-bold text-white">Inscripciones por Categoría</h1>
               <p className="text-gray-400">Gestiona las inscripciones organizadas por categorías</p>
             </div>
           </div>
-          <Button onClick={fetchCategorias} disabled={refreshing}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={fetchCategorias} disabled={refreshing} className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90">
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Actualizar
+            </Button>
+            <Link href="/admin/inscripciones-ligas">
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Filtros */}
+        {/* Filtros mejorados */}
         <Card className="bg-white/5 border-white/10 mb-6">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-white mb-2 block">Liga</label>
-                <Select value={filterLiga} onValueChange={setFilterLiga}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todas las ligas" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las ligas</SelectItem>
-                    {ligasDisponibles.map(liga => (
-                      <SelectItem key={liga} value={liga}>{liga}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4">
+              {/* Header de filtros */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-[#E2FF1B]" />
+                  <h3 className="text-lg font-semibold text-white">Filtros</h3>
+                </div>
+                {(filterLiga !== 'all' || searchTerm) && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearFilters}
+                    className="text-gray-400 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Limpiar
+                  </Button>
+                )}
               </div>
-              <div>
-                <label className="text-sm font-medium text-white mb-2 block">Buscar</label>
-                <Input
-                  placeholder="Buscar por categoría o liga..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
-                />
+
+              {/* Grid de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Filtro de Liga */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                    Liga
+                  </label>
+                  <Select value={filterLiga} onValueChange={setFilterLiga}>
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white h-11 text-sm transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20">
+                      <SelectValue placeholder="Todas las ligas" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900/95 backdrop-blur-sm border border-white/20 rounded-lg shadow-2xl">
+                      <SelectItem value="all" className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] transition-all duration-200">
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="w-2 h-2 bg-[#E2FF1B] rounded-full flex-shrink-0"></div>
+                          <span className="font-medium">Todas las ligas</span>
+                        </div>
+                      </SelectItem>
+                      {ligasDisponibles.map(liga => (
+                        <SelectItem key={liga} value={liga} className="text-white hover:bg-[#E2FF1B]/20 hover:text-[#E2FF1B] focus:bg-[#E2FF1B]/20 focus:text-[#E2FF1B] transition-all duration-200">
+                          <div className="flex items-center gap-3 py-1">
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full flex-shrink-0"></div>
+                            <span className="font-medium">{liga}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Búsqueda */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Search className="w-4 h-4 text-[#E2FF1B]" />
+                    Buscar
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por categoría, liga o jugador..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 pl-10 h-11 text-sm transition-all duration-200 hover:bg-white/15 hover:border-white/30 focus:ring-2 focus:ring-[#E2FF1B]/20"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="flex items-end">
-                <Button variant="outline" onClick={clearFilters} className="w-full border-white/20 text-white hover:bg-white/10">
-                  Limpiar filtros
-                </Button>
-              </div>
+
+              {/* Filtros activos */}
+              {(filterLiga !== 'all' || searchTerm) && (
+                <div className="pt-4 border-t border-white/10">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-gray-400">Filtros activos:</span>
+                    {filterLiga !== 'all' && (
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
+                        Liga: {filterLiga}
+                      </Badge>
+                    )}
+                    {searchTerm && (
+                      <Badge variant="outline" className="border-[#E2FF1B]/30 text-[#E2FF1B] text-xs">
+                        Búsqueda: "{searchTerm}"
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

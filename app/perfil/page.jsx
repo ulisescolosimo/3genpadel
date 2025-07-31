@@ -26,7 +26,10 @@ import {
   Save,
   Camera,
   Upload,
-  X
+  X,
+  Gamepad2,
+  Award,
+  CalendarDays
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -49,6 +52,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/components/AuthProvider'
 import { toast } from 'sonner'
 
@@ -70,6 +74,11 @@ export default function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
+  
+  // Nuevos estados para partidos
+  const [partidos, setPartidos] = useState([])
+  const [loadingPartidos, setLoadingPartidos] = useState(true)
+  
   const router = useRouter()
 
   // Formulario de edición
@@ -81,6 +90,204 @@ export default function ProfilePage() {
     fecha_nacimiento: "",
     dni: ""
   })
+
+  // Función para formatear fechas de partidos
+  const formatearFecha = (fecha) => {
+    if (!fecha) return null
+    
+    try {
+      const fechaObj = new Date(fecha)
+      return {
+        fecha: fechaObj.toLocaleDateString('es-ES', {
+          weekday: 'short',
+          day: '2-digit',
+          month: 'short'
+        }),
+        hora: fechaObj.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }
+    } catch (error) {
+      console.error('Error formateando fecha:', error)
+      return null
+    }
+  }
+
+  // Función para obtener el nombre del equipo
+  const getEquipoNombre = (equipo) => {
+    if (!equipo) return 'N/A'
+    const titular1 = equipo.titular_1?.nombre || 'N/A'
+    const titular2 = equipo.titular_2?.nombre || 'N/A'
+    return `${titular1} & ${titular2}`
+  }
+
+  // Función para obtener el nombre de la categoría
+  const getCategoriaNombre = (partido) => {
+    if (!partido.liga_categorias) return 'N/A'
+    return `${partido.liga_categorias.ligas?.nombre || 'N/A'} - ${partido.liga_categorias.categoria}`
+  }
+
+  // Función para obtener el badge de estado
+  const getEstadoBadge = (estado) => {
+    const variants = {
+      pendiente: 'secondary',
+      jugado: 'default',
+      cancelado: 'destructive'
+    }
+    return <Badge variant={variants[estado]}>{estado}</Badge>
+  }
+
+  // Función para obtener el rol del usuario en el partido
+  const getRolEnPartido = (partido) => {
+    if (!usuario?.id) return null
+    
+    // Verificar si el usuario está en equipo_a
+    if (partido.equipo_a) {
+      if (partido.equipo_a.titular_1?.id === usuario.id) return 'Titular 1'
+      if (partido.equipo_a.titular_2?.id === usuario.id) return 'Titular 2'
+    }
+    
+    // Verificar si el usuario está en equipo_b
+    if (partido.equipo_b) {
+      if (partido.equipo_b.titular_1?.id === usuario.id) return 'Titular 1'
+      if (partido.equipo_b.titular_2?.id === usuario.id) return 'Titular 2'
+    }
+    
+    return null
+  }
+
+  // Función para obtener el equipo del usuario
+  const getEquipoUsuario = (partido) => {
+    if (!usuario?.id) return null
+    
+    if (partido.equipo_a) {
+      if (partido.equipo_a.titular_1?.id === usuario.id || partido.equipo_a.titular_2?.id === usuario.id) {
+        return { equipo: partido.equipo_a, esEquipoA: true }
+      }
+    }
+    
+    if (partido.equipo_b) {
+      if (partido.equipo_b.titular_1?.id === usuario.id || partido.equipo_b.titular_2?.id === usuario.id) {
+        return { equipo: partido.equipo_b, esEquipoA: false }
+      }
+    }
+    
+    return null
+  }
+
+  // Función para obtener el resultado del partido para el usuario
+  const getResultadoPartido = (partido) => {
+    const equipoUsuario = getEquipoUsuario(partido)
+    if (!equipoUsuario) return null
+    
+    if (partido.estado !== 'jugado' || !partido.equipo_ganador_id) return null
+    
+    const esGanador = partido.equipo_ganador_id === equipoUsuario.equipo.id
+    return {
+      resultado: esGanador ? 'victoria' : 'derrota',
+      equipoGanador: partido.equipo_ganador ? getEquipoNombre(partido.equipo_ganador) : 'N/A'
+    }
+  }
+
+  // Función para cargar partidos del usuario
+  const fetchPartidos = async () => {
+    if (!usuario?.id) return
+
+    try {
+      setLoadingPartidos(true)
+
+      // Primero obtener las inscripciones del usuario
+      const { data: inscripcionesData, error: inscripcionesError } = await supabase
+        .from('ligainscripciones')
+        .select('id')
+        .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
+
+      if (inscripcionesError) {
+        console.error('Error fetching inscripciones:', inscripcionesError)
+        setPartidos([])
+        return
+      }
+
+      if (!inscripcionesData || inscripcionesData.length === 0) {
+        setPartidos([])
+        return
+      }
+
+      // Obtener los IDs de las inscripciones
+      const inscripcionIds = inscripcionesData.map(ins => ins.id)
+
+      // Buscar partidos donde el usuario participa
+      const { data: partidosData, error: partidosError } = await supabase
+        .from('liga_partidos')
+        .select(`
+          *,
+          liga_categorias (
+            id,
+            categoria,
+            ligas (
+              id,
+              nombre,
+              fecha_inicio
+            )
+          ),
+          equipo_a:ligainscripciones!liga_partidos_equipo_a_id_fkey (
+            id,
+            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              id,
+              nombre,
+              apellido
+            )
+          ),
+          equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
+            id,
+            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              id,
+              nombre,
+              apellido
+            )
+          ),
+          equipo_ganador:ligainscripciones!liga_partidos_equipo_ganador_id_fkey (
+            id,
+            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              id,
+              nombre,
+              apellido
+            )
+          )
+        `)
+        .or(`equipo_a_id.in.(${inscripcionIds.join(',')}),equipo_b_id.in.(${inscripcionIds.join(',')})`)
+        .order('fecha', { ascending: true })
+
+      if (partidosError) {
+        console.error('Error fetching partidos:', partidosError)
+        setPartidos([])
+      } else {
+        setPartidos(partidosData || [])
+      }
+
+    } catch (error) {
+      console.error('Error fetching partidos:', error)
+      setPartidos([])
+    } finally {
+      setLoadingPartidos(false)
+    }
+  }
 
   // Cargar datos del usuario
   useEffect(() => {
@@ -231,6 +438,13 @@ export default function ProfilePage() {
       router.push('/login')
     }
   }, [user, impersonatedUser, authLoading, router])
+
+  // Cargar partidos cuando el usuario esté disponible
+  useEffect(() => {
+    if (usuario?.id) {
+      fetchPartidos()
+    }
+  }, [usuario])
 
   // Cargar inscripciones cuando el usuario esté disponible
   useEffect(() => {
@@ -766,7 +980,7 @@ export default function ProfilePage() {
             
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                Mi Perfil
+                Mi perfil
                 <span className="block text-lg sm:text-xl text-[#E2FF1B] mt-1">
                   {usuario.nombre} {usuario.apellido}
                 </span>
@@ -986,31 +1200,55 @@ export default function ProfilePage() {
                     {inscripcionesLigas.length > 0 ? (
                       <div className="space-y-3">
                         {inscripcionesLigas.map((inscripcion) => (
-                          <div key={inscripcion.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h5 className="text-white font-medium text-sm sm:text-base">
-                                  {inscripcion.liga_categorias?.ligas?.nombre || 'Liga'}
-                                </h5>
-                                <p className="text-xs sm:text-sm text-gray-400">
-                                  Categoría: {inscripcion.liga_categorias?.categoria || 'N/A'}
-                                </p>
-                                <p className="text-xs sm:text-sm text-gray-400">
-                                  Rol: {getRolUsuario(inscripcion)}
-                                </p>
-                              </div>
-                              <Badge className={`${getEstadoColor(inscripcion.estado)} border`}>
-                                <div className="flex items-center gap-1">
-                                  {getEstadoIcon(inscripcion.estado)}
-                                  <span className="text-xs">{getEstadoText(inscripcion.estado)}</span>
+                          <div key={inscripcion.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                                  <h5 className="text-white font-semibold text-sm sm:text-base">
+                                    {inscripcion.liga_categorias?.ligas?.nombre || 'Liga'}
+                                  </h5>
                                 </div>
-                              </Badge>
+                                
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <BookOpen className="w-3 h-3 text-gray-400" />
+                                    <span className="text-xs sm:text-sm text-gray-300">
+                                      Categoría: <span className="text-[#E2FF1B] font-medium">{inscripcion.liga_categorias?.categoria || 'N/A'}</span>
+                                    </span>
+                                  </div>
+                                  
+
+                                  
+                                  {inscripcion.liga_categorias?.ligas?.fecha_inicio && (
+                                    <div className="flex items-center gap-2">
+                                      <Calendar className="w-3 h-3 text-gray-400" />
+                                      <span className="text-xs sm:text-sm text-gray-300">
+                                        Inicio: {format(new Date(inscripcion.liga_categorias.ligas.fecha_inicio), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col items-end gap-2">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`${
+                                    inscripcion.estado === 'aprobada' 
+                                      ? 'text-green-400 border-green-500/30 bg-green-500/10' 
+                                      : inscripcion.estado === 'rechazada'
+                                      ? 'text-red-400 border-red-500/30 bg-red-500/10'
+                                      : 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1">
+                                    {getEstadoIcon(inscripcion.estado)}
+                                    <span className="text-xs">{getEstadoText(inscripcion.estado)}</span>
+                                  </div>
+                                </Badge>
+                              </div>
                             </div>
-                            {inscripcion.liga_categorias?.ligas?.fecha_inicio && (
-                              <p className="text-xs text-gray-500">
-                                Inicio: {format(new Date(inscripcion.liga_categorias.ligas.fecha_inicio), "d 'de' MMMM 'de' yyyy", { locale: es })}
-                              </p>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -1029,6 +1267,199 @@ export default function ProfilePage() {
                       </div>
                     )}
                   </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Partidos */}
+            <Card className="bg-gray-900/50 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Partidos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingPartidos ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E2FF1B] mx-auto"></div>
+                    <p className="text-gray-400 mt-2 text-sm">Cargando partidos...</p>
+                  </div>
+                ) : (
+                  <Tabs defaultValue="proximos" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-gray-800/50 rounded-lg p-1">
+                      <TabsTrigger value="proximos" className="w-full rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+                        Próximos Partidos
+                      </TabsTrigger>
+                      <TabsTrigger value="jugados" className="w-full rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+                        Partidos Jugados
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="proximos" className="space-y-4">
+                      {partidos.filter(p => p.estado === 'pendiente').length === 0 ? (
+                        <div className="text-center py-4">
+                          <CalendarDays className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                          <p className="text-gray-400 text-sm">No tienes próximos partidos programados.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                                                     {partidos.filter(p => p.estado === 'pendiente').map((partido) => (
+                             <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
+                               <div className="flex items-start justify-between mb-3">
+                                 <div className="flex-1">
+                                   <div className="flex items-center gap-2 mb-2">
+                                     <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                                     <h5 className="text-white font-semibold text-sm sm:text-base">
+                                       {getCategoriaNombre(partido)}
+                                     </h5>
+                                   </div>
+                                   
+                                   <div className="space-y-1.5">
+                                     <div className="flex items-center gap-2">
+                                       <Calendar className="w-3 h-3 text-gray-400" />
+                                       <span className="text-xs sm:text-sm text-gray-300">
+                                         {formatearFecha(partido.fecha)?.fecha} a las {formatearFecha(partido.fecha)?.hora}
+                                       </span>
+                                     </div>
+                                     
+                                     <div className="flex items-center gap-2">
+                                       <Users className="w-3 h-3 text-gray-400" />
+                                       <span className="text-xs sm:text-sm text-gray-300">
+                                         {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
+                                       </span>
+                                     </div>
+                                     
+                                     <div className="flex items-center gap-2">
+                                       <User className="w-3 h-3 text-gray-400" />
+                                       <span className="text-xs sm:text-sm text-gray-300">
+                                         Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
+                                       </span>
+                                     </div>
+                                   </div>
+                                 </div>
+                                 
+                                 <div className="flex flex-col items-end gap-2">
+                                   <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10">
+                                     <div className="flex items-center gap-1">
+                                       <Clock className="w-3 h-3" />
+                                       <span className="text-xs">Próximo</span>
+                                     </div>
+                                   </Badge>
+                                   
+                                   {partido.ronda && (
+                                     <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-800/50">
+                                       <span className="text-xs">{partido.ronda}</span>
+                                     </Badge>
+                                   )}
+                                 </div>
+                               </div>
+                               
+                               {partido.equipo_ganador_id && (
+                                 <div className="mt-3 pt-3 border-t border-gray-700">
+                                   <div className="flex items-center gap-2">
+                                     <Award className="w-3 h-3 text-yellow-400" />
+                                     <span className="text-xs text-yellow-400">
+                                       Ganador: {getEquipoNombre(partido.equipo_ganador)}
+                                     </span>
+                                   </div>
+                                 </div>
+                               )}
+                             </div>
+                           ))}
+                        </div>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="jugados" className="space-y-4">
+                      {partidos.filter(p => p.estado === 'jugado').length === 0 ? (
+                        <div className="text-center py-4">
+                          <Award className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                          <p className="text-gray-400 text-sm">No tienes partidos jugados registrados.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                                                     {partidos.filter(p => p.estado === 'jugado').map((partido) => {
+                             const resultado = getResultadoPartido(partido)
+                             return (
+                               <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
+                                 <div className="flex items-start justify-between mb-3">
+                                   <div className="flex-1">
+                                     <div className="flex items-center gap-2 mb-2">
+                                       <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                                       <h5 className="text-white font-semibold text-sm sm:text-base">
+                                         {getCategoriaNombre(partido)}
+                                       </h5>
+                                     </div>
+                                     
+                                     <div className="space-y-1.5">
+                                       <div className="flex items-center gap-2">
+                                         <Calendar className="w-3 h-3 text-gray-400" />
+                                         <span className="text-xs sm:text-sm text-gray-300">
+                                           {formatearFecha(partido.fecha)?.fecha} a las {formatearFecha(partido.fecha)?.hora}
+                                         </span>
+                                       </div>
+                                       
+                                       <div className="flex items-center gap-2">
+                                         <Users className="w-3 h-3 text-gray-400" />
+                                         <span className="text-xs sm:text-sm text-gray-300">
+                                           {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
+                                         </span>
+                                       </div>
+                                       
+                                       <div className="flex items-center gap-2">
+                                         <User className="w-3 h-3 text-gray-400" />
+                                         <span className="text-xs sm:text-sm text-gray-300">
+                                           Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
+                                         </span>
+                                       </div>
+                                     </div>
+                                   </div>
+                                   
+                                   <div className="flex flex-col items-end gap-2">
+                                     <Badge 
+                                       variant="outline" 
+                                       className={`${
+                                         resultado?.resultado === 'victoria' 
+                                           ? 'text-green-400 border-green-500/30 bg-green-500/10' 
+                                           : 'text-red-400 border-red-500/30 bg-red-500/10'
+                                       }`}
+                                     >
+                                       <div className="flex items-center gap-1">
+                                         {resultado?.resultado === 'victoria' ? (
+                                           <Award className="w-3 h-3" />
+                                         ) : (
+                                           <XCircle className="w-3 h-3" />
+                                         )}
+                                         <span className="text-xs">
+                                           {resultado?.resultado === 'victoria' ? 'Victoria' : 'Derrota'}
+                                         </span>
+                                       </div>
+                                     </Badge>
+                                     
+                                     {partido.ronda && (
+                                       <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-800/50">
+                                         <span className="text-xs">{partido.ronda}</span>
+                                       </Badge>
+                                     )}
+                                   </div>
+                                 </div>
+                                 
+                                 {resultado && (
+                                   <div className="mt-3 pt-3 border-t border-gray-700">
+                                     <div className="flex items-center gap-2">
+                                       <Trophy className="w-3 h-3 text-yellow-400" />
+                                       <span className="text-xs text-yellow-400">
+                                         Ganador: {resultado.equipoGanador}
+                                       </span>
+                                     </div>
+                                   </div>
+                                 )}
+                               </div>
+                             )
+                           })}
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
                 )}
               </CardContent>
             </Card>

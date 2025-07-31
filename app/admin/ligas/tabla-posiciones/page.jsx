@@ -450,12 +450,6 @@ export default function TablaPosicionesPage() {
 
                  return (
                    <div key={liga.id} className="space-y-4">
-                     <div className="border-b border-gray-700 pb-2">
-                       <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                         <Trophy className="h-5 w-5 text-[#E2FF1B]" />
-                         {liga.nombre}
-                       </h2>
-                     </div>
                      {categoriasLiga.map(categoria => {
                        const partidosCategoria = getPartidosByLigaYCategoria(liga.id.toString(), categoria.id.toString())
                        // Solo mostrar categorías que tengan partidos jugados
@@ -502,7 +496,7 @@ export default function TablaPosicionesPage() {
                  const categoriasLiga = filteredCategorias
                  return (
                    <div className="space-y-4">
-                     <div className="border-b border-gray-700 pb-2">
+                     <div className="mb-4">
                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
                          <Trophy className="h-5 w-5 text-[#E2FF1B]" />
                          {liga.nombre}
