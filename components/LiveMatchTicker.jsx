@@ -148,7 +148,7 @@ export default function LiveMatchTicker() {
               <Trophy className="w-4 h-4" />
               <Link href="/partidos">
                 <span className="text-sm font-bold">
-                  {isPartidos ? "PARTIDOS" : "ACADEMIA"}
+                  PARTIDOS
                 </span>
               </Link>
             </div>

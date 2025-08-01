@@ -144,7 +144,7 @@ export default function AdminDashboard() {
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(4)
       if (error) throw error
       
       const inscripcionesProcesadas = data?.map(inscripcion => ({
