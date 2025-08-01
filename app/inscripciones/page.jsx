@@ -105,7 +105,7 @@ export default function InscripcionesPage() {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <div className="text-center">
             <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Trophy className="w-6 h-6 text-[#E2FF1B]" />
@@ -116,15 +116,7 @@ export default function InscripcionesPage() {
             </p>
           </div>
           
-          <div className="text-center">
-            <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Users className="w-6 h-6 text-[#E2FF1B]" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Comunidad Activa</h3>
-            <p className="text-gray-400">
-              Únete a una comunidad de jugadores apasionados por el padel
-            </p>
-          </div>
+
           
           <div className="text-center">
             <div className="w-12 h-12 bg-[#E2FF1B]/10 rounded-lg flex items-center justify-center mx-auto mb-4">

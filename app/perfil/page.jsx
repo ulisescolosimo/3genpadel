@@ -29,7 +29,8 @@ import {
   X,
   Gamepad2,
   Award,
-  CalendarDays
+  CalendarDays,
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -88,7 +89,8 @@ export default function ProfilePage() {
     telefono: "",
     nivel: "",
     fecha_nacimiento: "",
-    dni: ""
+    dni: "",
+    lado: "none"
   })
 
   // Función para formatear fechas de partidos
@@ -396,7 +398,8 @@ export default function ProfilePage() {
                 telefono: result.user.telefono || "",
                 nivel: result.user.nivel || "",
                 fecha_nacimiento: result.user.fecha_nacimiento || "",
-                dni: result.user.dni?.toString() || ""
+                dni: result.user.dni?.toString() || "",
+                lado: result.user.lado || "none"
               })
             } catch (apiError) {
               console.error('Error llamando a create-user-auto:', apiError)
@@ -419,7 +422,8 @@ export default function ProfilePage() {
             telefono: usuarioData.telefono || "",
             nivel: usuarioData.nivel || "",
             fecha_nacimiento: usuarioData.fecha_nacimiento || "",
-            dni: usuarioData.dni?.toString() || ""
+            dni: usuarioData.dni?.toString() || "",
+            lado: usuarioData.lado || "none"
           })
         }
 
@@ -501,7 +505,8 @@ export default function ProfilePage() {
         telefono: usuario.telefono || "",
         nivel: usuario.nivel || "",
         fecha_nacimiento: usuario.fecha_nacimiento || "",
-        dni: usuario.dni?.toString() || ""
+        dni: usuario.dni?.toString() || "",
+        lado: usuario.lado || "none"
       })
     }
     setIsEditModalOpen(true)
@@ -552,7 +557,8 @@ export default function ProfilePage() {
         dni: parseInt(dniClean), // Convertir a integer
         nivel: editForm.nivel?.trim() || "",
         telefono: editForm.telefono?.trim() || "",
-        fecha_nacimiento: editForm.fecha_nacimiento || null
+        fecha_nacimiento: editForm.fecha_nacimiento || null,
+        lado: editForm.lado === "none" ? null : editForm.lado
         // No incluir updated_at ya que se actualiza automáticamente
       }
 
@@ -676,7 +682,8 @@ export default function ProfilePage() {
           telefono: usuarioData.telefono || "",
           nivel: usuarioData.nivel || "",
           fecha_nacimiento: usuarioData.fecha_nacimiento || "",
-          dni: usuarioData.dni?.toString() || ""
+          dni: usuarioData.dni?.toString() || "",
+          lado: usuarioData.lado || "none"
         })
         toast.success('Datos refrescados correctamente')
       }
@@ -1088,6 +1095,22 @@ export default function ProfilePage() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Lado (Drive/Revés)
+                    </label>
+                    <Select value={editForm.lado || "none"} onValueChange={(value) => setEditForm(prev => ({ ...prev, lado: value === "none" ? null : value }))}>
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 focus:ring-2 focus:ring-[#E2FF1B] focus:border-[#E2FF1B]">
+                        <SelectValue placeholder="Selecciona un lado" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="none" className="text-white hover:bg-gray-700 focus:bg-gray-700">No especificado</SelectItem>
+                        <SelectItem value="drive" className="text-white hover:bg-gray-700 focus:bg-gray-700">Drive</SelectItem>
+                        <SelectItem value="reves" className="text-white hover:bg-gray-700 focus:bg-gray-700">Revés</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex gap-2 pt-4">
                     <Button
                       onClick={handleSaveProfile}
@@ -1174,6 +1197,15 @@ export default function ProfilePage() {
                       <p className="text-xs sm:text-sm text-gray-400">DNI</p>
                       <p className="text-sm sm:text-base text-white">
                         {usuario.dni?.toString() || 'No especificado'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-400">Lado</p>
+                      <p className="text-sm sm:text-base text-white">
+                        {usuario.lado === 'drive' ? 'Drive' : usuario.lado === 'reves' ? 'Revés' : 'No especificado'}
                       </p>
                     </div>
                   </div>
@@ -1275,7 +1307,7 @@ export default function ProfilePage() {
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
                   Partidos
                 </CardTitle>
               </CardHeader>

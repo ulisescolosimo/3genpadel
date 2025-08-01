@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import * as XLSX from "xlsx"
-import { Loader2 } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 
 
 const categories = [
@@ -16,6 +16,7 @@ const categories = [
 
 export default function Merchandising() {
   const [selectedCategory, setSelectedCategory] = useState("todos")
+  const [searchTerm, setSearchTerm] = useState("")
   const [excelData, setExcelData] = useState(null)
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -232,9 +233,27 @@ export default function Merchandising() {
     return product.talles.reduce((total, t) => total + (parseInt(t.stock) || 0), 0)
   }
 
-  const filteredProducts = selectedCategory === "todos" 
-    ? products 
-    : products.filter(product => product.category === selectedCategory)
+  const handleProductClick = (product) => {
+    let message = `Hola! Me interesa el producto: ${product.name}. ¿Podrían ayudarme con más información?`
+    
+    // Número de WhatsApp de 3gen (reemplazar con el número real)
+    const whatsappNumber = "5491112345678" // Cambiar por el número real de 3gen
+    const encodedMessage = encodeURIComponent(message)
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
+    
+    window.open(whatsappUrl, '_blank')
+  }
+
+  const filteredProducts = products.filter(product => {
+    // Filtro por categoría
+    const categoryMatch = selectedCategory === "todos" || product.category === selectedCategory
+    
+    // Filtro por búsqueda (nombre del producto)
+    const searchMatch = searchTerm === "" || 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    return categoryMatch && searchMatch
+  })
 
   return (
     <div className="min-h-screen bg-black">
@@ -244,32 +263,50 @@ export default function Merchandising() {
           <p className="text-gray-400">Productos oficiales de 3gen Padel Academy</p>
         </div>
 
-        {/* Filtro de categorías */}
+        {/* Filtro de categorías y buscador */}
         <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  selectedCategory === category.id
-                    ? "bg-[#E2FF1B] text-black"
-                    : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Filtro de categorías */}
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    selectedCategory === category.id
+                      ? "bg-[#E2FF1B] text-black"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Buscador */}
+            <div className="relative max-w-md w-full lg:w-auto">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar productos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:border-transparent transition-all duration-200"
+              />
+            </div>
           </div>
         </div>
 
         {/* Contador de productos */}
         <div className="mb-6">
           <p className="text-gray-400">
-              <>
-                Mostrando {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''}
-                {selectedCategory !== "todos" && ` en ${categories.find(c => c.id === selectedCategory)?.name}`}
-              </>
+            <>
+              Mostrando {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''}
+              {selectedCategory !== "todos" && ` en ${categories.find(c => c.id === selectedCategory)?.name}`}
+              {searchTerm && ` que coinciden con "${searchTerm}"`}
+            </>
           </p>
         </div>
 
@@ -287,7 +324,8 @@ export default function Merchandising() {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300"
+              onClick={() => handleProductClick(product)}
+              className="group relative bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden hover:border-[#E2FF1B] transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-[#E2FF1B]/20"
             >
                               <div className="aspect-square relative overflow-hidden">
                   <img
@@ -351,7 +389,12 @@ export default function Merchandising() {
 
         {!isLoading && filteredProducts.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">No se encontraron productos en esta categoría.</p>
+            <p className="text-gray-400 text-lg">
+              {searchTerm 
+                ? `No se encontraron productos que coincidan con "${searchTerm}"${selectedCategory !== "todos" ? ` en ${categories.find(c => c.id === selectedCategory)?.name}` : ''}.`
+                : `No se encontraron productos en esta categoría.`
+              }
+            </p>
           </div>
         )}
       </div>

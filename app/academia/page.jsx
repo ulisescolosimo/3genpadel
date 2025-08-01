@@ -82,7 +82,7 @@ export default function AcademiaPage() {
               <span className="text-[#E2FF1B]">Academia</span> 3gen Padel
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 md:mb-8 px-4">
-              Formamos jugadores completos bajo la supervisión de profesores expertos
+              Formamos jugadores completos bajo la supervisión de quiénes somos
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-6 md:mb-8 px-2">
               <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-full text-sm md:text-base">

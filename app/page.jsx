@@ -352,27 +352,14 @@ export default function Home() {
                 disponibles.
               </p>
             </a>
-            <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
-                  <Users className="h-6 w-6 text-[#E2FF1B]" />
-                </div>
-                <h3 className="text-xl font-semibold text-white">
-                  Comunidad Activa
-                </h3>
-              </div>
-              <p className="text-gray-400">
-                Forma parte de la comunidad de 3gen Padel Academy y mejora tu
-                nivel.
-              </p>
-            </div>
+
             <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
                   <Star className="h-6 w-6 text-[#E2FF1B]" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">
-                  Profesores Expertos
+                  Quiénes somos
                 </h3>
               </div>
               <p className="text-gray-400">
@@ -428,6 +415,19 @@ export default function Home() {
                   Intermedio
                 </span>
               </div>
+            </div>
+            <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
+                  <Calendar className="h-6 w-6 text-[#E2FF1B]" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">
+                  Partidos
+                </h3>
+              </div>
+              <p className="text-gray-400">
+                Disfruta de partidos organizados y mejora tu juego en un ambiente competitivo y divertido.
+              </p>
             </div>
           </div>
         </div>

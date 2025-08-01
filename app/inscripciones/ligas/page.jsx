@@ -348,10 +348,6 @@ export default function LigasPage() {
               <ul className="space-y-2 text-gray-300 text-sm sm:text-base">
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-2 flex-shrink-0"></div>
-                  <span>Ser mayor de 18 años</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-2 flex-shrink-0"></div>
                   <span>Pago de inscripción al inicio</span>
                 </li>
                 <li className="flex items-start gap-2">

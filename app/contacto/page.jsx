@@ -148,7 +148,7 @@ export default function Contacto() {
                   <div>
                     <p className="text-white font-medium text-sm sm:text-base">Dirección</p>
                     <a 
-                      href="https://g.co/kgs/FFU53qm" 
+                      href="https://maps.app.goo.gl/MYzTca8WNtTzGYv68" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
@@ -187,18 +187,6 @@ export default function Contacto() {
                         +54 9 11 3267-3029
                       </a>
                     </div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
-                  <div>
-                    <p className="text-white font-medium text-sm sm:text-base">Email</p>
-                    <a 
-                      href="mailto:info@lanormanda.com" 
-                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
-                    >
-                      info@lanormanda.com
-                    </a>
                   </div>
                 </div>
               </div>
@@ -305,7 +293,7 @@ export default function Contacto() {
               </div>
               <div className="h-[300px] sm:h-[400px]">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.1234567890123!2d-58.4558858!3d-34.578475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e78893fb43%3A0xb3403f99edbe45fb!2sLa%20Normanda%20Padel%20%26%20Gym!5e0!3m2!1ses!2sar!4v1234567890"
+                  src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d26277.548214532857!2d-58.4482816!3d-34.5866205!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5000064de43%3A0xc351937cdfd2fc80!2s3GEN%20PADEL%20ACADEMY!5e0!3m2!1ses!2sar!4v1754078654159!5m2!1ses!2sar&z=22"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
