@@ -12,10 +12,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign, Upload, AlertCircle, CheckCircle, Clock, LogIn, Search, Plus, User, X } from 'lucide-react'
+import { ArrowLeft, Trophy, Users, Calendar, MapPin, DollarSign, Upload, AlertCircle, CheckCircle, Clock, LogIn, Search, Plus, User, X, MessageCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/components/AuthProvider'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export default function LigaInscripcionPage() {
   const { id } = useParams()
@@ -92,6 +93,9 @@ export default function LigaInscripcionPage() {
     mensaje: '',
     inscripcion: null
   })
+
+  // Estado para controlar el popup de WhatsApp
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false)
 
   // Verificar autenticación y DNI
   useEffect(() => {
@@ -1183,8 +1187,8 @@ export default function LigaInscripcionPage() {
       // Recargar datos para actualizar contadores
       await fetchLigaData()
 
-      // Redirigir a la página de ligas
-      router.push('/inscripciones/ligas')
+      // Mostrar popup de WhatsApp
+      setShowWhatsAppDialog(true)
       setFormData(prev => ({
         ...prev,
         titular_2_email: '',
@@ -2357,6 +2361,65 @@ export default function LigaInscripcionPage() {
           </div>
         </div>
       </div>
+
+      {/* Diálogo de WhatsApp */}
+      <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
+        <DialogContent className="bg-gray-900/95 backdrop-blur-sm border border-white/20 text-white max-w-md mx-auto">
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-white">
+              ¡Inscripción Exitosa!
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 mt-2">
+              Tu inscripción ha sido enviada correctamente. Te invitamos a unirte al grupo de WhatsApp para recibir información actualizada sobre la liga.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-6">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-green-400">Grupo de WhatsApp</h4>
+                  <p className="text-sm text-gray-300">Ligas La Normanda 2025</p>
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-400 text-center">
+              Únete para recibir información sobre horarios, partidos, resultados y más novedades de la liga.
+            </p>
+          </div>
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Button
+              onClick={() => {
+                window.open('https://chat.whatsapp.com/CAkYEOtMBJgEdsj8qxG0sV?mode=ac_t', '_blank')
+                setShowWhatsAppDialog(false)
+                router.push('/inscripciones/ligas')
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Unirse al Grupo
+            </Button>
+            <Button
+              onClick={() => {
+                setShowWhatsAppDialog(false)
+                router.push('/inscripciones/ligas')
+              }}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10 flex-1 sm:flex-none"
+            >
+              Más Tarde
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 
