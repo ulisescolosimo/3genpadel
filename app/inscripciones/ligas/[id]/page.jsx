@@ -1011,18 +1011,36 @@ export default function LigaInscripcionPage() {
     setIsSubmitting(true)
 
     try {
-      // Validar campos requeridos con mensajes personalizados
-      const requiredFieldsValidation = [
-        { field: 'titular_1_email', message: 'El email del Titular 1 es requerido' },
-        { field: 'titular_2_email', message: 'El email del Titular 2 es requerido' },
-        { field: 'liga_categoria_id', message: 'Debes seleccionar una categoría' },
-        { field: 'contacto_celular', message: 'El número de contacto es requerido' }
-      ]
+      // Array para recolectar todos los errores
+      const errores = []
 
-      for (const validation of requiredFieldsValidation) {
-        if (!formData[validation.field]) {
-          throw new Error(validation.message)
-        }
+      // Validar campos requeridos del formulario
+      if (!formData.titular_1_email) {
+        errores.push('• Email del Titular 1 (tú) es requerido')
+      }
+      
+      if (!formData.liga_categoria_id) {
+        errores.push('• Debes seleccionar una categoría')
+      }
+      
+      if (!formData.contacto_celular) {
+        errores.push('• Número de contacto es requerido')
+      }
+
+      // Validar que el Titular 2 esté asignado
+      if (!jugadoresSeleccionados.titular_2) {
+        errores.push('• Debes asignar un jugador como Titular 2')
+      }
+
+      // Validar comprobante de pago
+      if (!comprobanteFile) {
+        errores.push('• Debes subir un comprobante de pago')
+      }
+
+      // Si hay errores, mostrarlos todos juntos
+      if (errores.length > 0) {
+        const mensajeError = `Por favor completa los siguientes campos:\n\n${errores.join('\n')}`
+        throw new Error(mensajeError)
       }
 
       // Verificar que el usuario logueado tenga DNI configurado
@@ -1033,14 +1051,15 @@ export default function LigaInscripcionPage() {
         .single()
 
       if (usuarioError || !usuarioActual?.dni || usuarioActual.dni.toString().trim() === '') {
-        throw new Error('Debes configurar tu DNI en tu perfil antes de inscribirte')
+        throw new Error('Debes configurar tu DNI en tu perfil antes de inscribirte. Ve a tu perfil y agrega tu número de DNI.')
       }
 
       // Validar que los titulares estén asignados (suplentes son opcionales)
       const jugadoresRequeridos = ['titular_2']
       for (const posicion of jugadoresRequeridos) {
         if (!jugadoresSeleccionados[posicion]) {
-          throw new Error(`Debes asignar un jugador como ${posicion.replace('_', ' ')}`)
+          const nombrePosicion = posicion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+          throw new Error(`Debes asignar un jugador como ${nombrePosicion}. Busca y selecciona un jugador para completar tu equipo.`)
         }
       }
 
@@ -1066,10 +1085,10 @@ export default function LigaInscripcionPage() {
         const jugador = jugadoresSeleccionados[posicion]
         if (jugador) { // Solo verificar si el jugador está asignado
           if (emailsAsignados.has(jugador.email.toLowerCase())) {
-            throw new Error(`El usuario ${jugador.nombre} ${jugador.apellido || ''} está asignado a múltiples posiciones`)
+            throw new Error(`El usuario ${jugador.nombre} ${jugador.apellido || ''} está asignado a múltiples posiciones. Cada jugador solo puede ocupar una posición.`)
           }
           if (dnisAsignados.has(jugador.dni?.toString())) {
-            throw new Error(`El DNI ${jugador.dni} está siendo usado por múltiples jugadores`)
+            throw new Error(`El DNI ${jugador.dni} está siendo usado por múltiples jugadores. Cada jugador debe tener un DNI único.`)
           }
           emailsAsignados.add(jugador.email.toLowerCase())
           if (jugador.dni) {
@@ -1112,18 +1131,22 @@ export default function LigaInscripcionPage() {
         } else if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
           const inscripcion = inscripcionesExistentes[0]
           const ligaNombre = inscripcion.liga_categorias?.ligas?.nombre || 'una liga'
-          throw new Error(`${jugador.nombre} ${jugador.apellido || ''} ya tiene una inscripción ${inscripcion.estado} en ${ligaNombre}. No puede inscribirse nuevamente.`)
+          const estadoInscripcion = inscripcion.estado === 'pendiente' ? 'en revisión' : inscripcion.estado
+          throw new Error(`${jugador.nombre} ${jugador.apellido || ''} ya tiene una inscripción ${estadoInscripcion} en ${ligaNombre}. No puede inscribirse nuevamente hasta que se resuelva la inscripción anterior.`)
         }
       }
 
       if (!comprobanteFile) {
-        throw new Error('Debe subir un comprobante de pago')
+        throw new Error('Debes subir un comprobante de pago. Arrastra o selecciona un archivo que muestre el comprobante de transferencia.')
       }
 
       // Verificar que la categoría aún esté disponible
       const categoriaSeleccionada = categorias.find(cat => cat.id === parseInt(formData.liga_categoria_id))
       if (!categoriaSeleccionada || !categoriaSeleccionada.disponible) {
-        throw new Error('La categoría seleccionada ya no está disponible')
+        const mensaje = categoriaSeleccionada 
+          ? `La categoría "${categoriaSeleccionada.categoria}" ya no está disponible. Selecciona otra categoría.`
+          : 'Debes seleccionar una categoría válida.'
+        throw new Error(mensaje)
       }
 
       // Obtener IDs de los usuarios asignados
@@ -1173,7 +1196,8 @@ export default function LigaInscripcionPage() {
 
       if (error) {
         if (error.message.includes('máximo')) {
-          throw new Error('Esta categoría ya alcanzó el máximo de inscripciones permitidas')
+          const categoriaNombre = categoriaSeleccionada?.categoria || 'esta categoría'
+          throw new Error(`${categoriaNombre} ya alcanzó el máximo de inscripciones permitidas. Selecciona otra categoría disponible.`)
         }
         throw error
       }
@@ -1226,8 +1250,25 @@ export default function LigaInscripcionPage() {
 
     } catch (error) {
       console.error('Error submitting form:', error)
+      
+      // Determinar el título del error basado en el tipo de error
+      let errorTitle = "Error"
+      if (error.message.includes('completa los siguientes campos')) {
+        errorTitle = "Campos Incompletos"
+      } else if (error.message.includes('DNI')) {
+        errorTitle = "DNI Requerido"
+      } else if (error.message.includes('categoría')) {
+        errorTitle = "Categoría No Disponible"
+      } else if (error.message.includes('comprobante')) {
+        errorTitle = "Comprobante Requerido"
+      } else if (error.message.includes('asignar')) {
+        errorTitle = "Jugador Requerido"
+      } else if (error.message.includes('inscripción')) {
+        errorTitle = "Inscripción Existente"
+      }
+      
       toast({
-        title: "Error",
+        title: errorTitle,
         description: error.message || "Hubo un error al enviar la inscripción",
         variant: "destructive"
       })
@@ -2247,7 +2288,6 @@ export default function LigaInscripcionPage() {
                           onChange={(e) => handleInputChange('contacto_celular', e.target.value)}
                           className="bg-white/10 border-white/20 text-white"
                           placeholder="+54 9 11 1234-5678"
-                          required
                         />
                       </div>
                     </div>
@@ -2284,7 +2324,6 @@ export default function LigaInscripcionPage() {
                             accept="image/*,.pdf,.doc,.docx"
                             onChange={handleFileSelect}
                             className="hidden"
-                            required
                           />
                           
                           <div className="flex flex-col items-center justify-center space-y-2 sm:space-y-3">
@@ -2364,47 +2403,47 @@ export default function LigaInscripcionPage() {
 
       {/* Diálogo de WhatsApp */}
       <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
-        <DialogContent className="bg-gray-900/95 backdrop-blur-sm border border-white/20 text-white max-w-md mx-auto">
-          <DialogHeader className="text-center">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageCircle className="w-8 h-8 text-green-500" />
+        <DialogContent className="bg-gray-900/95 backdrop-blur-sm border border-white/20 text-white w-[95vw] max-w-md mx-auto p-4 sm:p-6 rounded-xl">
+          <DialogHeader className="text-center space-y-3">
+            <div className="w-20 h-20 sm:w-16 sm:h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4">
+              <MessageCircle className="w-10 h-10 sm:w-8 sm:h-8 text-green-500" />
             </div>
-            <DialogTitle className="text-xl font-bold text-white">
+            <DialogTitle className="text-2xl sm:text-xl font-bold text-white leading-tight">
               ¡Inscripción Exitosa!
             </DialogTitle>
-            <DialogDescription className="text-gray-300 mt-2">
+            <DialogDescription className="text-gray-300 mt-2 text-base sm:text-sm leading-relaxed px-2">
               Tu inscripción ha sido enviada correctamente. Te invitamos a unirte al grupo de WhatsApp para recibir información actualizada sobre la liga.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 mt-6">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-green-500" />
+          <div className="space-y-4 mt-6 sm:mt-6">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 sm:p-4">
+              <div className="flex items-center gap-3 sm:gap-3">
+                <div className="w-12 h-12 sm:w-10 sm:h-10 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-6 h-6 sm:w-5 sm:h-5 text-green-500" />
                 </div>
-                <div>
-                  <h4 className="font-semibold text-green-400">Grupo de WhatsApp</h4>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-semibold text-green-400 text-lg sm:text-base">Grupo de WhatsApp</h4>
                   <p className="text-sm text-gray-300">Ligas La Normanda 2025</p>
                 </div>
               </div>
             </div>
             
-            <p className="text-sm text-gray-400 text-center">
+            <p className="text-sm text-gray-400 text-center leading-relaxed px-2">
               Únete para recibir información sobre horarios, partidos, resultados y más novedades de la liga.
             </p>
           </div>
           
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+          <DialogFooter className="flex flex-col gap-1 mt-6 sm:mt-6 w-full">
             <Button
               onClick={() => {
                 window.open('https://chat.whatsapp.com/CAkYEOtMBJgEdsj8qxG0sV?mode=ac_t', '_blank')
                 setShowWhatsAppDialog(false)
                 router.push('/inscripciones/ligas')
               }}
-              className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none"
+              className="bg-green-600 hover:bg-green-700 text-white w-full h-12 sm:h-10 text-base sm:text-sm font-semibold rounded-xl"
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
+              <MessageCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
               Unirse al Grupo
             </Button>
             <Button
@@ -2413,9 +2452,9 @@ export default function LigaInscripcionPage() {
                 router.push('/inscripciones/ligas')
               }}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10 flex-1 sm:flex-none"
+              className="border-white/20 text-white hover:bg-white/10 w-full h-12 sm:h-10 text-base sm:text-sm font-medium rounded-xl"
             >
-              Más Tarde
+              Más tarde
             </Button>
           </DialogFooter>
         </DialogContent>
