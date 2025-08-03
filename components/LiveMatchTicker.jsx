@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Trophy, Users, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { formatArgentineDateLong } from "@/lib/date-utils";
 
 export default function LiveMatchTicker() {
   const [partidos, setPartidos] = useState([]);
@@ -124,7 +125,7 @@ export default function LiveMatchTicker() {
     } else if (diffDays === 1) {
       return `Mañana ${date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
     } else {
-      return `${date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} ${date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
+      return `${formatArgentineDateLong(dateString)} ${date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
     }
   };
 

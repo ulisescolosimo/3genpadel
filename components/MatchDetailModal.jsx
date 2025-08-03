@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Trophy, Users, Clock, Calendar, MapPin } from 'lucide-react'
+import { formatArgentineDateLong, formatArgentineDateShort } from '@/lib/date-utils'
 
 export default function MatchDetailModal({ partido, isOpen, onClose }) {
   if (!partido) return null
@@ -46,13 +47,7 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Fecha por definir'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-AR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    return formatArgentineDateLong(dateString)
   }
 
   const formatTime = (dateString) => {
@@ -73,7 +68,7 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-black/90 backdrop-blur-sm border-white/10 text-white max-w-2xl">
+      <DialogContent className="bg-black/90 backdrop-blur-sm border-white/10 text-white w-[95vw] max-w-2xl mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[#E2FF1B]">
             <Trophy className="w-5 h-5" />

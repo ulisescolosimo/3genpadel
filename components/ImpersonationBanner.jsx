@@ -7,8 +7,6 @@ import { AlertCircle, User, Shield } from 'lucide-react'
 export default function ImpersonationBanner() {
   const { impersonatedUser, stopImpersonating } = useAuth()
 
-  console.log('ImpersonationBanner - impersonatedUser:', impersonatedUser)
-
   if (!impersonatedUser) {
     return null
   }

@@ -9,7 +9,8 @@ import {
   LogOut,
   Menu,
   Trophy,
-  Gamepad2
+  Gamepad2,
+  Award
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import { useState } from 'react'
@@ -41,6 +42,11 @@ export default function AdminHeader() {
       icon: Gamepad2
     },
     {
+      title: 'Jugadores Ranking',
+      href: '/admin/jugadores-ranking',
+      icon: Award
+    },
+    {
       title: 'Configuración',
       href: '/admin/configuracion',
       icon: Settings
@@ -51,14 +57,14 @@ export default function AdminHeader() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo y título */}
-          <Link href="/admin/dashboard" className="flex items-center gap-3">
+          {/* Logo y título - solo visible en mobile */}
+          <Link href="/admin/dashboard" className="flex items-center gap-3 md:hidden">
             <img src="/images/logo/logo.png" alt="3gen Padel" className="h-8" />
             <span className="text-white font-semibold text-lg">Panel Admin</span>
           </Link>
 
           {/* Navegación desktop */}
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-2 md:flex-1 md:justify-center">
             {menuItems.map((item) => {
               const isActive = pathname === item.href
               const Icon = item.icon
@@ -80,7 +86,7 @@ export default function AdminHeader() {
           </nav>
 
           {/* Botones de acción */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:flex-shrink-0">
             <button
               onClick={signOut}
               className="hidden md:flex items-center gap-2 px-4 py-2 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-lg transition-colors"

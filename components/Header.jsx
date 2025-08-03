@@ -186,13 +186,6 @@ export default function Header() {
             {/* Navigation Section */}
             <div className="flex items-center gap-8">
               <Link 
-                href="/" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <Home className="w-4 h-4" />
-                Inicio
-              </Link>
-              <Link 
                 href="/inscripciones" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
               >
@@ -356,14 +349,6 @@ export default function Header() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col gap-4">
               <Link 
-                href="/" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <Home className="w-4 h-4" />
-                Inicio
-              </Link>
-              <Link 
                 href="/inscripciones" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                 onClick={closeMenu}
@@ -426,7 +411,11 @@ export default function Header() {
               {user ? (
                 <>
                   <div className="border-t border-white/10 pt-4 mt-2">
-                    <div className="flex items-center gap-3 mb-3">
+                    <Link 
+                      href="/perfil" 
+                      className="flex items-center gap-3 mb-3 hover:bg-white/5 p-2 rounded-lg transition-colors"
+                      onClick={closeMenu}
+                    >
                       <Avatar className="h-8 w-8">
                         <AvatarImage
                           src={getUserAvatar()}
@@ -444,14 +433,6 @@ export default function Header() {
                           {getUserEmail()}
                         </p>
                       </div>
-                    </div>
-                    <Link 
-                      href="/perfil" 
-                      className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors mb-2"
-                      onClick={closeMenu}
-                    >
-                      <User className="w-4 h-4" />
-                      Mi perfil
                     </Link>
                     <Button 
                       variant="ghost" 
@@ -463,7 +444,7 @@ export default function Header() {
                       className="w-full text-red-400 hover:text-red-300 hover:bg-white/10 px-3 py-1 text-xs font-semibold rounded-full border border-white/10 hover:border-white/20 transition-all duration-300"
                     >
                       <LogOut className="w-3 h-3 mr-1" />
-                      Cerrar Sesión
+                      Cerrar sesión
                     </Button>
                   </div>
                 </>

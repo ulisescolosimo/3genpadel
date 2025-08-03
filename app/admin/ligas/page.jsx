@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Trophy, Users, Calendar, Eye, Plus, Gamepad2, BarChart3, Settings, RefreshCw, Edit, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
+import { formatArgentineDateShort } from '@/lib/date-utils'
 import Link from 'next/link'
 
 export default function AdminLigasPage() {
@@ -166,10 +167,7 @@ export default function AdminLigasPage() {
 
   // Función para formatear fechas correctamente sin problemas de zona horaria
   const formatDate = (dateString) => {
-    if (!dateString) return ''
-    // Para fechas en formato YYYY-MM-DD, crear la fecha directamente
-    const [year, month, day] = dateString.split('-')
-    return `${day}/${month}/${year}`
+    return formatArgentineDateShort(dateString)
   }
 
   // Funciones para editar ligas
@@ -711,7 +709,7 @@ export default function AdminLigasPage() {
 
       {/* Modal de edición */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-gray-900 border-white/10 text-white w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto mx-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingLiga ? 'Editar Liga' : 'Crear Nueva Liga'}
@@ -723,7 +721,7 @@ export default function AdminLigasPage() {
           
           <div className="grid gap-4 py-4">
             {/* Primera fila: Nombre y Estado */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="nombre" className="text-white">Nombre de la Liga</Label>
                 <Input
@@ -750,7 +748,7 @@ export default function AdminLigasPage() {
             </div>
             
             {/* Segunda fila: Fecha de inicio y Costos */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="fecha_inicio" className="text-white">Fecha de Inicio</Label>
                 <Input
@@ -788,7 +786,7 @@ export default function AdminLigasPage() {
             </div>
             
             {/* Tercera fila: Descripción y Formato */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="descripcion" className="text-white">Descripción</Label>
                 <Textarea
@@ -815,7 +813,7 @@ export default function AdminLigasPage() {
             </div>
             
             {/* Cuarta fila: Horarios y Cronograma */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="horarios" className="text-white">Horarios</Label>
                 <Textarea
@@ -855,7 +853,7 @@ export default function AdminLigasPage() {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={closeEditModal} className="border-white/20 text-white hover:bg-white/10">
               Cancelar
             </Button>
@@ -872,7 +870,7 @@ export default function AdminLigasPage() {
 
       {/* Modal de confirmación de eliminación */}
       <Dialog open={deleteConfirmModal} onOpenChange={setDeleteConfirmModal}>
-        <DialogContent className="bg-gray-900 border-red-500/20 text-white">
+        <DialogContent className="bg-gray-900 border-red-500/20 text-white w-[95vw] max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle className="text-red-400 flex items-center gap-2">
               <Trash2 className="h-5 w-5" />
@@ -907,7 +905,7 @@ export default function AdminLigasPage() {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={cancelDelete} className="border-white/20 text-white hover:bg-white/10">
               Cancelar
             </Button>

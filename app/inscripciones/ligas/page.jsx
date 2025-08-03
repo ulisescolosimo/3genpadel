@@ -9,6 +9,7 @@ import HtmlContent from '@/components/ui/html-content'
 import { Trophy, Users, Calendar, MapPin, ArrowLeft, Star, Clock, Award, Target, LogIn } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
+import { formatArgentineDate } from '@/lib/date-utils'
 
 export default function LigasPage() {
   const { user } = useAuth()
@@ -94,14 +95,7 @@ export default function LigasPage() {
   }
 
   const formatDate = (dateString) => {
-    if (!dateString) return ''
-    // Para fechas en formato YYYY-MM-DD, crear la fecha directamente
-    const [year, month, day] = dateString.split('-')
-    const monthNames = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-    ]
-    return `${day} de ${monthNames[parseInt(month) - 1]} de ${year}`
+    return formatArgentineDate(dateString)
   }
 
   if (loading) {

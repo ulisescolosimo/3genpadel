@@ -20,23 +20,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import Papa from 'papaparse'
-
-// URLs de los Google Sheets CSV para 2025
-const C8_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJlPwCH1_F1wzoxo5Ss37zJXLaozte-5FHUlFIpLcHFoI4Lf6D4oaLRteb-2NdP9ktJMkXwoG3OJWG/pub?gid=1793750983&single=true&output=csv'
-const C7_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJlPwCH1_F1wzoxo5Ss37zJXLaozte-5FHUlFIpLcHFoI4Lf6D4oaLRteb-2NdP9ktJMkXwoG3OJWG/pub?gid=1978502011&single=true&output=csv'
-const C6_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJlPwCH1_F1wzoxo5Ss37zJXLaozte-5FHUlFIpLcHFoI4Lf6D4oaLRteb-2NdP9ktJMkXwoG3OJWG/pub?gid=1279295909&single=true&output=csv'
-const C4_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJlPwCH1_F1wzoxo5Ss37zJXLaozte-5FHUlFIpLcHFoI4Lf6D4oaLRteb-2NdP9ktJMkXwoG3OJWG/pub?gid=1997800809&single=true&output=csv'
+import Link from 'next/link'
 
 // URLs para títulos (desde rankings2)
 const TITULOS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTezjXDYOeKyM5qecI5wIVupip5PyL3nWVBhsGG1vt4f54zy4BUlfuSNQhoP52TOqDJdw9E80daISfA/pub?gid=786786570&single=true&output=csv'
-
-// Mapeo de categorías a URLs
-const CATEGORIA_URLS = {
-  'C4': C4_URL,
-  'C6': C6_URL,
-  'C7': C7_URL,
-  'C8': C8_URL
-}
 
 // Función para parsear CSV usando Papa Parse
 const parseCSV = (csvText) => {
@@ -75,46 +62,36 @@ export default function Rankings() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showInfoDialog, setShowInfoDialog] = useState(false)
 
-  // Función para cargar datos de una categoría específica
-  const fetchCategoriaData = async (categoria) => {
-    const url = CATEGORIA_URLS[categoria]
-    if (!url) return []
-
+  // Función para cargar datos de ranking_jugadores desde Supabase
+  const fetchRankingData = async () => {
     try {
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`Error al cargar datos de ${categoria}`)
+      const { data, error } = await supabase
+        .from('ranking_jugadores')
+        .select(`
+          *,
+          usuario:usuarios(id, nombre, apellido, email)
+        `)
+        .order('puntos', { ascending: false })
+
+      if (error) {
+        throw new Error('Error al cargar los datos de ranking')
       }
-      
-      const csvText = await response.text()
-      const rawData = await parseCSV(csvText)
-      
-      // Transformar datos según el formato de cada categoría
-      const transformedData = rawData.map(row => ({
-        id: row.id,
-        nombre: capitalizarNombre(row.Jugador || row['Jugador '] || ''),
-        categoria: categoria,
-        puntos: parseInt(row['Puntos'] || row['Puntos Re'] || '0') || 0,
-        año: '2025'
+
+      // Transformar datos para el formato esperado
+      const transformedData = data.map((jugador, index) => ({
+        id: jugador.id,
+        nombre: jugador.nombre ? `${jugador.nombre} ${jugador.apellido}` : jugador.apellido,
+        categoria: jugador.categoria || 'Sin categoría',
+        puntos: jugador.puntos || 0,
+        año: '2025',
+        usuario_vinculado: jugador.usuario
       })).filter(row => row.nombre && row.nombre.trim() !== '')
 
       return transformedData
     } catch (err) {
-      console.error(`Error procesando ${categoria}:`, err)
+      console.error('Error cargando datos de ranking:', err)
       return []
     }
-  }
-
-  // Función para cargar todos los datos
-  const fetchAllData = async () => {
-    const allData = []
-    
-    for (const categoria of Object.keys(CATEGORIA_URLS)) {
-      const data = await fetchCategoriaData(categoria)
-      allData.push(...data)
-    }
-    
-    return allData
   }
 
   // Función para cargar datos de títulos
@@ -145,6 +122,7 @@ export default function Rankings() {
 
   // Función para capitalizar nombres (primera letra de cada palabra en mayúscula)
   const capitalizarNombre = (nombre) => {
+    if (!nombre) return ''
     return nombre
       .toLowerCase()
       .split(' ')
@@ -171,7 +149,7 @@ export default function Rankings() {
       } else {
         // Si es la primera vez que aparece este jugador
         jugadoresAgrupados[nombreCapitalizado] = {
-          id: row.id,
+          id: `titulo-${row.id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           nombre: nombreCapitalizado,
           titulos: row.titulos,
           categorias: [{
@@ -187,7 +165,7 @@ export default function Rankings() {
     return Object.values(jugadoresAgrupados)
       .map((jugador, index) => ({
         ...jugador,
-        id: index + 1
+        id: `titulo-agrupado-${index + 1}`
       }))
       .sort((a, b) => b.titulos - a.titulos)
   }
@@ -197,15 +175,8 @@ export default function Rankings() {
       try {
         setLoading(true)
         
-        let data
-        if (selectedCategoria !== 'todos') {
-          // Si hay filtro de categoría, cargar solo esa categoría
-          data = await fetchCategoriaData(selectedCategoria)
-        } else {
-          // Si no hay filtro, cargar todas las categorías
-          data = await fetchAllData()
-        }
-
+        // Cargar datos de ranking desde Supabase
+        const data = await fetchRankingData()
         setRankingsData(data)
         
         // Cargar datos de títulos
@@ -222,25 +193,33 @@ export default function Rankings() {
     }
 
     fetchData()
-  }, [selectedCategoria]) // Re-ejecutar cuando cambie la categoría seleccionada
+  }, []) // Solo ejecutar una vez al cargar la página
 
   // Filtrar datos según selección y búsqueda
   const filteredRankings = rankingsData.filter(row => {
     if (selectedAño !== 'todos' && row.año !== selectedAño) return false
+    if (selectedCategoria !== 'todos' && row.categoria !== selectedCategoria) return false
     if (searchTerm && !row.nombre.toLowerCase().includes(searchTerm.toLowerCase())) return false
     return true
   }).sort((a, b) => b.puntos - a.puntos)
+
+  // Debug: verificar que el filtrado funciona
+  console.log('Search term:', searchTerm)
+  console.log('Filtered rankings count:', filteredRankings.length)
+  console.log('Original rankings count:', rankingsData.length)
 
   const filteredTitulos = titulosData.filter(row => {
     // Solo filtrar por año si el usuario ha seleccionado un año específico
     if (selectedAño !== 'todos' && row.año !== selectedAño) return false
     if (selectedCategoria !== 'todos' && row.categoria !== selectedCategoria) return false
-    if (searchTerm && !row.nombre.toLowerCase().includes(searchTerm.toLowerCase())) return false
     return true
   })
 
-  // Agrupar títulos por jugador
-  const titulosAgrupados = agruparTitulosPorJugador(filteredTitulos)
+  // Agrupar títulos por jugador y aplicar filtro de búsqueda después del agrupamiento
+  const titulosAgrupados = agruparTitulosPorJugador(filteredTitulos).filter(jugador => {
+    if (searchTerm && !jugador.nombre.toLowerCase().includes(searchTerm.toLowerCase())) return false
+    return true
+  })
 
   if (loading) {
     return (
@@ -328,7 +307,11 @@ export default function Rankings() {
                 </SelectTrigger>
                 <SelectContent className="bg-gray-900 border-gray-800">
                   <SelectItem value="todos">Todas las categorías</SelectItem>
+                  <SelectItem value="C1">C1</SelectItem>
+                  <SelectItem value="C2">C2</SelectItem>
+                  <SelectItem value="C3">C3</SelectItem>
                   <SelectItem value="C4">C4</SelectItem>
+                  <SelectItem value="C5">C5</SelectItem>
                   <SelectItem value="C6">C6</SelectItem>
                   <SelectItem value="C7">C7</SelectItem>
                   <SelectItem value="C8">C8</SelectItem>
@@ -348,7 +331,7 @@ export default function Rankings() {
                   <div className="flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-[#E2FF1B]" />
                     <h2 className="text-lg sm:text-xl font-semibold text-white">
-                      {selectedCategoria !== 'todos' ? `Rankings ${selectedCategoria}` : 'Rankings por puntos'}
+                      {selectedCategoria !== 'todos' ? `Ranking ${selectedCategoria}` : 'Ranking por puntos'}
                     </h2>
                   </div>
                   <div className="flex items-center gap-2">
@@ -390,7 +373,20 @@ export default function Rankings() {
                             </div>
                           </td>
                           <td className="p-3">
-                            <span className="text-sm sm:text-base text-white font-medium">{row.nombre}</span>
+                            <div className="flex flex-col">
+                              {row.usuario_vinculado ? (
+                                <Link 
+                                  href={`/jugadores/${row.usuario_vinculado.id}`}
+                                  className="text-sm sm:text-base text-white font-medium hover:text-[#E2FC1D] transition-colors"
+                                >
+                                  {row.nombre}
+                                </Link>
+                              ) : (
+                                <span className="text-sm sm:text-base text-white font-medium opacity-75">
+                                  {row.nombre}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-3">
                             <span className="bg-blue-600/20 text-blue-300 px-2 py-1 rounded-full text-xs border border-blue-500/30">
@@ -469,7 +465,9 @@ export default function Rankings() {
                             </div>
                           </td>
                           <td className="p-3">
-                            <span className="text-sm sm:text-base text-white font-medium">{row.nombre}</span>
+                            <span className="text-sm sm:text-base text-white font-medium">
+                              {row.nombre}
+                            </span>
                           </td>
                           <td className="p-3">
                             <div className="relative group">
@@ -512,7 +510,7 @@ export default function Rankings() {
 
       {/* Popup informativo sobre puntos */}
       <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white w-[calc(100vw-2rem)] sm:w-auto sm:max-w-md mx-auto">
+        <DialogContent className="bg-gray-900 border-gray-800 text-white w-[95vw] max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold text-white">
               <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#E2FF1B]" />

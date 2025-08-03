@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { formatArgentineDate, formatArgentineDateTime } from '@/lib/date-utils'
 import { 
   Edit, 
   Calendar, 
@@ -30,7 +31,8 @@ import {
   Gamepad2,
   Award,
   CalendarDays,
-  Zap
+  Zap,
+  Info
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -80,6 +82,10 @@ export default function ProfilePage() {
   const [partidos, setPartidos] = useState([])
   const [loadingPartidos, setLoadingPartidos] = useState(true)
   
+  // Estados para ranking points
+  const [rankingData, setRankingData] = useState(null)
+  const [loadingRanking, setLoadingRanking] = useState(true)
+  
   const router = useRouter()
 
   // Formulario de edición
@@ -95,25 +101,7 @@ export default function ProfilePage() {
 
   // Función para formatear fechas de partidos
   const formatearFecha = (fecha) => {
-    if (!fecha) return null
-    
-    try {
-      const fechaObj = new Date(fecha)
-      return {
-        fecha: fechaObj.toLocaleDateString('es-ES', {
-          weekday: 'short',
-          day: '2-digit',
-          month: 'short'
-        }),
-        hora: fechaObj.toLocaleTimeString('es-ES', {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      }
-    } catch (error) {
-      console.error('Error formateando fecha:', error)
-      return null
-    }
+    return formatArgentineDateTime(fecha)
   }
 
   // Función para obtener el nombre del equipo
@@ -457,6 +445,13 @@ export default function ProfilePage() {
     }
   }, [usuario])
 
+  // Cargar datos de ranking cuando el usuario esté disponible
+  useEffect(() => {
+    if (usuario?.id) {
+      fetchRankingData()
+    }
+  }, [usuario])
+
   const fetchInscripciones = async () => {
     if (!usuario?.id) return
 
@@ -494,6 +489,39 @@ export default function ProfilePage() {
       setInscripcionesLigas([])
     } finally {
       setLoadingInscripciones(false)
+    }
+  }
+
+  // Función para cargar datos de ranking del usuario
+  const fetchRankingData = async () => {
+    if (!usuario?.id) return
+
+    try {
+      setLoadingRanking(true)
+
+      const { data: rankingData, error: rankingError } = await supabase
+        .from('ranking_jugadores')
+        .select('*')
+        .eq('usuario_id', usuario.id)
+        .single()
+
+      if (rankingError) {
+        if (rankingError.code === 'PGRST116') {
+          // No hay datos de ranking para este usuario
+          setRankingData(null)
+        } else {
+          console.error('Error fetching ranking data:', rankingError)
+          setRankingData(null)
+        }
+      } else {
+        setRankingData(rankingData)
+      }
+
+    } catch (error) {
+      console.error('Error fetching ranking data:', error)
+      setRankingData(null)
+    } finally {
+      setLoadingRanking(false)
     }
   }
 
@@ -719,6 +747,11 @@ export default function ProfilePage() {
       case 'pendiente': return 'Pendiente'
       default: return estado
     }
+  }
+
+  // Función para formatear fechas correctamente sin problemas de zona horaria
+  const formatDate = (dateString) => {
+    return formatArgentineDate(dateString)
   }
 
   const getRolUsuario = (inscripcion) => {
@@ -996,27 +1029,14 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Alerta de DNI requerido */}
-          {!usuario.dni && (
-            <div className="mt-4 sm:mt-0 p-3 sm:p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <div className="flex items-center gap-2 text-red-400">
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                <div>
-                  <h4 className="font-semibold text-sm sm:text-base">DNI requerido</h4>
-                  <p className="text-xs sm:text-sm text-red-300">
-                    Debes configurar tu DNI para poder inscribirte en ligas.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
-          <div className="flex gap-2 mt-4 sm:mt-0">
+
+          <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
               <DialogTrigger asChild>
                 <Button 
                   onClick={handleEditProfile}
-                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base"
+                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base w-full sm:w-auto"
                 >
                   <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                   Editar Perfil
@@ -1026,13 +1046,13 @@ export default function ProfilePage() {
               <Button 
                 onClick={handleSignOut}
                 variant="outline"
-                className="border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 text-sm sm:text-base"
+                className="border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 text-sm sm:text-base w-full sm:w-auto"
               >
                 <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 {impersonatedUser ? 'Salir del Modo Admin' : 'Cerrar Sesión'}
               </Button>
               
-              <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-md">
+              <DialogContent className="bg-gray-900 border-gray-800 text-white w-[95vw] max-w-md mx-auto">
                 <DialogHeader>
                   <DialogTitle>Editar Perfil de Jugador</DialogTitle>
                 </DialogHeader>
@@ -1044,7 +1064,7 @@ export default function ProfilePage() {
                     <Input
                       value={editForm.nombre}
                       onChange={(e) => setEditForm(prev => ({ ...prev, nombre: e.target.value }))}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-gray-800 border-gray-700 text-white h-10 sm:h-9"
                       placeholder="Tu nombre"
                     />
                   </div>
@@ -1055,7 +1075,7 @@ export default function ProfilePage() {
                     <Input
                       value={editForm.apellido}
                       onChange={(e) => setEditForm(prev => ({ ...prev, apellido: e.target.value }))}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-gray-800 border-gray-700 text-white h-10 sm:h-9"
                       placeholder="Tu apellido"
                     />
                   </div>
@@ -1066,7 +1086,7 @@ export default function ProfilePage() {
                     <Input
                       value={editForm.dni}
                       onChange={(e) => setEditForm(prev => ({ ...prev, dni: e.target.value }))}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-gray-800 border-gray-700 text-white h-10 sm:h-9"
                       placeholder="12345678"
                       maxLength={8}
                     />
@@ -1078,7 +1098,7 @@ export default function ProfilePage() {
                     <Input
                       value={editForm.telefono}
                       onChange={(e) => setEditForm(prev => ({ ...prev, telefono: e.target.value }))}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-gray-800 border-gray-700 text-white h-10 sm:h-9"
                       placeholder="01112345678"
                     />
                   </div>
@@ -1091,7 +1111,7 @@ export default function ProfilePage() {
                       type="date"
                       value={editForm.fecha_nacimiento}
                       onChange={(e) => setEditForm(prev => ({ ...prev, fecha_nacimiento: e.target.value }))}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-gray-800 border-gray-700 text-white h-10 sm:h-9"
                     />
                   </div>
 
@@ -1100,7 +1120,7 @@ export default function ProfilePage() {
                       Lado (Drive/Revés)
                     </label>
                     <Select value={editForm.lado || "none"} onValueChange={(value) => setEditForm(prev => ({ ...prev, lado: value === "none" ? null : value }))}>
-                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 focus:ring-2 focus:ring-[#E2FF1B] focus:border-[#E2FF1B]">
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 focus:ring-2 focus:ring-[#E2FF1B] focus:border-[#E2FF1B] h-10 sm:h-9">
                         <SelectValue placeholder="Selecciona un lado" />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-800 border-gray-700">
@@ -1111,11 +1131,11 @@ export default function ProfilePage() {
                     </Select>
                   </div>
 
-                  <div className="flex gap-2 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4">
                     <Button
                       onClick={handleSaveProfile}
                       disabled={isSaving}
-                      className="flex-1 bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                      className="flex-1 bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 h-10 sm:h-9"
                     >
                       {isSaving ? (
                         <>
@@ -1132,7 +1152,7 @@ export default function ProfilePage() {
                     <Button
                       onClick={() => setIsEditModalOpen(false)}
                       variant="outline"
-                      className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800"
+                      className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 h-10 sm:h-9"
                     >
                       Cancelar
                     </Button>
@@ -1185,7 +1205,7 @@ export default function ProfilePage() {
                       <p className="text-xs sm:text-sm text-gray-400">Fecha de Nacimiento</p>
                       <p className="text-sm sm:text-base text-white">
                         {usuario.fecha_nacimiento 
-                          ? format(new Date(usuario.fecha_nacimiento), "d 'de' MMMM 'de' yyyy", { locale: es })
+                          ? formatArgentineDate(usuario.fecha_nacimiento)
                           : 'No especificada'
                         }
                       </p>
@@ -1195,9 +1215,20 @@ export default function ProfilePage() {
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
                       <p className="text-xs sm:text-sm text-gray-400">DNI</p>
-                      <p className="text-sm sm:text-base text-white">
-                        {usuario.dni?.toString() || 'No especificado'}
-                      </p>
+                      {usuario.dni ? (
+                        <p className="text-sm sm:text-base text-white">
+                          {usuario.dni.toString()}
+                        </p>
+                      ) : (
+                        <div className="mt-1 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs">
+                          <div className="flex items-center gap-1 text-red-400">
+                            <AlertCircle className="w-3 h-3" />
+                            <span className="text-red-300">
+                              Debes configurar tu DNI para poder inscribirte en ligas.
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1212,6 +1243,60 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Ranking Points */}
+            {rankingData && (
+              <Card className="bg-gray-900/50 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+                    Ranking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="flex items-center gap-3">
+                      <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-400">Puntos Totales</p>
+                        <p className="text-lg sm:text-xl text-white font-bold">
+                          {rankingData.puntos || 0}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-400">Categoría</p>
+                        <p className="text-sm sm:text-base text-white">
+                          {rankingData.categoria || 'Sin categoría'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-400">Posición</p>
+                        <p className="text-sm sm:text-base text-white">
+                          {rankingData.posicion || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Info className="w-4 h-4 text-[#E2FF1B]" />
+                      <span className="text-sm font-medium text-[#E2FF1B]">Sistema de puntos</span>
+                    </div>
+                    <p className="text-xs text-gray-300">
+                      Los puntos se acumulan según tu rendimiento en los torneos. 
+                      Cuanto más lejos llegues, más puntos obtienes.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Inscripciones Activas */}
             <Card className="bg-gray-900/50 border-gray-800">
@@ -1256,7 +1341,7 @@ export default function ProfilePage() {
                                     <div className="flex items-center gap-2">
                                       <Calendar className="w-3 h-3 text-gray-400" />
                                       <span className="text-xs sm:text-sm text-gray-300">
-                                        Inicio: {format(new Date(inscripcion.liga_categorias.ligas.fecha_inicio), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                                        Inicio: {formatDate(inscripcion.liga_categorias.ligas.fecha_inicio)}
                                       </span>
                                     </div>
                                   )}

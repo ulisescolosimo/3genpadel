@@ -284,24 +284,106 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="w-full py-12 bg-gray-900">
-        <div className="container mx-auto px-4 md:px-6 max-w-7xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="flex flex-col items-center space-y-2">
-              <div className="text-3xl font-bold text-[#E2FF1B]">500+</div>
-              <div className="text-sm text-gray-400">Jugadores Activos</div>
+      <section className="w-full py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
+
+        
+        <div className="container mx-auto px-4 md:px-6 max-w-7xl relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Números que Hablan
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+              Descubre el impacto de 3gen Padel Academy en la comunidad del pádel
+            </p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {/* Jugadores Activos */}
+            <div className="group relative">
+              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="relative">
+                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
+                      500+
+                    </div>
+                  </div>
+                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                    Jugadores Activos
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Comunidad creciente
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="text-3xl font-bold text-[#E2FF1B]">50+</div>
-              <div className="text-sm text-gray-400">Clases Organizadas</div>
+
+            {/* Clases Organizadas */}
+            <div className="group relative">
+              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="relative">
+                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
+                      50+
+                    </div>
+                  </div>
+                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                    Clases Organizadas
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Experiencia garantizada
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="text-3xl font-bold text-[#E2FF1B]">1000+</div>
-              <div className="text-sm text-gray-400">Partidos Jugados</div>
+
+            {/* Partidos Jugados */}
+            <div className="group relative">
+              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="relative">
+                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
+                      1000+
+                    </div>
+                  </div>
+                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                    Partidos Jugados
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Diversión asegurada
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="text-3xl font-bold text-[#E2FF1B]">4.8/5</div>
-              <div className="text-sm text-gray-400">Valoración Media</div>
+
+            {/* Valoración Media */}
+            <div className="group relative">
+              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="relative">
+                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
+                      4.8/5
+                    </div>
+                  </div>
+                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                    Valoración Media
+                  </div>
+                  <div className="text-xs text-white">
+                    Excelencia comprobada
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="text-center mt-12">
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-full px-6 py-3 border border-[#E2FF1B]/30">
+              <span className="text-[#E2FF1B] text-sm font-medium">
+                ¡Únete a nuestra comunidad!
+              </span>
+              <div className="w-2 h-2 bg-[#E2FF1B] rounded-full animate-ping"></div>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, Users, Trophy, Filter } from 'lucide-react'
+import { formatArgentineDateLong, formatArgentineDateShort } from '@/lib/date-utils'
 import { useToast } from '@/hooks/use-toast'
 import {
   Select,
@@ -162,13 +163,7 @@ export default function PartidosPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Fecha por definir'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-AR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    return formatArgentineDateLong(dateString)
   }
 
   const formatTime = (dateString) => {
