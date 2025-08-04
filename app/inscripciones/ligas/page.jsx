@@ -263,7 +263,7 @@ export default function LigasPage() {
                             {cat.disponible ? (
                               <>
                                 <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
-                                <span className="text-green-400">Plazas disponibles</span>
+                                <span className="text-green-400">{cat.maxInscripciones - cat.inscripcionesActuales} plazas disponibles</span>
                               </>
                             ) : (
                               <>
