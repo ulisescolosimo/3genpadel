@@ -244,12 +244,12 @@ export default function Header() {
               <div className="flex items-center gap-4">
                 {user ? (
                   <>
-                    <NotificationDropdown />
+                    <NotificationDropdown isMobile={false} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="relative h-8 w-8 rounded-full focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="relative h-8 w-8 rounded-full focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-transparent"
                         >
                           <Avatar className="h-8 w-8">
                             <AvatarImage
@@ -337,13 +337,16 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden text-white/70 hover:text-[#E2FF1B] transition-colors"
-            onClick={toggleMenu}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-3">
+            {user && <NotificationDropdown isMobile={true} />}
+            <button 
+              className="text-white/70 hover:text-[#E2FF1B] transition-colors"
+              onClick={toggleMenu}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 

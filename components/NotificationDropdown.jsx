@@ -1,6 +1,7 @@
 'use client'
 
-import { Bell } from 'lucide-react'
+import { useState } from 'react'
+import { Bell, X, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,8 +14,21 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useNotifications } from '@/hooks/useNotifications'
 
-export default function NotificationDropdown() {
+export default function NotificationDropdown({ isMobile = false }) {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications()
+  const [expandedNotifications, setExpandedNotifications] = useState(new Set())
+
+  const toggleNotification = (notificationId) => {
+    setExpandedNotifications(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(notificationId)) {
+        newSet.delete(notificationId)
+      } else {
+        newSet.add(notificationId)
+      }
+      return newSet
+    })
+  }
 
   const formatNotificationTime = (createdAt) => {
     const now = new Date()
@@ -48,81 +62,173 @@ export default function NotificationDropdown() {
     }
   }
 
+  const getNotificationColor = (tipo) => {
+    switch (tipo) {
+      case 'liga':
+        return 'border-l-4 border-l-blue-500'
+      case 'ranking':
+        return 'border-l-4 border-l-yellow-500'
+      case 'academia':
+        return 'border-l-4 border-l-green-500'
+      case 'sistema':
+        return 'border-l-4 border-l-purple-500'
+      default:
+        return 'border-l-4 border-l-gray-500'
+    }
+  }
+
   // El hook useNotifications ya maneja la verificación del usuario
   if (!notifications) return null
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-                 <Button
-           variant="ghost"
-           size="sm"
-           className="relative h-10 w-10 rounded-full focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-         >
-           <Bell className="h-7 w-7 text-white/70 hover:text-[#E2FF1B] transition-colors" />
+        <Button
+          variant="ghost"
+          size={isMobile ? "sm" : "sm"}
+          className={`relative ${isMobile ? 'h-10 w-10' : 'h-10 w-10'} rounded-full focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 group`}
+        >
+          <Bell className={`${isMobile ? 'h-6 w-6' : 'h-7 w-7'} text-white/70 group-hover:text-[#E2FF1B] transition-all duration-200`} />
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+              className={`absolute -top-1 -right-1 ${isMobile ? 'h-5 w-5' : 'h-5 w-5'} rounded-full p-0 text-xs flex items-center justify-center animate-pulse`}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 max-h-96" align="end" forceMount>
-        <DropdownMenuLabel className="flex items-center justify-between">
-          <span className="font-medium">Notificaciones</span>
+      <DropdownMenuContent 
+        className={`${isMobile ? 'w-[calc(100vw-2rem)] max-h-[80vh]' : 'w-96 max-h-[600px]'} bg-black/95 backdrop-blur-md border border-white/20 shadow-2xl`}
+        align={isMobile ? "center" : "end"}
+        forceMount
+      >
+        <DropdownMenuLabel className="flex items-center justify-between p-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5 text-[#E2FF1B]" />
+            <span className="font-semibold text-white text-lg">Notificaciones</span>
+            {unreadCount > 0 && (
+              <Badge className="bg-[#E2FF1B] text-black text-xs">
+                {unreadCount}
+              </Badge>
+            )}
+          </div>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="text-xs text-blue-400 hover:text-blue-300"
+              className="text-xs bg-black/50 text-[#E2FF1B] hover:bg-black/70 border border-[#E2FF1B]/30 transition-all duration-200"
             >
-              Marcar como leídas
+              <Check className="w-3 h-3 mr-1" />
+              Marcar todas
             </Button>
           )}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
         
-        <div className="max-h-80 overflow-y-auto">
+        <div className={`${isMobile ? 'max-h-[calc(80vh-120px)]' : 'max-h-[500px]'} overflow-y-auto`}>
           {loading ? (
-            <div className="p-4 text-center text-sm text-gray-400">
-              Cargando notificaciones...
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E2FF1B] mx-auto mb-3"></div>
+              <p className="text-white/60 text-sm">Cargando notificaciones...</p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-gray-400">
-              No tienes notificaciones
+            <div className="p-8 text-center">
+              <Bell className="h-12 w-12 text-white/20 mx-auto mb-3" />
+              <p className="text-white/60 text-sm">No tienes notificaciones</p>
+              <p className="text-white/40 text-xs mt-1">Las notificaciones aparecerán aquí</p>
             </div>
           ) : (
-            notifications.map((notification) => (
-              <DropdownMenuItem
-                key={notification.id}
-                onClick={() => markAsRead(notification.id)}
-                className={`p-3 cursor-pointer ${!notification.leida ? 'bg-blue-50 dark:bg-blue-950/20' : ''}`}
-              >
-                <div className="flex items-start gap-3 w-full">
-                  <span className="text-lg">{getNotificationIcon(notification.tipo)}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${!notification.leida ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'}`}>
-                      {notification.titulo}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                      {notification.mensaje}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      {formatNotificationTime(notification.created_at)}
-                    </p>
+            <div className="p-2">
+              {notifications.map((notification) => {
+                const isExpanded = expandedNotifications.has(notification.id)
+                
+                return (
+                  <div
+                    key={notification.id}
+                    className={`mb-2 rounded-lg transition-all duration-200 ${
+                      !notification.leida 
+                        ? 'bg-white/5 border border-white/10' 
+                        : 'bg-white/2 border border-white/5'
+                    } ${getNotificationColor(notification.tipo)}`}
+                  >
+                    <div 
+                      className="p-4 cursor-pointer hover:bg-white/5 transition-all duration-200"
+                      onClick={() => toggleNotification(notification.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <span className="text-2xl">{getNotificationIcon(notification.tipo)}</span>
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <p className={`text-sm font-medium ${
+                              !notification.leida 
+                                ? 'text-white' 
+                                : 'text-white/70'
+                            }`}>
+                              {notification.titulo}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              {!notification.leida && (
+                                <div className="w-2 h-2 bg-[#E2FF1B] rounded-full animate-pulse" />
+                              )}
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-white/50" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-white/50" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          <p className={`text-xs text-white/60 mt-1 ${
+                            isExpanded ? '' : 'line-clamp-2'
+                          }`}>
+                            {notification.mensaje}
+                          </p>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-xs text-white/40">
+                              {formatNotificationTime(notification.created_at)}
+                            </p>
+                            
+                            {!notification.leida && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  markAsRead(notification.id)
+                                }}
+                                className="text-xs bg-[#E2FF1B]/10 text-[#E2FF1B] hover:bg-[#E2FF1B]/20 border border-[#E2FF1B]/30 transition-all duration-200"
+                              >
+                                <Check className="w-3 h-3 mr-1" />
+                                Marcar leída
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {!notification.leida && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
-                  )}
-                </div>
-              </DropdownMenuItem>
-            ))
+                )
+              })}
+            </div>
           )}
         </div>
+        
+        {notifications.length > 0 && (
+          <div className="p-3 border-t border-white/10">
+            <Button 
+              variant="ghost" 
+              className="w-full text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
+            >
+              Ver todas las notificaciones
+            </Button>
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
