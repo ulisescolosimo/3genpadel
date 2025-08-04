@@ -214,13 +214,32 @@ export default function JugadoresRanking() {
 
   const handleLinkUser = async (jugadorId, usuarioId) => {
     try {
-      // Actualizar el jugador con el usuario_id y usar "Usuario Vinculado" como nombre
+      // Obtener los datos del usuario para usar su nombre y apellido
+      const { data: usuario, error: fetchError } = await supabase
+        .from('usuarios')
+        .select('nombre, apellido')
+        .eq('id', usuarioId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Función para capitalizar la primera letra de cada palabra
+      const capitalizeWords = (str) => {
+        if (!str) return str
+        return str
+          .toLowerCase()
+          .split(' ')
+          .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+          .join(' ')
+      }
+
+      // Actualizar el jugador con el usuario_id y los datos reales del usuario
       const { error } = await supabase
         .from('ranking_jugadores')
         .update({ 
           usuario_id: usuarioId,
-          nombre: "Usuario",
-          apellido: "Vinculado"
+          nombre: capitalizeWords(usuario.nombre),
+          apellido: capitalizeWords(usuario.apellido)
         })
         .eq('id', jugadorId)
 
