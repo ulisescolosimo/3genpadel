@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import HtmlContent from '@/components/ui/html-content'
-import { Trophy, Users, Calendar, MapPin, ArrowLeft, Star, Clock, Award, Target, LogIn } from 'lucide-react'
+import { Trophy, Users, Calendar, MapPin, ArrowLeft, Star, Clock, Award, Target, LogIn, DollarSign } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { formatArgentineDate } from '@/lib/date-utils'
@@ -207,9 +207,17 @@ export default function LigasPage() {
                       
                       {liga.costo_inscripcion && (
                         <div className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
-                          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] flex-shrink-0" />
+                          <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] flex-shrink-0" />
                           <span className="font-medium">Costo de inscripción:</span>
                           <span className="text-[#E2FF1B] font-bold text-base sm:text-lg">${liga.costo_inscripcion.toLocaleString()}</span>
+                        </div>
+                      )}
+                      
+                      {liga.costo_partido && (
+                        <div className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
+                          <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] flex-shrink-0" />
+                          <span className="font-medium">Costo por partido:</span>
+                          <span className="text-[#E2FF1B] font-bold text-base sm:text-lg">${liga.costo_partido.toLocaleString()}</span>
                         </div>
                       )}
                     </div>

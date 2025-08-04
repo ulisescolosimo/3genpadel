@@ -10,7 +10,8 @@ import {
   Menu,
   Trophy,
   Gamepad2,
-  Award
+  Award,
+  Crown
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import { useState } from 'react'
@@ -27,7 +28,7 @@ export default function AdminHeader() {
       icon: LayoutDashboard
     },
     {
-      title: 'Inscripciones Ligas',
+      title: 'Inscripciones',
       href: '/admin/inscripciones-ligas',
       icon: Users
     },
@@ -42,9 +43,14 @@ export default function AdminHeader() {
       icon: Gamepad2
     },
     {
-      title: 'Jugadores Ranking',
+      title: 'Ranking',
       href: '/admin/jugadores-ranking',
       icon: Award
+    },
+    {
+      title: 'Títulos',
+      href: '/admin/titulos-jugadores',
+      icon: Crown
     },
     {
       title: 'Configuración',

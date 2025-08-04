@@ -116,12 +116,29 @@ export default function JugadoresRanking() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    // Función para capitalizar la primera letra de cada palabra
+    const capitalizeWords = (str) => {
+      if (!str) return str
+      return str
+        .toLowerCase()
+        .split(' ')
+        .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+        .join(' ')
+    }
+
+    // Capitalizar nombre y apellido antes de guardar
+    const dataToSave = {
+      ...formData,
+      nombre: capitalizeWords(formData.nombre),
+      apellido: capitalizeWords(formData.apellido)
+    }
+    
     try {
       if (editingJugador) {
                  // Actualizar jugador existente
          const { error } = await supabase
            .from('ranking_jugadores')
-           .update(formData)
+           .update(dataToSave)
            .eq('id', editingJugador.id)
 
         if (error) throw error
@@ -134,7 +151,7 @@ export default function JugadoresRanking() {
          // Crear nuevo jugador
          const { error } = await supabase
            .from('ranking_jugadores')
-           .insert(formData)
+           .insert(dataToSave)
 
         if (error) throw error
 
@@ -197,10 +214,15 @@ export default function JugadoresRanking() {
 
   const handleLinkUser = async (jugadorId, usuarioId) => {
     try {
-             const { error } = await supabase
-         .from('ranking_jugadores')
-         .update({ usuario_id: usuarioId })
-         .eq('id', jugadorId)
+      // Actualizar el jugador con el usuario_id y usar "Usuario Vinculado" como nombre
+      const { error } = await supabase
+        .from('ranking_jugadores')
+        .update({ 
+          usuario_id: usuarioId,
+          nombre: "Usuario",
+          apellido: "Vinculado"
+        })
+        .eq('id', jugadorId)
 
       if (error) throw error
 
@@ -418,6 +440,82 @@ export default function JugadoresRanking() {
     }
   }
 
+  const handleUpdateLinkedNames = async () => {
+    if (!confirm('¿Estás seguro de que quieres actualizar los nombres de todos los jugadores vinculados? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      // Obtener todos los jugadores vinculados
+      const { data: jugadoresVinculados, error: fetchError } = await supabase
+        .from('ranking_jugadores')
+        .select(`
+          id,
+          usuario_id,
+          usuario:usuarios(id, nombre, apellido)
+        `)
+        .not('usuario_id', 'is', null)
+
+      if (fetchError) throw fetchError
+
+      if (jugadoresVinculados.length === 0) {
+        toast({
+          title: "Información",
+          description: "No hay jugadores vinculados para actualizar"
+        })
+        return
+      }
+
+      // Función para capitalizar la primera letra de cada palabra
+      const capitalizeWords = (str) => {
+        if (!str) return str
+        return str
+          .toLowerCase()
+          .split(' ')
+          .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+          .join(' ')
+      }
+
+      // Actualizar cada jugador vinculado
+      let updatedCount = 0
+      for (const jugador of jugadoresVinculados) {
+        if (jugador.usuario) {
+          const { error: updateError } = await supabase
+            .from('ranking_jugadores')
+            .update({
+              nombre: capitalizeWords(jugador.usuario.nombre),
+              apellido: capitalizeWords(jugador.usuario.apellido)
+            })
+            .eq('id', jugador.id)
+
+          if (updateError) {
+            console.error(`Error updating jugador ${jugador.id}:`, updateError)
+          } else {
+            updatedCount++
+          }
+        }
+      }
+
+      toast({
+        title: "Éxito",
+        description: `Se actualizaron ${updatedCount} jugadores vinculados`
+      })
+      
+      fetchJugadores()
+    } catch (error) {
+      console.error('Error updating linked names:', error)
+      toast({
+        title: "Error",
+        description: "Error al actualizar los nombres de los jugadores vinculados",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleExportData = () => {
     const data = jugadores.map(j => ({
       nombre: j.nombre,
@@ -527,8 +625,9 @@ export default function JugadoresRanking() {
          </div>
 
                  {/* Controles */}
-         <div className="space-y-4 md:space-y-0 md:flex md:flex-row md:gap-4 mb-6">
-           <div className="flex-1">
+         <div className="space-y-3 mb-6">
+           {/* Primera fila: Búsqueda y filtros */}
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
              <div className="relative">
                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                <Input
@@ -538,69 +637,80 @@ export default function JugadoresRanking() {
                  className="pl-10 bg-gray-900/50 border-gray-800 text-white placeholder-gray-400"
                />
              </div>
+             
+             <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+               <SelectTrigger className="bg-gray-900/50 border-gray-800 text-white">
+                 <SelectValue placeholder="Filtrar por categoría" />
+               </SelectTrigger>
+               <SelectContent className="bg-gray-900 border-gray-800">
+                 <SelectItem value="todas" className="text-white hover:bg-gray-800">Todas las categorías</SelectItem>
+                 {categorias.map(cat => (
+                   <SelectItem key={cat} value={cat} className="text-white hover:bg-gray-800">{cat}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+             
+             <div className="flex gap-2">
+               <Button
+                 variant={showLinkedOnly ? "default" : "outline"}
+                 onClick={() => {
+                   setShowLinkedOnly(!showLinkedOnly)
+                   setShowUnlinkedOnly(false)
+                 }}
+                 size="sm"
+                 className="flex-1"
+               >
+                 <Link className="w-4 h-4 mr-1" />
+                 <span className="hidden xs:inline">Vinculados</span>
+               </Button>
+               <Button
+                 variant={showUnlinkedOnly ? "default" : "outline"}
+                 onClick={() => {
+                   setShowUnlinkedOnly(!showUnlinkedOnly)
+                   setShowLinkedOnly(false)
+                 }}
+                 size="sm"
+                 className="flex-1"
+               >
+                 <Unlink className="w-4 h-4 mr-1" />
+                 <span className="hidden xs:inline">Sin vincular</span>
+               </Button>
+             </div>
            </div>
            
-           <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-             <SelectTrigger className="w-full md:w-48 bg-gray-900/50 border-gray-800 text-white">
-               <SelectValue placeholder="Filtrar por categoría" />
-             </SelectTrigger>
-             <SelectContent className="bg-gray-900 border-gray-800">
-               <SelectItem value="todas" className="text-white hover:bg-gray-800">Todas las categorías</SelectItem>
-               {categorias.map(cat => (
-                 <SelectItem key={cat} value={cat} className="text-white hover:bg-gray-800">{cat}</SelectItem>
-               ))}
-             </SelectContent>
-           </Select>
-           
-           <div className="flex gap-2">
-             <Button
-               variant={showLinkedOnly ? "default" : "outline"}
-               onClick={() => {
-                 setShowLinkedOnly(!showLinkedOnly)
-                 setShowUnlinkedOnly(false)
-               }}
-               size="sm"
-               className="flex-1 md:flex-none"
-             >
-               <Link className="w-4 h-4 mr-1 md:mr-2" />
-               <span className="hidden sm:inline">Vinculados</span>
-             </Button>
-             <Button
-               variant={showUnlinkedOnly ? "default" : "outline"}
-               onClick={() => {
-                 setShowUnlinkedOnly(!showUnlinkedOnly)
-                 setShowLinkedOnly(false)
-               }}
-               size="sm"
-               className="flex-1 md:flex-none"
-             >
-               <Unlink className="w-4 h-4 mr-1 md:mr-2" />
-               <span className="hidden sm:inline">Sin vincular</span>
-             </Button>
-           </div>
-           
-           <div className="flex gap-2">
+           {/* Segunda fila: Botones de acción */}
+           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                <DialogTrigger asChild>
-                 <Button className="flex-1 md:flex-none">
-                   <Plus className="w-4 h-4 mr-1 md:mr-2" />
-                   <span className="hidden sm:inline">Nuevo Jugador</span>
+                 <Button className="w-full">
+                   <Plus className="w-4 h-4 mr-1" />
+                   <span className="hidden sm:inline">Nuevo</span>
                  </Button>
                </DialogTrigger>
              </Dialog>
              
              <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
                <DialogTrigger asChild>
-                 <Button variant="outline" className="flex-1 md:flex-none">
-                   <Upload className="w-4 h-4 mr-1 md:mr-2" />
+                 <Button variant="outline" className="w-full">
+                   <Upload className="w-4 h-4 mr-1" />
                    <span className="hidden sm:inline">Importar</span>
                  </Button>
                </DialogTrigger>
              </Dialog>
              
-             <Button variant="outline" onClick={handleExportData} className="flex-1 md:flex-none">
-               <Download className="w-4 h-4 mr-1 md:mr-2" />
+             <Button variant="outline" onClick={handleExportData} className="w-full">
+               <Download className="w-4 h-4 mr-1" />
                <span className="hidden sm:inline">Exportar</span>
+             </Button>
+             
+             <Button 
+               variant="outline" 
+               onClick={handleUpdateLinkedNames}
+               className="w-full border-orange-600 text-orange-400 hover:bg-orange-900/20"
+               disabled={loading}
+             >
+               <User className="w-4 h-4 mr-1" />
+               <span className="hidden sm:inline">Actualizar</span>
              </Button>
            </div>
          </div>

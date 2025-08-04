@@ -255,7 +255,7 @@ export default function Home() {
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Conoce nuestra academia
+                    Conocé nuestra academia
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -291,10 +291,10 @@ export default function Home() {
           {/* Section Header */}
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Números que Hablan
+              Números que hablan
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              Descubre el impacto de 3gen Padel Academy en la comunidad del pádel
+              Mirá los logros que hacen de 3gen Padel Academy la mejor opción para tu desarrollo
             </p>
           </div>
 
@@ -309,10 +309,10 @@ export default function Home() {
                       500+
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                  <div className="text-sm md:text-base text-white font-semibold">
                     Jugadores Activos
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-400">
                     Comunidad creciente
                   </div>
                 </div>
@@ -328,10 +328,10 @@ export default function Home() {
                       50+
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                  <div className="text-sm md:text-base text-white font-semibold">
                     Clases Organizadas
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-400">
                     Experiencia garantizada
                   </div>
                 </div>
@@ -347,10 +347,10 @@ export default function Home() {
                       1000+
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                  <div className="text-sm md:text-base text-white font-semibold">
                     Partidos Jugados
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-400">
                     Diversión asegurada
                   </div>
                 </div>
@@ -366,10 +366,10 @@ export default function Home() {
                       4.8/5
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-gray-300 font-medium">
+                  <div className="text-sm md:text-base text-white font-semibold">
                     Valoración Media
                   </div>
-                  <div className="text-xs text-white">
+                  <div className="text-xs text-gray-400">
                     Excelencia comprobada
                   </div>
                 </div>
@@ -379,12 +379,16 @@ export default function Home() {
 
           {/* Call to Action */}
           <div className="text-center mt-12">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-full px-6 py-3 border border-[#E2FF1B]/30">
+            <a 
+              href="https://wa.me/5491167617557?text=Hola! Me interesa unirme a la comunidad de 3gen Padel Academy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-full px-6 py-3 border border-[#E2FF1B]/30 hover:from-[#E2FF1B]/30 hover:to-[#E2FF1B]/20 transition-all duration-300 cursor-pointer"
+            >
               <span className="text-[#E2FF1B] text-sm font-medium">
                 ¡Únete a nuestra comunidad!
               </span>
-              <div className="w-2 h-2 bg-[#E2FF1B] rounded-full animate-ping"></div>
-            </div>
+            </a>
           </div>
         </div>
       </section>
@@ -397,7 +401,7 @@ export default function Home() {
               ¿Por qué elegir 3gen Padel Academy?
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Descubre las ventajas de ser parte de 3gen Padel Academy
+              Conocé las ventajas de ser parte de 3gen Padel Academy
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -411,7 +415,7 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participa en clases organizadas por 3gen Padel Academy con
+                Participá en clases organizadas por 3gen Padel Academy con
                 diferentes niveles de dificultad.
               </p>
             </div>
@@ -445,7 +449,7 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Aprende de los mejores profesionales con años de experiencia en
+                Aprendé de los mejores profesionales con años de experiencia en
                 el mundo del padel.
               </p>
             </div>
@@ -459,7 +463,7 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participa en clases con premios y obtén reconocimientos por tu
+                Participá en clases con premios y obtené reconocimientos por tu
                 desempeño.
               </p>
             </div>
@@ -508,7 +512,7 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Disfruta de partidos organizados y mejora tu juego en un ambiente competitivo y divertido.
+                Disfrutá de partidos organizados y mejorá tu juego en un ambiente competitivo y divertido.
               </p>
             </div>
           </div>
@@ -523,7 +527,7 @@ export default function Home() {
               Merchandising 3gen
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Descubre nuestra colección de productos exclusivos
+              Conocé nuestra colección de productos exclusivos
             </p>
           </div>
 
@@ -531,7 +535,7 @@ export default function Home() {
             {isLoadingProducts ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-12 h-12 text-[#E2FF1B] animate-spin mb-4" />
-                <p className="text-gray-400 text-lg">Cargando productos</p>
+                <p className="text-gray-400 text-lg">Cargando productos...</p>
               </div>
             ) : (
               <div className="overflow-hidden" ref={emblaRef}>
@@ -635,7 +639,7 @@ export default function Home() {
                 </span>
               </h2>
               <p className="max-w-[600px] text-gray-200 md:text-xl mx-auto">
-                Regístrate ahora y comienza a mejorar tu juego en
+                Anotate ahora y empezá a mejorar tu juego en
                 3gen Padel Academy.
               </p>
             </motion.div>
@@ -653,7 +657,7 @@ export default function Home() {
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Conoce nuestra academia
+                    Conocé nuestra academia
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

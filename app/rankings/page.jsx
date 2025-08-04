@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import { Spinner } from '@/components/ui/spinner'
-import { Trophy, Medal, Users, ArrowUp, ArrowDown, Filter, Crown, Info, Award, Target, Search, X } from 'lucide-react'
+import { Trophy, Medal, Users, ArrowUp, ArrowDown, Filter, Crown, Info, Award, Target, Search, X, User } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -19,38 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import Papa from 'papaparse'
 import Link from 'next/link'
-
-// URLs para títulos (desde rankings2)
-const TITULOS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTezjXDYOeKyM5qecI5wIVupip5PyL3nWVBhsGG1vt4f54zy4BUlfuSNQhoP52TOqDJdw9E80daISfA/pub?gid=786786570&single=true&output=csv'
-
-// Función para parsear CSV usando Papa Parse
-const parseCSV = (csvText) => {
-  return new Promise((resolve, reject) => {
-    Papa.parse(csvText, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const filteredData = results.data
-          .filter(row => {
-            const hasContent = Object.values(row).some(value => value && value.toString().trim() !== '')
-            return hasContent
-          })
-          .map((row, index) => ({
-            id: index + 1,
-            ...row
-          }))
-        
-        resolve(filteredData)
-      },
-      error: (error) => {
-        console.error('Papa Parse error:', error)
-        reject(error)
-      }
-    })
-  })
-}
 
 export default function Rankings() {
   const [loading, setLoading] = useState(true)
@@ -77,15 +46,37 @@ export default function Rankings() {
         throw new Error('Error al cargar los datos de ranking')
       }
 
+      // Función para capitalizar la primera letra de cada palabra
+      const capitalizeWords = (str) => {
+        if (!str) return str
+        return str
+          .toLowerCase()
+          .split(' ')
+          .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+          .join(' ')
+      }
+
       // Transformar datos para el formato esperado
-      const transformedData = data.map((jugador, index) => ({
-        id: jugador.id,
-        nombre: jugador.nombre ? `${jugador.nombre} ${jugador.apellido}` : jugador.apellido,
-        categoria: jugador.categoria || 'Sin categoría',
-        puntos: jugador.puntos || 0,
-        año: '2025',
-        usuario_vinculado: jugador.usuario
-      })).filter(row => row.nombre && row.nombre.trim() !== '')
+      const transformedData = data.map((jugador, index) => {
+        // Usar el nombre del usuario vinculado si está disponible, sino usar el nombre del jugador
+        let nombreMostrar = ''
+        if (jugador.usuario) {
+          // Usar el nombre completo del usuario vinculado
+          nombreMostrar = `${jugador.usuario.nombre} ${jugador.usuario.apellido}`
+        } else {
+          // Usar el nombre del jugador de ranking
+          nombreMostrar = jugador.nombre ? `${jugador.nombre} ${jugador.apellido}` : jugador.apellido
+        }
+
+        return {
+          id: jugador.id,
+          nombre: capitalizeWords(nombreMostrar),
+          categoria: jugador.categoria || 'Sin categoría',
+          puntos: jugador.puntos || 0,
+          año: '2025',
+          usuario_vinculado: jugador.usuario
+        }
+      }).filter(row => row.nombre && row.nombre.trim() !== '')
 
       return transformedData
     } catch (err) {
@@ -94,25 +85,42 @@ export default function Rankings() {
     }
   }
 
-  // Función para cargar datos de títulos
+  // Función para cargar datos de títulos desde Supabase
   const fetchTitulosData = async () => {
     try {
-      // Fetch títulos CSV
-      const titulosResponse = await fetch(TITULOS_URL)
-      if (!titulosResponse.ok) {
+      const { data, error } = await supabase
+        .from('titulos_jugadores')
+        .select(`
+          *,
+          usuario:usuarios(id, nombre, apellido, email)
+        `)
+        .order('titulos', { ascending: false })
+
+      if (error) {
         throw new Error('Error al cargar los datos de títulos')
       }
-      const titulosCSV = await titulosResponse.text()
-      const titulosRaw = await parseCSV(titulosCSV)
-      
+
       // Transformar datos de títulos
-      const titulosTransformed = titulosRaw.map(row => ({
-        id: row.id,
-        nombre: capitalizarNombre(row.Jugador || row['Jugador '] || row['Jugador'] || ''),
-        categoria: row.Categoria || row['Categoria'] || '',
-        titulos: parseInt(row['Titulos'] || row['Titulos '] || '0') || 0,
-        año: row.Año || row['Año'] || '2025'
-      })).filter(row => row.nombre && row.nombre.trim() !== '')
+      const titulosTransformed = data.map((jugador, index) => {
+        // Usar el nombre del usuario vinculado si está disponible, sino usar el nombre del jugador
+        let nombreMostrar = ''
+        if (jugador.usuario) {
+          // Usar el nombre completo del usuario vinculado
+          nombreMostrar = `${jugador.usuario.nombre} ${jugador.usuario.apellido}`
+        } else {
+          // Usar el nombre del jugador de títulos
+          nombreMostrar = jugador.nombre ? `${jugador.nombre} ${jugador.apellido}` : jugador.apellido
+        }
+
+        return {
+          id: jugador.id,
+          nombre: limpiarNombreDuplicado(nombreMostrar),
+          categoria: jugador.categoria || 'Sin categoría',
+          titulos: jugador.titulos || 0,
+          año: jugador.anio || '2025',
+          usuario_vinculado: jugador.usuario
+        }
+      }).filter(row => row.nombre && row.nombre.trim() !== '')
 
       setTitulosData(titulosTransformed)
     } catch (err) {
@@ -130,32 +138,52 @@ export default function Rankings() {
       .join(' ')
   }
 
+  // Función para manejar nombres duplicados (ej: "Azaretto Azaretto" -> "Azaretto")
+  const limpiarNombreDuplicado = (nombre) => {
+    if (!nombre) return nombre
+    
+    const palabras = nombre.trim().split(' ')
+    if (palabras.length === 2 && palabras[0].toLowerCase() === palabras[1].toLowerCase()) {
+      // Si las dos palabras son iguales, devolver solo una
+      return capitalizarNombre(palabras[0])
+    }
+    
+    return capitalizarNombre(nombre)
+  }
+
   // Función para agrupar títulos por jugador
   const agruparTitulosPorJugador = (titulosData) => {
     const jugadoresAgrupados = {}
     
     titulosData.forEach(row => {
-      const nombre = row.nombre.trim()
-      const nombreCapitalizado = capitalizarNombre(nombre)
+      // Usar el nombre tal como viene de fetchTitulosData (ya capitalizado)
+      const nombreKey = row.nombre.trim().toLowerCase()
       
-      if (jugadoresAgrupados[nombreCapitalizado]) {
-        // Si el jugador ya existe, sumar títulos y agregar categoría
-        jugadoresAgrupados[nombreCapitalizado].titulos += row.titulos
-        jugadoresAgrupados[nombreCapitalizado].categorias.push({
+      if (jugadoresAgrupados[nombreKey]) {
+        // Si el jugador ya existe, sumar títulos y agregar torneo individual
+        jugadoresAgrupados[nombreKey].titulos += row.titulos
+        jugadoresAgrupados[nombreKey].torneos.push({
           categoria: row.categoria,
           año: row.año,
-          titulos: row.titulos
+          titulos: row.titulos,
+          id: row.id // Agregar ID único para cada torneo
         })
+        // Mantener el usuario vinculado si existe
+        if (row.usuario_vinculado && !jugadoresAgrupados[nombreKey].usuario_vinculado) {
+          jugadoresAgrupados[nombreKey].usuario_vinculado = row.usuario_vinculado
+        }
       } else {
         // Si es la primera vez que aparece este jugador
-        jugadoresAgrupados[nombreCapitalizado] = {
+        jugadoresAgrupados[nombreKey] = {
           id: `titulo-${row.id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          nombre: nombreCapitalizado,
+          nombre: row.nombre.trim(), // Usar el nombre original ya capitalizado
           titulos: row.titulos,
-          categorias: [{
+          usuario_vinculado: row.usuario_vinculado,
+          torneos: [{
             categoria: row.categoria,
             año: row.año,
-            titulos: row.titulos
+            titulos: row.titulos,
+            id: row.id // Agregar ID único para cada torneo
           }]
         }
       }
@@ -252,7 +280,7 @@ export default function Rankings() {
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 pt-8">Rankings 2025</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2 pt-8">Ranking 2025</h1>
               <p className="text-sm sm:text-base text-gray-400">Los mejores jugadores de 3gen Padel por categorías</p>
             </div>
             <button
@@ -465,9 +493,20 @@ export default function Rankings() {
                             </div>
                           </td>
                           <td className="p-3">
-                            <span className="text-sm sm:text-base text-white font-medium">
-                              {row.nombre}
-                            </span>
+                            <div className="flex flex-col">
+                              {row.usuario_vinculado ? (
+                                <Link 
+                                  href={`/jugadores/${row.usuario_vinculado.id}`}
+                                  className="text-sm sm:text-base text-white font-medium hover:text-[#E2FC1D] transition-colors"
+                                >
+                                  {row.nombre}
+                                </Link>
+                              ) : (
+                                <span className="text-sm sm:text-base text-white font-medium opacity-75">
+                                  {row.nombre}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-3">
                             <div className="relative group">
@@ -475,16 +514,24 @@ export default function Rankings() {
                                 <Crown className="w-4 h-4 text-yellow-400" />
                                 <span className="text-lg text-white font-bold">{row.titulos}</span>
                               </div>
-                              <div className="absolute top-1/2 right-full transform -translate-y-1/2 mr-2 hidden group-hover:block z-[9999] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="bg-gray-800 border border-yellow-500/30 rounded-lg p-2 shadow-xl text-xs backdrop-blur-sm">
-                                  {row.categorias.map((cat, idx) => (
-                                    <div key={idx} className="text-white flex items-center gap-2 py-1">
-                                      <span className="bg-blue-600/20 text-blue-300 px-1.5 py-0.5 rounded text-xs border border-blue-500/30">
-                                        {cat.categoria}
-                                      </span>
-                                      <span className="text-gray-300 text-xs">
-                                        {cat.año}
-                                      </span>
+                              <div className="absolute top-1/2 right-full transform -translate-y-1/2 mr-2 hidden md:group-hover:block z-[9999] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="bg-gray-800 border border-yellow-500/30 rounded-lg p-3 shadow-xl text-xs backdrop-blur-sm min-w-[280px]">
+                                  {row.torneos.map((torneo, idx) => (
+                                    <div key={torneo.id || idx} className="text-white flex items-center justify-between py-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="bg-[#E2FC1D]/20 text-[#E2FC1D] px-1.5 py-0.5 rounded text-xs border border-[#E2FC1D]/30">
+                                          {torneo.categoria}
+                                        </span>
+                                        <span className="text-gray-300 text-xs">
+                                          {torneo.año}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Trophy className="w-3 h-3 text-yellow-400" />
+                                        <span className="text-yellow-400 text-xs font-medium">
+                                          {torneo.titulos} título{torneo.titulos !== 1 ? 's' : ''}
+                                        </span>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

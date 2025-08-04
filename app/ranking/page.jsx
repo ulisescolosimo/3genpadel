@@ -235,6 +235,25 @@ export default function Ranking() {
 
       if (partidosError) throw partidosError
 
+      // Obtener títulos de jugadores
+      const { data: titulosData, error: titulosError } = await supabase
+        .from('titulos_jugadores')
+        .select('*')
+        .eq('activo', true)
+
+      if (titulosError) throw titulosError
+
+      // Crear mapa de títulos por usuario_id
+      const titulosPorUsuario = new Map()
+      titulosData.forEach(titulo => {
+        if (titulo.usuario_id) {
+          if (!titulosPorUsuario.has(titulo.usuario_id)) {
+            titulosPorUsuario.set(titulo.usuario_id, [])
+          }
+          titulosPorUsuario.get(titulo.usuario_id).push(titulo)
+        }
+      })
+
       // Calcular estadísticas para los jugadores inscritos
       partidosData.forEach(partido => {
         const jugadoresEnPartido = []
@@ -283,12 +302,20 @@ export default function Ranking() {
         const categoriasUnicas = [...new Set(jugador.inscripciones.map(ins => ins.categoria))]
         const ligasUnicas = [...new Set(jugador.inscripciones.map(ins => ins.liga))]
 
+        // Obtener títulos del jugador
+        const titulosJugador = titulosPorUsuario.get(jugador.id) || []
+        const totalTitulos = titulosJugador.reduce((total, titulo) => total + titulo.titulos, 0)
+        const categoriasTitulos = titulosJugador.map(titulo => titulo.categoria)
+
         return {
           ...jugador,
           winRate: Math.round(winRate * 100) / 100,
           categorias: categoriasUnicas,
           ligas: ligasUnicas,
-          totalInscripciones: jugador.inscripciones.length
+          totalInscripciones: jugador.inscripciones.length,
+          titulos: titulosJugador,
+          totalTitulos: totalTitulos,
+          categoriasTitulos: categoriasTitulos
         }
       })
 
@@ -425,6 +452,37 @@ export default function Ranking() {
               <div className="flex items-center gap-3">
                 <Crown className="w-8 h-8 text-purple-400" />
                 <div>
+                  <p className="text-gray-400 text-sm">Total títulos</p>
+                  <p className="text-white text-2xl font-bold">
+                    {jugadores.reduce((total, j) => total + j.totalTitulos, 0)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Estadísticas adicionales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <Card className="bg-gray-900/50 border-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Trophy className="w-8 h-8 text-yellow-400" />
+                <div>
+                  <p className="text-gray-400 text-sm">Jugadores con títulos</p>
+                  <p className="text-white text-2xl font-bold">
+                    {jugadores.filter(j => j.totalTitulos > 0).length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gray-900/50 border-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Users className="w-8 h-8 text-blue-400" />
+                <div>
                   <p className="text-gray-400 text-sm">Total inscripciones</p>
                   <p className="text-white text-2xl font-bold">
                     {jugadores.reduce((total, j) => total + j.totalInscripciones, 0)}
@@ -479,6 +537,12 @@ export default function Ranking() {
                                 <Award className="w-4 h-4" />
                                 {jugador.ranking_puntos} puntos
                               </span>
+                              {jugador.totalTitulos > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <Crown className="w-4 h-4 text-yellow-400" />
+                                  {jugador.totalTitulos} títulos
+                                </span>
+                              )}
                               <span className="flex items-center gap-1">
                                 <Users className="w-4 h-4" />
                                 {jugador.totalInscripciones} inscripciones
@@ -491,6 +555,13 @@ export default function Ranking() {
                                 <div className="flex items-center gap-1">
                                   <span className="text-xs bg-blue-600/20 text-blue-300 px-2 py-1 rounded-full border border-blue-500/30">
                                     {jugador.categorias.join(', ')}
+                                  </span>
+                                </div>
+                              )}
+                              {jugador.categoriasTitulos.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs bg-yellow-600/20 text-yellow-300 px-2 py-1 rounded-full border border-yellow-500/30">
+                                    {jugador.categoriasTitulos.join(', ')}
                                   </span>
                                 </div>
                               )}
