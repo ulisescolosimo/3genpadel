@@ -243,6 +243,21 @@ export default function Rankings() {
     return true
   })
 
+  // Función para obtener la posición real en el ranking por puntos
+  const getPosicionReal = (usuarioId) => {
+    if (!usuarioId) return null
+    
+    // Ordenar todos los rankings por puntos (sin filtros)
+    const rankingsCompletos = rankingsData.sort((a, b) => b.puntos - a.puntos)
+    
+    // Encontrar la posición del jugador
+    const posicion = rankingsCompletos.findIndex(jugador => 
+      jugador.usuario_vinculado?.id === usuarioId
+    )
+    
+    return posicion !== -1 ? posicion + 1 : null
+  }
+
   // Agrupar títulos por jugador y aplicar filtro de búsqueda después del agrupamiento
   const titulosAgrupados = agruparTitulosPorJugador(filteredTitulos).filter(jugador => {
     if (searchTerm && !jugador.nombre.toLowerCase().includes(searchTerm.toLowerCase())) return false
@@ -404,7 +419,7 @@ export default function Rankings() {
                             <div className="flex flex-col">
                               {row.usuario_vinculado ? (
                                 <Link 
-                                  href={`/jugadores/${row.usuario_vinculado.id}`}
+                                  href={`/jugadores/${row.usuario_vinculado.id}?posicion=${getPosicionReal(row.usuario_vinculado.id)}`}
                                   className="text-sm sm:text-base text-white font-medium hover:text-[#E2FC1D] transition-colors"
                                 >
                                   {row.nombre}
@@ -496,7 +511,7 @@ export default function Rankings() {
                             <div className="flex flex-col">
                               {row.usuario_vinculado ? (
                                 <Link 
-                                  href={`/jugadores/${row.usuario_vinculado.id}`}
+                                  href={`/jugadores/${row.usuario_vinculado.id}?posicion=${getPosicionReal(row.usuario_vinculado.id)}`}
                                   className="text-sm sm:text-base text-white font-medium hover:text-[#E2FC1D] transition-colors"
                                 >
                                   {row.nombre}

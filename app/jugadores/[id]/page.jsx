@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import { Spinner } from '@/components/ui/spinner'
@@ -13,6 +13,7 @@ import Link from 'next/link'
 
 export default function JugadorPerfil() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const [jugador, setJugador] = useState(null)
   const [estadisticas, setEstadisticas] = useState({
     partidosJugados: 0,
@@ -44,17 +45,23 @@ export default function JugadorPerfil() {
       if (jugadorError) throw jugadorError
       setJugador(jugadorData)
 
-      // 2. Obtener posición en el ranking general
-      const { data: rankingData, error: rankingError } = await supabase
-        .from('usuarios')
-        .select('id, ranking_puntos')
-        .not('ranking_puntos', 'is', null)
-        .order('ranking_puntos', { ascending: false })
+      // 2. Obtener posición en el ranking desde el parámetro de la URL
+      const posicionFromUrl = searchParams.get('posicion')
+      if (posicionFromUrl) {
+        setPosicionRanking(parseInt(posicionFromUrl))
+      } else {
+        // Fallback: calcular posición si no viene en la URL
+        const { data: rankingData, error: rankingError } = await supabase
+          .from('usuarios')
+          .select('id, ranking_puntos')
+          .not('ranking_puntos', 'is', null)
+          .order('ranking_puntos', { ascending: false })
 
-      if (rankingError) throw rankingError
-      
-      const posicion = rankingData.findIndex(user => user.id === jugadorId) + 1
-      setPosicionRanking(posicion)
+        if (rankingError) throw rankingError
+        
+        const posicion = rankingData.findIndex(user => user.id === jugadorId) + 1
+        setPosicionRanking(posicion)
+      }
 
       // 3. Obtener estadísticas de partidos
       await fetchEstadisticas(jugadorId)
@@ -209,6 +216,16 @@ export default function JugadorPerfil() {
     }
   }
 
+  // Función para capitalizar nombres (primera letra de cada palabra en mayúscula)
+  const capitalizarNombre = (nombre) => {
+    if (!nombre) return ''
+    return nombre
+      .toLowerCase()
+      .split(' ')
+      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+      .join(' ')
+  }
+
   const getResultadoPartido = (partido, jugadorId) => {
     if (!partido.equipo_ganador) return 'Pendiente'
     
@@ -261,15 +278,15 @@ export default function JugadorPerfil() {
         <div className="bg-gray-900/50 rounded-xl border border-gray-800 p-6 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="w-24 h-24 md:w-32 md:h-32">
-              <AvatarImage src={jugador.avatar_url} alt={`${jugador.nombre} ${jugador.apellido}`} />
+              <AvatarImage src={jugador.avatar_url} alt={`${capitalizarNombre(jugador.nombre)} ${capitalizarNombre(jugador.apellido)}`} />
               <AvatarFallback className="text-2xl bg-blue-600">
-                {jugador.nombre?.charAt(0)}{jugador.apellido?.charAt(0)}
+                {jugador.nombre?.charAt(0)?.toUpperCase()}{jugador.apellido?.charAt(0)?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                {jugador.nombre} {jugador.apellido}
+                {capitalizarNombre(jugador.nombre)} {capitalizarNombre(jugador.apellido)}
               </h1>
               
               <div className="flex flex-wrap gap-4 items-center">
