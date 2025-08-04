@@ -59,9 +59,9 @@ export default function ActivarCuentaPage() {
           return
         }
 
-        // Verificar si ya tiene auth_id (ya configuró su contraseña)
-        if (data.auth_id) {
-          setError('Este usuario ya configuró su contraseña. Puede iniciar sesión directamente.')
+        // Verificar si ya tiene password seteada
+        if (data.password) {
+          setError('Este usuario ya tiene una contraseña configurada. Puede iniciar sesión directamente.')
           return
         }
 
@@ -71,8 +71,8 @@ export default function ActivarCuentaPage() {
           return
         }
 
-        // Si no tiene auth_id ni password pero tiene cuenta_activada, puede configurar su contraseña
-        if (!data.auth_id && !data.password && data.cuenta_activada) {
+        // Si no tiene password pero tiene cuenta_activada, puede configurar su contraseña
+        if (!data.password && data.cuenta_activada) {
           setJugador(data)
           setStep(2)
           toast({
@@ -83,8 +83,8 @@ export default function ActivarCuentaPage() {
           return
         }
 
-        // Si no tiene cuenta_activada, auth_id ni password, puede activar su cuenta
-        if (!data.cuenta_activada && !data.auth_id && !data.password) {
+        // Si no tiene cuenta_activada ni password, puede activar su cuenta
+        if (!data.cuenta_activada && !data.password) {
           setJugador(data)
           setStep(2)
           toast({

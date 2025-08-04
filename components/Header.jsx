@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import LiveMatchTicker from './LiveMatchTicker'
+import NotificationDropdown from './NotificationDropdown'
 import { toast } from 'react-hot-toast'
 import {
   DropdownMenu,
@@ -242,49 +243,52 @@ export default function Header() {
             <div>
               <div className="flex items-center gap-4">
                 {user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="relative h-8 w-8 rounded-full focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={getUserAvatar()}
-                            alt={getUserDisplayName()}
-                          />
-                          <AvatarFallback>
-                            {getInitials(getUserDisplayName())}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {getUserDisplayName()}
-                          </p>
-                          <p className="text-xs leading-none text-gray-400">
-                            {getUserEmail()}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => {
-                        router.push("/perfil")
-                        closeMenu()
-                      }}>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Perfil</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Cerrar sesión</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <>
+                    <NotificationDropdown />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="relative h-8 w-8 rounded-full focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={getUserAvatar()}
+                              alt={getUserDisplayName()}
+                            />
+                            <AvatarFallback>
+                              {getInitials(getUserDisplayName())}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="end" forceMount>
+                        <DropdownMenuLabel className="font-normal">
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                              {getUserDisplayName()}
+                            </p>
+                            <p className="text-xs leading-none text-gray-400">
+                              {getUserEmail()}
+                            </p>
+                          </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => {
+                          router.push("/perfil")
+                          closeMenu()
+                        }}>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Perfil</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleSignOut}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Cerrar sesión</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
                 ) : (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

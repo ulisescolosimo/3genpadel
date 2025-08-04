@@ -11,7 +11,8 @@ import {
   Trophy,
   Gamepad2,
   Award,
-  Crown
+  Crown,
+  Bell
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import { useState } from 'react'
@@ -53,6 +54,11 @@ export default function AdminHeader() {
       icon: Crown
     },
     {
+      title: 'Notificaciones',
+      href: '/admin/notificaciones',
+      icon: Bell
+    },
+    {
       title: 'Configuración',
       href: '/admin/configuracion',
       icon: Settings
@@ -61,7 +67,7 @@ export default function AdminHeader() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo y título - solo visible en mobile */}
           <Link href="/admin/dashboard" className="flex items-center gap-3 md:hidden">

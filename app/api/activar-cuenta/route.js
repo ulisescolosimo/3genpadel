@@ -62,10 +62,10 @@ export async function POST(request) {
       )
     }
 
-    // Verificar si ya tiene auth_id (ya configuró su contraseña)
-    if (usuario.auth_id) {
+    // Verificar si ya tiene password seteada
+    if (usuario.password) {
       return NextResponse.json(
-        { error: 'Este usuario ya configuró su contraseña' },
+        { error: 'Este usuario ya tiene una contraseña configurada' },
         { status: 400 }
       )
     }
@@ -216,9 +216,8 @@ export async function POST(request) {
       )
     }
 
-    // Actualizar usuario con auth_id y marcar como activado
+    // Actualizar usuario y marcar como activado
     const updateData = {
-      auth_id: authData.user.id,
       password: password, // Guardar la contraseña también en usuario
       cuenta_activada: true,
       updated_at: new Date().toISOString()
