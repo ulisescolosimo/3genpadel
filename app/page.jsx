@@ -281,11 +281,15 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Transición suave hacia la siguiente sección */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900 via-gray-800/80 to-transparent"></div>
       </section>
 
       {/* Stats Section */}
-      <section className="w-full py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
-
+      <section className="w-full py-16 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+        {/* Efecto de partículas sutil */}
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center opacity-10" />
         
         <div className="container mx-auto px-4 md:px-6 max-w-7xl relative z-10">
           {/* Section Header */}
@@ -394,8 +398,11 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="w-full py-12 md:py-12 bg-black">
-        <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+      <section className="w-full py-12 md:py-12 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative">
+        {/* Efecto de partículas sutil */}
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center opacity-5" />
+        
+        <div className="container mx-auto px-4 md:px-6 max-w-7xl relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">
               ¿Por qué elegir 3gen Padel Academy?
@@ -520,8 +527,11 @@ export default function Home() {
       </section>
 
       {/* Merchandising Section */}
-      <section className="w-full py-12 md:py-24 bg-black">
-        <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+      <section className="w-full py-12 md:py-24 bg-gradient-to-b from-gray-900 via-gray-800 to-black relative">
+        {/* Efecto de partículas sutil */}
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center opacity-5" />
+        
+        <div className="container mx-auto px-4 md:px-6 max-w-7xl relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">
               Merchandising 3gen
