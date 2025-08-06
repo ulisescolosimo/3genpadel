@@ -420,6 +420,7 @@ export default function PartidosPage() {
                       today: "bg-white/20 text-white border border-white/40",
                       day_outside: "text-gray-500 opacity-50",
                       weekday: "text-gray-400",
+                      weekdays: "hidden",
                     }}
                   />
                 </PopoverContent>
