@@ -11,8 +11,18 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
 
   const getEquipoNombre = (equipo) => {
     if (!equipo) return 'N/A'
-    const jugador1 = equipo.titular_1 ? `${equipo.titular_1.nombre} ${equipo.titular_1.apellido}` : 'N/A'
-    const jugador2 = equipo.titular_2 ? `${equipo.titular_2.nombre} ${equipo.titular_2.apellido}` : 'N/A'
+    
+    const capitalizarApellido = (apellido) => {
+      if (!apellido) return ''
+      return apellido
+        .toLowerCase()
+        .split(' ')
+        .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+        .join(' ')
+    }
+    
+    const jugador1 = equipo.titular_1 ? `${equipo.titular_1.nombre} ${capitalizarApellido(equipo.titular_1.apellido)}` : 'N/A'
+    const jugador2 = equipo.titular_2 ? `${equipo.titular_2.nombre} ${capitalizarApellido(equipo.titular_2.apellido)}` : 'N/A'
     return `${jugador1} / ${jugador2}`
   }
 
@@ -27,7 +37,7 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
       jugado: 'Finalizado',
       cancelado: 'Cancelado'
     }
-    return <Badge variant={variants[estado] || 'secondary'}>{labels[estado] || estado}</Badge>
+    return <Badge variant={variants[estado] || 'secondary'} className="text-xs sm:text-sm">{labels[estado] || estado}</Badge>
   }
 
   const getRondaBadge = (ronda) => {
@@ -39,7 +49,7 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
       'Final': 'bg-yellow-500'
     }
     return (
-      <Badge className={`${colors[ronda] || 'bg-gray-500'} text-white`}>
+      <Badge className={`${colors[ronda] || 'bg-gray-500'} text-white text-xs sm:text-sm`}>
         {ronda}
       </Badge>
     )
@@ -68,32 +78,32 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-black/90 backdrop-blur-sm border-white/10 text-white w-[95vw] max-w-2xl mx-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[#E2FF1B]">
-            <Trophy className="w-5 h-5" />
+      <DialogContent className="bg-black/90 backdrop-blur-sm border-white/10 text-white w-[95vw] max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center gap-2 text-[#E2FF1B] text-lg sm:text-xl">
+            <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
             Detalles del Partido
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Información del torneo */}
           <Card className="bg-black/20 border-white/10">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-2 sm:mb-3 flex-wrap">
                 {getRondaBadge(partido.ronda)}
                 {getEstadoBadge(partido.estado)}
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
                 {getCategoriaNombre()}
               </h3>
-              <div className="flex items-center gap-4 text-sm text-gray-300">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-300">
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   {formatDate(partido.fecha)}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                   {formatTime(partido.fecha)}
                 </div>
               </div>
@@ -101,27 +111,27 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
           </Card>
 
           {/* Equipos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {/* Equipo A */}
             <Card className="bg-black/20 border-white/10">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-4 h-4 text-[#E2FF1B]" />
-                  <span className="text-sm text-gray-400">Equipo A</span>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-[#E2FF1B]" />
+                  <span className="text-xs sm:text-sm text-gray-400">Equipo A</span>
                 </div>
                 <div className="space-y-2">
                   <div className="text-center">
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-white text-sm sm:text-base">
                       {getEquipoNombre(partido.equipo_a)}
                     </p>
                   </div>
                   {partido.equipo_a?.titular_1 && (
-                    <div className="text-sm text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-300">
                       <span className="text-gray-400">Titular 1:</span> {partido.equipo_a.titular_1.nombre} {partido.equipo_a.titular_1.apellido}
                     </div>
                   )}
                   {partido.equipo_a?.titular_2 && (
-                    <div className="text-sm text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-300">
                       <span className="text-gray-400">Titular 2:</span> {partido.equipo_a.titular_2.nombre} {partido.equipo_a.titular_2.apellido}
                     </div>
                   )}
@@ -131,24 +141,24 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
 
             {/* Equipo B */}
             <Card className="bg-black/20 border-white/10">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-4 h-4 text-[#E2FF1B]" />
-                  <span className="text-sm text-gray-400">Equipo B</span>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-[#E2FF1B]" />
+                  <span className="text-xs sm:text-sm text-gray-400">Equipo B</span>
                 </div>
                 <div className="space-y-2">
                   <div className="text-center">
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-white text-sm sm:text-base">
                       {getEquipoNombre(partido.equipo_b)}
                     </p>
                   </div>
                   {partido.equipo_b?.titular_1 && (
-                    <div className="text-sm text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-300">
                       <span className="text-gray-400">Titular 1:</span> {partido.equipo_b.titular_1.nombre} {partido.equipo_b.titular_1.apellido}
                     </div>
                   )}
                   {partido.equipo_b?.titular_2 && (
-                    <div className="text-sm text-gray-300">
+                    <div className="text-xs sm:text-sm text-gray-300">
                       <span className="text-gray-400">Titular 2:</span> {partido.equipo_b.titular_2.nombre} {partido.equipo_b.titular_2.apellido}
                     </div>
                   )}
@@ -160,46 +170,17 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
           {/* Ganador */}
           {partido.equipo_ganador && (
             <Card className="bg-[#E2FF1B]/10 border-[#E2FF1B]/20">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Trophy className="w-5 h-5 text-[#E2FF1B]" />
-                  <span className="text-[#E2FF1B] font-semibold">Ganador</span>
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  <span className="text-[#E2FF1B] font-semibold text-sm sm:text-base">Ganador</span>
                 </div>
-                <p className="text-white font-semibold">
+                <p className="text-white font-semibold text-sm sm:text-base">
                   {getEquipoNombre(partido.equipo_ganador)}
                 </p>
               </CardContent>
             </Card>
           )}
-
-          {/* Información adicional */}
-          <Card className="bg-black/20 border-white/10">
-            <CardContent className="p-4">
-              <h4 className="font-semibold text-white mb-3">Información Adicional</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">Puntos por jugador:</span>
-                  <p className="text-white">{partido.puntos_por_jugador || 'N/A'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400">ID del partido:</span>
-                  <p className="text-white">{partido.id}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400">Fecha de creación:</span>
-                  <p className="text-white">
-                    {partido.created_at ? new Date(partido.created_at).toLocaleDateString('es-AR') : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-gray-400">Última actualización:</span>
-                  <p className="text-white">
-                    {partido.updated_at ? new Date(partido.updated_at).toLocaleDateString('es-AR') : 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </DialogContent>
     </Dialog>
