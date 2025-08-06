@@ -236,8 +236,8 @@ export default function Merchandising() {
   const handleProductClick = (product) => {
     let message = `Hola! Me interesa el producto: ${product.name}. ¿Podrían ayudarme con más información?`
     
-    // Número de WhatsApp de 3gen (reemplazar con el número real)
-    const whatsappNumber = "5491112345678" // Cambiar por el número real de 3gen
+    // Número de WhatsApp de 3gen
+    const whatsappNumber = "5491135921988" // +54 9 11 3592-1988
     const encodedMessage = encodeURIComponent(message)
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
     
