@@ -146,7 +146,7 @@ export default function JugadorPerfil() {
 
   const fetchUltimosPartidos = async (jugadorId) => {
     try {
-      // Obtener partidos donde participó el jugador específico
+      // Obtener partidos donde participó el jugador específico (tanto jugados como pendientes)
       const { data: partidosData, error: partidosError } = await supabase
         .from('liga_partidos')
         .select(`
@@ -155,21 +155,27 @@ export default function JugadorPerfil() {
             categoria
           ),
           equipo_a:ligainscripciones!liga_partidos_equipo_a_id_fkey (
+            id,
             titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              id,
               nombre,
               apellido
             ),
             titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              id,
               nombre,
               apellido
             )
           ),
           equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
+            id,
             titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              id,
               nombre,
               apellido
             ),
             titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              id,
               nombre,
               apellido
             )
@@ -178,14 +184,45 @@ export default function JugadorPerfil() {
             id
           )
         `)
-        .eq('estado', 'jugado')
-        .or(`equipo_a.titular_1_id.eq.${jugadorId},equipo_a.titular_2_id.eq.${jugadorId},equipo_b.titular_1_id.eq.${jugadorId},equipo_b.titular_2_id.eq.${jugadorId}`)
+        .in('estado', ['pendiente', 'jugado'])
         .order('fecha', { ascending: false })
-        .limit(5)
+        .limit(15)
 
       if (partidosError) throw partidosError
 
-      setUltimosPartidos(partidosData || [])
+      // Filtrar partidos donde participó el jugador específico
+      const partidosDelJugador = partidosData?.filter(partido => {
+        const participoEnEquipoA = partido.equipo_a && 
+          (partido.equipo_a.titular_1?.id === jugadorId || partido.equipo_a.titular_2?.id === jugadorId)
+        
+        const participoEnEquipoB = partido.equipo_b && 
+          (partido.equipo_b.titular_1?.id === jugadorId || partido.equipo_b.titular_2?.id === jugadorId)
+
+        return participoEnEquipoA || participoEnEquipoB
+      }) || []
+
+      // Separar partidos jugados y pendientes (próximos)
+      const partidosJugados = partidosDelJugador.filter(p => p.estado === 'jugado')
+      const partidosPendientes = partidosDelJugador.filter(p => p.estado === 'pendiente')
+
+      // Ordenar partidos pendientes por fecha (más próximos primero)
+      const partidosPendientesOrdenados = partidosPendientes.sort((a, b) => {
+        const fechaA = new Date(a.fecha || 0)
+        const fechaB = new Date(b.fecha || 0)
+        return fechaA - fechaB
+      })
+
+      // Ordenar partidos jugados por fecha (más recientes primero)
+      const partidosJugadosOrdenados = partidosJugados.sort((a, b) => {
+        const fechaA = new Date(a.fecha || 0)
+        const fechaB = new Date(b.fecha || 0)
+        return fechaB - fechaA
+      })
+
+      // Combinar: primero los próximos (pendientes), luego los jugados
+      const todosLosPartidos = [...partidosPendientesOrdenados, ...partidosJugadosOrdenados].slice(0, 5)
+
+      setUltimosPartidos(todosLosPartidos)
 
     } catch (error) {
       console.error('Error fetching últimos partidos:', error)
@@ -226,13 +263,41 @@ export default function JugadorPerfil() {
       let fechaObj
       if (typeof fecha === 'string') {
         // Si es un string, asegurar que se interprete como fecha local
-        const [year, month, day] = fecha.split('T')[0].split('-')
-        fechaObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+        if (fecha.includes('T')) {
+          fechaObj = new Date(fecha)
+        } else {
+          const [year, month, day] = fecha.split('-')
+          fechaObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+        }
       } else {
         fechaObj = new Date(fecha)
       }
       
-      return fechaObj.toLocaleDateString('es-ES')
+      // Formatear fecha en español
+      const opcionesFecha = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }
+      
+      const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opcionesFecha)
+      
+      // Formatear hora en formato 12 horas
+      const opcionesHora = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }
+      
+      const horaFormateada = fechaObj.toLocaleTimeString('es-ES', opcionesHora)
+      
+      // Capitalizar la primera letra del día y mes
+      const fechaCapitalizada = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1)
+      
+      // Combinar fecha y hora
+      return `${fechaCapitalizada} ${horaFormateada}`
+      
     } catch (error) {
       console.error('Error formateando fecha:', error)
       return 'N/A'
@@ -249,22 +314,43 @@ export default function JugadorPerfil() {
       .join(' ')
   }
 
-  const getResultadoPartido = (partido, jugadorId) => {
-    if (!partido.equipo_ganador) return 'Pendiente'
-    
-    const participoEnEquipoA = partido.equipo_a && 
-      (partido.equipo_a.titular_1?.id === jugadorId || partido.equipo_a.titular_2?.id === jugadorId)
-    
-    const participoEnEquipoB = partido.equipo_b && 
-      (partido.equipo_b.titular_1?.id === jugadorId || partido.equipo_b.titular_2?.id === jugadorId)
+  const esPartidoProximo = (fecha) => {
+    if (!fecha) return false
+    const fechaPartido = new Date(fecha)
+    const ahora = new Date()
+    return fechaPartido > ahora
+  }
 
-    if (partido.equipo_ganador.id === partido.equipo_a?.id && participoEnEquipoA) {
-      return 'Victoria'
-    } else if (partido.equipo_ganador.id === partido.equipo_b?.id && participoEnEquipoB) {
-      return 'Victoria'
-    } else {
-      return 'Derrota'
+  const getResultadoPartido = (partido, jugadorId) => {
+    // Si el partido está pendiente, mostrar "Próximo"
+    if (partido.estado === 'pendiente') {
+      return 'Próximo'
     }
+    
+    // Si el partido está jugado pero no hay equipo ganador, mostrar "Pendiente"
+    if (partido.estado === 'jugado' && !partido.equipo_ganador) {
+      return 'Pendiente'
+    }
+    
+    // Si el partido está jugado y hay equipo ganador, determinar victoria/derrota
+    if (partido.estado === 'jugado' && partido.equipo_ganador) {
+      const participoEnEquipoA = partido.equipo_a && 
+        (partido.equipo_a.titular_1?.id === jugadorId || partido.equipo_a.titular_2?.id === jugadorId)
+      
+      const participoEnEquipoB = partido.equipo_b && 
+        (partido.equipo_b.titular_1?.id === jugadorId || partido.equipo_b.titular_2?.id === jugadorId)
+
+      if (partido.equipo_ganador.id === partido.equipo_a?.id && participoEnEquipoA) {
+        return 'Victoria'
+      } else if (partido.equipo_ganador.id === partido.equipo_b?.id && participoEnEquipoB) {
+        return 'Victoria'
+      } else {
+        return 'Derrota'
+      }
+    }
+    
+    // Estado por defecto
+    return 'Pendiente'
   }
 
   if (loading) {
@@ -355,28 +441,55 @@ export default function JugadorPerfil() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-green-400" />
-                    <span className="text-gray-300">Partidos jugados</span>
+                <div className="relative overflow-hidden bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-xl border border-gray-700/50 p-4 hover:border-gray-600/50 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <Users className="w-5 h-5 text-green-400" />
+                      </div>
+                      <div>
+                        <span className="text-gray-300 font-medium">Partidos jugados</span>
+                        <div className="text-xs text-gray-400">Total de partidos</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-white">{estadisticas.partidosJugados}</span>
+                    </div>
                   </div>
-                  <span className="text-white font-bold text-lg">{estadisticas.partidosJugados}</span>
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-yellow-400" />
-                    <span className="text-gray-300">Partidos ganados</span>
+                <div className="relative overflow-hidden bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-xl border border-gray-700/50 p-4 hover:border-gray-600/50 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                        <Trophy className="w-5 h-5 text-yellow-400" />
+                      </div>
+                      <div>
+                        <span className="text-gray-300 font-medium">Partidos ganados</span>
+                        <div className="text-xs text-gray-400">Victorias totales</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-white">{estadisticas.partidosGanados}</span>
+                    </div>
                   </div>
-                  <span className="text-white font-bold text-lg">{estadisticas.partidosGanados}</span>
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-purple-400" />
-                    <span className="text-gray-300">Win rate</span>
+                <div className="relative overflow-hidden bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-xl border border-gray-700/50 p-4 hover:border-gray-600/50 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <div>
+                        <span className="text-gray-300 font-medium">Win rate</span>
+                        <div className="text-xs text-gray-400">Porcentaje de victorias</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-white">{estadisticas.winRate}%</span>
+                    </div>
                   </div>
-                  <span className="text-white font-bold text-lg">{estadisticas.winRate}%</span>
                 </div>
               </CardContent>
             </Card>
@@ -393,21 +506,32 @@ export default function JugadorPerfil() {
                 {rankingPorCategoria.length > 0 ? (
                   <div className="space-y-3">
                     {rankingPorCategoria.map((ranking) => (
-                      <div key={ranking.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Star className="w-4 h-4 text-[#E2FC1D]" />
-                          <span className="text-gray-300 font-medium">{ranking.categoria}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-white font-bold">{ranking.puntos}</span>
-                          <span className="text-gray-400 text-sm">puntos</span>
+                      <div key={ranking.id} className="relative overflow-hidden bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-xl border border-gray-700/50 p-4 hover:border-gray-600/50 transition-all duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#E2FC1D]/20 rounded-lg flex items-center justify-center">
+                              <Star className="w-5 h-5 text-[#E2FC1D]" />
+                            </div>
+                            <div>
+                              <span className="text-gray-300 font-medium">{ranking.categoria}</span>
+                              <div className="text-xs text-gray-400">Categoría activa</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-2xl font-bold text-white">{ranking.puntos}</span>
+                            <div className="text-xs text-gray-400">puntos</div>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-4">
-                    <Shield className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                  <div className="text-center py-8">
+                    <div className="relative">
+                      <Shield className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-600 to-gray-400 rounded-full opacity-20 blur-xl"></div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-300 mb-2">Sin categorías activas</h3>
                     <p className="text-gray-400 text-sm">No hay puntos registrados por categoría</p>
                   </div>
                 )}
@@ -421,49 +545,115 @@ export default function JugadorPerfil() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Calendar className="w-5 h-5 text-green-400" />
-                  Últimos 5 partidos
+                  Últimos partidos y próximos
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {ultimosPartidos.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {ultimosPartidos.map((partido, index) => {
                       const resultado = getResultadoPartido(partido, jugador.id)
                       const esVictoria = resultado === 'Victoria'
                       const esDerrota = resultado === 'Derrota'
+                      const esProximo = resultado === 'Próximo'
+                      const esPendiente = resultado === 'Pendiente'
                       
                       return (
-                        <div key={partido.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline" className="text-xs">
-                                {partido.liga_categorias?.categoria || 'N/A'}
-                              </Badge>
-                              <span className="text-xs text-gray-400">
-                                {formatearFecha(partido.fecha)}
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-300">
-                              {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
-                            </div>
-                          </div>
+                        <div key={partido.id} className="relative overflow-hidden bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-xl border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-gray-900/20">
+                          {/* Indicador de estado */}
+                          <div className={`absolute top-0 left-0 w-1 h-full ${
+                            esVictoria ? 'bg-gradient-to-b from-green-400 to-green-600' :
+                            esDerrota ? 'bg-gradient-to-b from-red-400 to-red-600' :
+                            esProximo ? 'bg-gradient-to-b from-[#D9F41A] to-[#E2FC1D]' :
+                            esPendiente ? 'bg-gradient-to-b from-yellow-400 to-yellow-600' :
+                            'bg-gradient-to-b from-gray-400 to-gray-600'
+                          }`}></div>
                           
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant={esVictoria ? "default" : esDerrota ? "destructive" : "secondary"}
-                              className={esVictoria ? "bg-green-600" : esDerrota ? "bg-red-600" : ""}
-                            >
-                              {resultado}
-                            </Badge>
+                          <div className="p-4 pl-6">
+                            {/* Header del partido */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <Badge variant="outline" className="text-xs bg-gray-800/50 border-gray-600 text-gray-300">
+                                  {partido.liga_categorias?.categoria || 'N/A'}
+                                </Badge>
+                                <span className="text-xs text-gray-400 font-medium">
+                                  {formatearFecha(partido.fecha)}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant={esVictoria ? "default" : esDerrota ? "destructive" : "secondary"}
+                                  className={`font-semibold ${
+                                    esVictoria ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25" : 
+                                    esDerrota ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25" : 
+                                    esProximo ? "bg-gradient-to-r from-[#D9F41A] to-[#E2FC1D] text-black shadow-lg shadow-[#D9F41A]/25 animate-pulse" :
+                                    esPendiente ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg shadow-yellow-500/25" : 
+                                    "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+                                  }`}
+                                >
+                                  {resultado}
+                                </Badge>
+                              </div>
+                            </div>
+                            
+                            {/* Equipos */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 text-center">
+                                <div className="text-sm font-semibold text-white mb-1">
+                                  {getEquipoNombre(partido.equipo_a)}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  Equipo A
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col items-center mx-4">
+                                <div className="text-2xl font-bold text-gray-300">VS</div>
+                                {esVictoria && (
+                                  <div className="text-xs text-green-400 font-medium mt-1">
+                                    <Trophy className="w-3 h-3 inline mr-1" />
+                                    Victoria
+                                  </div>
+                                )}
+                                {esDerrota && (
+                                  <div className="text-xs text-red-400 font-medium mt-1">
+                                    Derrota
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex-1 text-center">
+                                <div className="text-sm font-semibold text-white mb-1">
+                                  {getEquipoNombre(partido.equipo_b)}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  Equipo B
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Información adicional */}
+                            {partido.cancha && (
+                              <div className="mt-3 pt-3 border-t border-gray-700/50">
+                                <div className="flex items-center justify-center gap-2 text-xs text-[#D9F41A] font-medium">
+                                  Cancha {partido.cancha}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <User className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">Aún no ha jugado partidos oficiales</p>
+                  <div className="text-center py-12">
+                    <div className="relative">
+                      <User className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-600 to-gray-400 rounded-full opacity-20 blur-xl"></div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-300 mb-2">Sin partidos registrados</h3>
+                    <p className="text-gray-400 text-sm">Aún no ha jugado partidos oficiales en la liga</p>
                   </div>
                 )}
               </CardContent>
@@ -472,13 +662,13 @@ export default function JugadorPerfil() {
         </div>
 
         {/* Enlace al ranking */}
-        <div className="mt-8 text-center">
+        <div className="mt-12 text-center">
           <Link 
             href="/rankings" 
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#E2FC1D] text-black rounded-lg transition-colors"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#E2FC1D] to-[#d4f01a] text-black font-semibold rounded-xl shadow-lg shadow-[#E2FC1D]/25 hover:shadow-xl hover:shadow-[#E2FC1D]/30 transition-all duration-300 hover:scale-105 hover:from-[#d4f01a] hover:to-[#E2FC1D]"
           >
-            <Trophy className="w-5 h-5" />
-            Ver ranking
+            <Trophy className="w-6 h-6" />
+            Ver ranking completo
           </Link>
         </div>
       </div>
