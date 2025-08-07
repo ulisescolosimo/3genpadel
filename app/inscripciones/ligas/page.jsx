@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import HtmlContent from '@/components/ui/html-content'
-import { Trophy, Users, Calendar, MapPin, ArrowLeft, Star, Clock, Award, Target, LogIn, DollarSign } from 'lucide-react'
+import { Trophy, Users, Calendar, MapPin, ArrowLeft, Star, Clock, Award, Target, LogIn, DollarSign, AlertCircle, Info } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 import { formatArgentineDate } from '@/lib/date-utils'
@@ -230,6 +230,45 @@ export default function LigasPage() {
                         Formato de Juego
                       </h4>
                       <p className="text-gray-300 leading-relaxed text-sm sm:text-base">{liga.formato}</p>
+                    </div>
+                  )}
+
+                  {/* Información adicional que antes solo se veía en el detalle */}
+                  {liga.horarios && (
+                    <div className="space-y-2 sm:space-y-3">
+                      <h4 className="text-base sm:text-lg font-semibold text-[#E2FF1B] flex items-center gap-2">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                        Horarios
+                      </h4>
+                      <div className="text-gray-300 leading-relaxed text-sm sm:text-base">
+                        <HtmlContent content={liga.horarios} />
+                      </div>
+                    </div>
+                  )}
+
+                  {liga.cronograma && (
+                    <div className="space-y-2 sm:space-y-3">
+                      <h4 className="text-base sm:text-lg font-semibold text-[#E2FF1B] flex items-center gap-2">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                        Cronograma
+                      </h4>
+                      <div className="text-gray-300 leading-relaxed text-sm sm:text-base">
+                        <HtmlContent content={liga.cronograma} />
+                      </div>
+                    </div>
+                  )}
+
+                  {liga.importante && (
+                    <div className="space-y-2 sm:space-y-3">
+                      <h4 className="text-base sm:text-lg font-semibold text-red-400 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                        Información Importante
+                      </h4>
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 sm:p-4">
+                        <div className="text-red-300 leading-relaxed text-sm sm:text-base">
+                          <HtmlContent content={liga.importante} />
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
