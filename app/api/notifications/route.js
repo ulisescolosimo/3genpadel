@@ -40,7 +40,7 @@ export async function POST(request) {
 
     console.log('Usuario autenticado:', user.email)
 
-    const { titulo, mensaje, tipo, usuario_id, es_masiva } = await request.json()
+    const { titulo, mensaje, tipo, usuario_id, es_masiva, solo_ligas_activas } = await request.json()
 
     // Validar campos requeridos
     if (!titulo || !mensaje || !tipo) {
@@ -62,22 +62,41 @@ export async function POST(request) {
     let result
 
     if (es_masiva) {
-      // Crear notificación masiva para todos los usuarios
-      const { data, error } = await supabase.rpc('crear_notificacion_masiva', {
-        p_titulo: titulo,
-        p_mensaje: mensaje,
-        p_tipo: tipo
-      })
+      if (solo_ligas_activas) {
+        // Crear notificación masiva solo para usuarios inscritos en ligas activas
+        const { data, error } = await supabase.rpc('crear_notificacion_masiva_ligas_activas', {
+          p_titulo: titulo,
+          p_mensaje: mensaje,
+          p_tipo: tipo
+        })
 
-      if (error) {
-        console.error('Error creating mass notification:', error)
-        return NextResponse.json(
-          { error: 'Error al crear notificación masiva' },
-          { status: 500 }
-        )
+        if (error) {
+          console.error('Error creating mass notification for active leagues:', error)
+          return NextResponse.json(
+            { error: 'Error al crear notificación masiva para ligas activas' },
+            { status: 500 }
+          )
+        }
+
+        result = { count: data }
+      } else {
+        // Crear notificación masiva para todos los usuarios
+        const { data, error } = await supabase.rpc('crear_notificacion_masiva', {
+          p_titulo: titulo,
+          p_mensaje: mensaje,
+          p_tipo: tipo
+        })
+
+        if (error) {
+          console.error('Error creating mass notification:', error)
+          return NextResponse.json(
+            { error: 'Error al crear notificación masiva' },
+            { status: 500 }
+          )
+        }
+
+        result = { count: data }
       }
-
-      result = { count: data }
     } else {
       // Crear notificación para un usuario específico
       if (!usuario_id) {
@@ -108,7 +127,9 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: es_masiva 
-        ? `Notificación masiva creada para ${result.count} usuarios`
+        ? solo_ligas_activas
+          ? `Notificación enviada a ${result.count} usuarios inscritos en ligas activas`
+          : `Notificación masiva creada para ${result.count} usuarios`
         : 'Notificación creada exitosamente',
       data: result
     })

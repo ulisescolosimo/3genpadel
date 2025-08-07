@@ -5,7 +5,7 @@
 Se ha implementado un sistema completo de notificaciones para la aplicación 3gen Padel que incluye:
 
 - **Notificaciones en tiempo real** con icono de campanita en el header
-- **Panel de administración** para enviar notificaciones individuales o masivas
+- **Panel de administración** para enviar notificaciones individuales, masivas o solo a usuarios de ligas activas
 - **Base de datos optimizada** con políticas de seguridad
 - **API REST** para gestión de notificaciones
 
@@ -27,11 +27,12 @@ Se ha implementado un sistema completo de notificaciones para la aplicación 3ge
 - Endpoint POST para crear notificaciones
 - Endpoint GET para obtener notificaciones
 - Validación de datos
-- Soporte para notificaciones individuales y masivas
+- Soporte para notificaciones individuales, masivas y para ligas activas
 
 ### 4. Panel de Administración (`app/admin/notificaciones/page.jsx`)
 - Interfaz para enviar notificaciones individuales
 - Interfaz para notificaciones masivas
+- **NUEVO**: Interfaz para notificaciones solo a usuarios de ligas activas
 - Selección de usuarios
 - Tipos de notificaciones con iconos
 
@@ -39,6 +40,7 @@ Se ha implementado un sistema completo de notificaciones para la aplicación 3ge
 - Tabla `notificaciones` con índices optimizados
 - Políticas RLS (Row Level Security)
 - Funciones para crear notificaciones
+- **NUEVO**: Función `crear_notificacion_masiva_ligas_activas`
 - Triggers para actualización automática
 
 ## Instalación
@@ -46,6 +48,7 @@ Se ha implementado un sistema completo de notificaciones para la aplicación 3ge
 ### 1. Ejecutar Script SQL
 ```sql
 -- Ejecutar el contenido de database/notifications.sql en Supabase
+-- Ejecutar el contenido de database/notifications_ligas_activas.sql en Supabase
 ```
 
 ### 2. Verificar Componentes
@@ -76,7 +79,10 @@ Se ha implementado un sistema completo de notificaciones para la aplicación 3ge
 
 ### Para Administradores
 1. Ir a `/admin/notificaciones`
-2. Elegir entre notificación individual o masiva
+2. Elegir entre tres tipos de notificación:
+   - **Individual**: Para un usuario específico
+   - **Masiva**: Para todos los usuarios
+   - **Ligas Activas**: Solo para usuarios inscritos en ligas activas
 3. Seleccionar usuario (para individuales)
 4. Elegir tipo de notificación
 5. Escribir título y mensaje
@@ -124,7 +130,8 @@ CREATE TABLE notificaciones (
   "mensaje": "Mensaje de la notificación",
   "tipo": "general",
   "usuario_id": "uuid-del-usuario", // Solo para individuales
-  "es_masiva": false
+  "es_masiva": false,
+  "solo_ligas_activas": false // NUEVO: para usuarios de ligas activas
 }
 ```
 
@@ -145,6 +152,26 @@ CREATE TABLE notificaciones (
 }
 ```
 
+## Nuevas Funcionalidades
+
+### Notificaciones para Ligas Activas
+- **Objetivo**: Enviar notificaciones solo a usuarios inscritos en ligas con estado 'abierta'
+- **Filtros**: Solo incluye usuarios con inscripciones aprobadas o pendientes
+- **Exclusión**: No incluye administradores
+- **Interfaz**: Nueva pestaña en el panel de administración con contador de usuarios afectados
+
+### Función RPC: `crear_notificacion_masiva_ligas_activas`
+```sql
+-- Función que obtiene usuarios únicos inscritos en ligas activas
+-- y crea notificaciones para cada uno
+CREATE OR REPLACE FUNCTION crear_notificacion_masiva_ligas_activas(
+  p_titulo TEXT,
+  p_mensaje TEXT,
+  p_tipo TEXT
+)
+RETURNS INTEGER
+```
+
 ## Próximos Pasos
 
 1. **Notificaciones Push**: Implementar notificaciones push del navegador
@@ -152,6 +179,7 @@ CREATE TABLE notificaciones (
 3. **Filtros**: Agregar filtros por tipo de notificación
 4. **Historial**: Página completa de historial de notificaciones
 5. **Plantillas**: Sistema de plantillas para notificaciones comunes
+6. **Notificaciones por Categoría**: Enviar notificaciones solo a usuarios de categorías específicas
 
 ## Troubleshooting
 
@@ -172,12 +200,35 @@ CREATE TABLE notificaciones (
    - Revisar el hook useNotifications
    - Verificar que el usuario tenga permisos
 
+4. **Error en notificaciones de ligas activas**
+   - Verificar que la función `crear_notificacion_masiva_ligas_activas` esté creada
+   - Revisar que existan ligas con estado 'abierta'
+   - Verificar que haya usuarios inscritos en esas ligas
+
 ### Logs Útiles
 ```javascript
 // En el navegador
 console.log('Notificaciones:', notifications)
-console.log('Contador no leídas:', unreadCount)
+console.log('Usuarios ligas activas:', usuariosLigasActivas)
 
-// En Supabase
-// Revisar logs de funciones y políticas RLS
-``` 
+// En la API
+console.log('Usuario autenticado:', user.email)
+console.log('Parámetros recibidos:', { titulo, mensaje, tipo, es_masiva, solo_ligas_activas })
+```
+
+## Changelog
+
+### v2.0.0 - Notificaciones para Ligas Activas
+- ✅ Agregada nueva pestaña "Ligas Activas" en el panel de administración
+- ✅ Nueva función RPC `crear_notificacion_masiva_ligas_activas`
+- ✅ Contador de usuarios afectados en tiempo real
+- ✅ Filtrado automático de usuarios inscritos en ligas activas
+- ✅ Exclusión de administradores del envío masivo
+- ✅ Interfaz mejorada con iconos y colores distintivos
+
+### v1.0.0 - Sistema Base
+- ✅ Notificaciones en tiempo real
+- ✅ Panel de administración
+- ✅ API REST completa
+- ✅ Base de datos optimizada
+- ✅ Políticas de seguridad RLS 

@@ -97,7 +97,7 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
               <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
                 {getCategoriaNombre()}
               </h3>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-300">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-white">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   {formatDate(partido.fecha)}
@@ -108,8 +108,8 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
                 </div>
                 {partido.cancha && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
-                    <span className="text-blue-400">Cancha {partido.cancha}</span>
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                    <span className="text-white">Cancha {partido.cancha}</span>
                   </div>
                 )}
               </div>
@@ -117,7 +117,7 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
           </Card>
 
           {/* Equipos */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Equipo A */}
             <Card className="bg-black/20 border-white/10">
               <CardContent className="p-3 sm:p-4">
@@ -131,16 +131,6 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
                       {getEquipoNombre(partido.equipo_a)}
                     </p>
                   </div>
-                  {partido.equipo_a?.titular_1 && (
-                    <div className="text-xs sm:text-sm text-gray-300">
-                      <span className="text-gray-400">Titular 1:</span> {partido.equipo_a.titular_1.nombre} {partido.equipo_a.titular_1.apellido}
-                    </div>
-                  )}
-                  {partido.equipo_a?.titular_2 && (
-                    <div className="text-xs sm:text-sm text-gray-300">
-                      <span className="text-gray-400">Titular 2:</span> {partido.equipo_a.titular_2.nombre} {partido.equipo_a.titular_2.apellido}
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -158,16 +148,6 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
                       {getEquipoNombre(partido.equipo_b)}
                     </p>
                   </div>
-                  {partido.equipo_b?.titular_1 && (
-                    <div className="text-xs sm:text-sm text-gray-300">
-                      <span className="text-gray-400">Titular 1:</span> {partido.equipo_b.titular_1.nombre} {partido.equipo_b.titular_1.apellido}
-                    </div>
-                  )}
-                  {partido.equipo_b?.titular_2 && (
-                    <div className="text-xs sm:text-sm text-gray-300">
-                      <span className="text-gray-400">Titular 2:</span> {partido.equipo_b.titular_2.nombre} {partido.equipo_b.titular_2.apellido}
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>

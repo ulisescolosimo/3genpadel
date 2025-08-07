@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'react-hot-toast'
-import { Bell, Send, Users, User, Loader2 } from 'lucide-react'
+import { Bell, Send, Users, User, Loader2, Trophy } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -18,16 +18,19 @@ export default function NotificacionesPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [usuarios, setUsuarios] = useState([])
+  const [usuariosLigasActivas, setUsuariosLigasActivas] = useState([])
   const [selectedUsuario, setSelectedUsuario] = useState('')
   const [formData, setFormData] = useState({
     titulo: '',
     mensaje: '',
     tipo: 'general',
-    es_masiva: false
+    es_masiva: false,
+    solo_ligas_activas: false
   })
 
   useEffect(() => {
     fetchUsuarios()
+    fetchUsuariosLigasActivas()
   }, [])
 
   const fetchUsuarios = async () => {
@@ -43,6 +46,83 @@ export default function NotificacionesPage() {
     } catch (error) {
       console.error('Error fetching users:', error)
       toast.error('Error al cargar usuarios')
+    }
+  }
+
+  const fetchUsuariosLigasActivas = async () => {
+    try {
+      // Obtener usuarios que están inscritos en ligas activas (estado = 'abierta')
+      const { data, error } = await supabase
+        .from('ligainscripciones')
+        .select(`
+          titular_1_id,
+          titular_2_id,
+          suplente_1_id,
+          suplente_2_id,
+          liga_categorias!inner(
+            ligas!inner(
+              estado
+            )
+          ),
+          usuarios_titular_1:usuarios!ligainscripciones_titular_1_id_fkey(
+            id,
+            nombre,
+            apellido,
+            email
+          ),
+          usuarios_titular_2:usuarios!ligainscripciones_titular_2_id_fkey(
+            id,
+            nombre,
+            apellido,
+            email
+          ),
+          usuarios_suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey(
+            id,
+            nombre,
+            apellido,
+            email
+          ),
+          usuarios_suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey(
+            id,
+            nombre,
+            apellido,
+            email
+          )
+        `)
+        .eq('liga_categorias.ligas.estado', 'abierta')
+        .in('estado', ['aprobada', 'pendiente'])
+
+      if (error) throw error
+
+      // Crear un Set de usuarios únicos inscritos en ligas activas
+      const usuariosUnicos = new Set()
+      const usuariosConInfo = []
+
+      data?.forEach(inscripcion => {
+        const usuariosInscripcion = [
+          inscripcion.usuarios_titular_1,
+          inscripcion.usuarios_titular_2,
+          inscripcion.usuarios_suplente_1,
+          inscripcion.usuarios_suplente_2
+        ].filter(u => u && u.id)
+
+        usuariosInscripcion.forEach(usuario => {
+          if (!usuariosUnicos.has(usuario.id)) {
+            usuariosUnicos.add(usuario.id)
+            usuariosConInfo.push({
+              id: usuario.id,
+              nombre: usuario.nombre,
+              apellido: usuario.apellido,
+              email: usuario.email
+            })
+          }
+        })
+      })
+
+      setUsuariosLigasActivas(usuariosConInfo)
+    } catch (error) {
+      console.error('Error fetching users in active leagues:', error)
+      toast.error('Error al cargar usuarios de ligas activas')
     }
   }
 
@@ -95,7 +175,8 @@ export default function NotificacionesPage() {
         titulo: '',
         mensaje: '',
         tipo: 'general',
-        es_masiva: false
+        es_masiva: false,
+        solo_ligas_activas: false
       })
       setSelectedUsuario('')
     } catch (error) {
@@ -146,19 +227,23 @@ export default function NotificacionesPage() {
              Gestión de Notificaciones
            </h1>
            <p className="text-gray-300">
-             Envía notificaciones a usuarios individuales o masivas a todos los usuarios
+             Envía notificaciones a usuarios individuales, masivas o solo a usuarios inscritos en ligas activas
            </p>
          </div>
 
         <Tabs defaultValue="individual" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="individual" className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              Notificación Individual
+              Individual
             </TabsTrigger>
             <TabsTrigger value="masiva" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Notificación Masiva
+              Masiva
+            </TabsTrigger>
+            <TabsTrigger value="ligas-activas" className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Ligas Activas
             </TabsTrigger>
           </TabsList>
 
@@ -338,6 +423,98 @@ export default function NotificacionesPage() {
                       <>
                         <Send className="w-4 h-4 mr-2" />
                         Enviar Notificación Masiva
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ligas-activas">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Trophy className="w-5 h-5" />
+                  Notificación a Usuarios de Ligas Activas
+                </CardTitle>
+                <CardDescription className="text-gray-300">
+                  Envía una notificación solo a usuarios inscritos en ligas activas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                      <Trophy className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        Esta notificación se enviará a {usuariosLigasActivas.length} usuarios inscritos en ligas activas
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo-ligas-activas" className="text-white">Tipo de Notificación</Label>
+                    <Select 
+                      value={formData.tipo} 
+                      onValueChange={(value) => handleInputChange('tipo', value)}
+                    >
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700 max-h-[300px]">
+                        <SelectItem value="general" className="text-white hover:bg-gray-700">General</SelectItem>
+                        <SelectItem value="liga" className="text-white hover:bg-gray-700">Liga</SelectItem>
+                        <SelectItem value="ranking" className="text-white hover:bg-gray-700">Ranking</SelectItem>
+                        <SelectItem value="academia" className="text-white hover:bg-gray-700">Academia</SelectItem>
+                        <SelectItem value="sistema" className="text-white hover:bg-gray-700">Sistema</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="titulo-ligas-activas" className="text-white">Título</Label>
+                    <Input
+                      id="titulo-ligas-activas"
+                      value={formData.titulo}
+                      onChange={(e) => handleInputChange('titulo', e.target.value)}
+                      placeholder="Título de la notificación"
+                      className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="mensaje-ligas-activas" className="text-white">Mensaje</Label>
+                    <Textarea
+                      id="mensaje-ligas-activas"
+                      value={formData.mensaje}
+                      onChange={(e) => handleInputChange('mensaje', e.target.value)}
+                      placeholder="Mensaje de la notificación"
+                      className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      handleInputChange('es_masiva', true)
+                      handleInputChange('solo_ligas_activas', true)
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar a Usuarios de Ligas Activas
                       </>
                     )}
                   </Button>

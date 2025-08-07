@@ -630,7 +630,7 @@ export default function PartidosPage() {
                                   </div>
                                 </div>
                                 {partido.cancha && (
-                                      <div className="flex items-center justify-center mt-4 gap-1 text-blue-400">
+                                      <div className="flex items-center justify-center mt-4 gap-1 text-[#E2FC1D]">
                                         <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
                                         <span className="font-medium text-xs sm:text-sm">Cancha {partido.cancha}</span>
                                       </div>
