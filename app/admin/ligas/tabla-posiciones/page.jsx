@@ -32,7 +32,10 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
       
       if (partido.equipo_ganador_id === equipoId) {
         partidosGanados++
-        puntos += partido.puntos_por_jugador || 3
+        // Solo sumar puntos si están configurados
+        if (partido.puntos_por_jugador && partido.puntos_por_jugador > 0) {
+          puntos += partido.puntos_por_jugador
+        }
       } else {
         partidosPerdidos++
       }

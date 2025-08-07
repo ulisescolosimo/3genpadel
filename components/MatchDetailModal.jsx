@@ -106,6 +106,12 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                   {formatTime(partido.fecha)}
                 </div>
+                {partido.cancha && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                    <span className="text-blue-400">Cancha {partido.cancha}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -177,6 +183,20 @@ export default function MatchDetailModal({ partido, isOpen, onClose }) {
                 </div>
                 <p className="text-white font-semibold text-sm sm:text-base">
                   {getEquipoNombre(partido.equipo_ganador)}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Resultado */}
+          {partido.resultado && (
+            <Card className="bg-green-500/10 border-green-500/20">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-green-400 font-semibold text-sm sm:text-base">Resultado</span>
+                </div>
+                <p className="text-white font-semibold text-sm sm:text-base">
+                  {partido.resultado}
                 </p>
               </CardContent>
             </Card>

@@ -1452,6 +1452,15 @@ export default function ProfilePage() {
                                          Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
                                        </span>
                                      </div>
+                                     
+                                     {partido.cancha && (
+                                       <div className="flex items-center gap-2">
+                                         <MapPin className="w-3 h-3 text-blue-400" />
+                                         <span className="text-xs sm:text-sm text-blue-400">
+                                           Cancha {partido.cancha}
+                                         </span>
+                                       </div>
+                                     )}
                                    </div>
                                  </div>
                                  
@@ -1528,6 +1537,24 @@ export default function ProfilePage() {
                                            Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
                                          </span>
                                        </div>
+                                       
+                                       {partido.cancha && (
+                                         <div className="flex items-center gap-2">
+                                           <MapPin className="w-3 h-3 text-blue-400" />
+                                           <span className="text-xs sm:text-sm text-blue-400">
+                                             Cancha {partido.cancha}
+                                           </span>
+                                         </div>
+                                       )}
+                                       
+                                       {partido.resultado && (
+                                         <div className="flex items-center gap-2">
+                                           <Award className="w-3 h-3 text-green-400" />
+                                           <span className="text-xs sm:text-sm text-green-400">
+                                             Resultado: {partido.resultado}
+                                           </span>
+                                         </div>
+                                       )}
                                      </div>
                                    </div>
                                    

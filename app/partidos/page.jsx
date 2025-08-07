@@ -584,7 +584,7 @@ export default function PartidosPage() {
                                   {/* VS */}
                                   <div className="flex flex-col items-center justify-center px-2 sm:px-4">
                                     <div className="text-xl sm:text-3xl font-bold text-[#E2FF1B] mb-1 sm:mb-2">VS</div>
-                                    <div className="w-6 sm:w-8 h-0.5 bg-[#E2FF1B]"></div>
+                                    <div className="w-6 sm:w-8 h-0.5 bg-[#E2FF1B] mb-2"></div>
                                   </div>
 
                                   {/* Equipo B */}
@@ -595,6 +595,7 @@ export default function PartidosPage() {
                                       ? 'bg-[#E2FC1D]/20 border-2 border-[#E2FC1D]/50 shadow-lg shadow-[#E2FC1D]/20 animate-pulse'
                                       : 'bg-black/20 border border-white/20 hover:border-[#E2FF1B]/30'
                                   }`}>
+                                    
                                     <div className="space-y-1 sm:space-y-2">
                                       <div className="flex flex-col gap-1">
                                         <span className={`font-bold text-sm sm:text-base ${
@@ -628,6 +629,12 @@ export default function PartidosPage() {
                                     </div>
                                   </div>
                                 </div>
+                                {partido.cancha && (
+                                      <div className="flex items-center justify-center mt-4 gap-1 text-blue-400">
+                                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        <span className="font-medium text-xs sm:text-sm">Cancha {partido.cancha}</span>
+                                      </div>
+                                    )}
                               </CardContent>
                             </Card>
                           )

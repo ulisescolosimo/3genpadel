@@ -154,6 +154,14 @@ export async function POST(request) {
       )
     }
 
+    // Validar puntos por jugador
+    if (!partidoData.puntos_por_jugador || parseInt(partidoData.puntos_por_jugador) <= 0) {
+      return NextResponse.json(
+        { error: 'puntos_por_jugador debe ser mayor a 0' },
+        { status: 400 }
+      )
+    }
+
     // Crear la fecha si se proporciona
     let fechaISO = null
     if (partidoData.fecha) {
@@ -167,7 +175,7 @@ export async function POST(request) {
       equipo_a_id: parseInt(partidoData.equipo_a_id),
       equipo_b_id: parseInt(partidoData.equipo_b_id),
       equipo_ganador_id: partidoData.equipo_ganador_id ? parseInt(partidoData.equipo_ganador_id) : null,
-      puntos_por_jugador: parseInt(partidoData.puntos_por_jugador || '3'),
+      puntos_por_jugador: parseInt(partidoData.puntos_por_jugador),
       fecha: fechaISO,
       ronda: partidoData.ronda || 'Grupos',
       estado: partidoData.estado || 'pendiente'

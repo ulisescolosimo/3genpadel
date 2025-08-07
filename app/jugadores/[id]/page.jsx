@@ -22,6 +22,7 @@ export default function JugadorPerfil() {
   })
   const [ultimosPartidos, setUltimosPartidos] = useState([])
   const [posicionRanking, setPosicionRanking] = useState(null)
+  const [rankingPorCategoria, setRankingPorCategoria] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -68,6 +69,9 @@ export default function JugadorPerfil() {
 
       // 4. Obtener últimos 5 partidos
       await fetchUltimosPartidos(jugadorId)
+
+      // 5. Obtener ranking por categoría
+      await fetchRankingPorCategoria(jugadorId)
 
     } catch (error) {
       console.error('Error fetching jugador data:', error)
@@ -188,6 +192,25 @@ export default function JugadorPerfil() {
     }
   }
 
+  const fetchRankingPorCategoria = async (jugadorId) => {
+    try {
+      // Obtener ranking por categoría del jugador
+      const { data: rankingData, error: rankingError } = await supabase
+        .from('ranking_jugadores')
+        .select('*')
+        .eq('usuario_id', jugadorId)
+        .eq('activo', true)
+        .order('puntos', { ascending: false })
+
+      if (rankingError) throw rankingError
+
+      setRankingPorCategoria(rankingData || [])
+
+    } catch (error) {
+      console.error('Error fetching ranking por categoría:', error)
+    }
+  }
+
   const getEquipoNombre = (equipo) => {
     if (!equipo) return 'N/A'
     const titular1 = equipo.titular_1 ? `${equipo.titular_1.nombre} ${equipo.titular_1.apellido}` : ''
@@ -303,7 +326,16 @@ export default function JugadorPerfil() {
                   <div className="flex items-center gap-2">
                     <Award className="w-5 h-5 text-blue-400" />
                     <span className="text-gray-300">
-                      {jugador.ranking_puntos} puntos
+                      {jugador.ranking_puntos} puntos totales
+                    </span>
+                  </div>
+                )}
+
+                {rankingPorCategoria.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-[#E2FC1D]" />
+                    <span className="text-gray-300">
+                      {rankingPorCategoria.length} categoría{rankingPorCategoria.length > 1 ? 's' : ''} activa{rankingPorCategoria.length > 1 ? 's' : ''}
                     </span>
                   </div>
                 )}
@@ -346,6 +378,39 @@ export default function JugadorPerfil() {
                   </div>
                   <span className="text-white font-bold text-lg">{estadisticas.winRate}%</span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Ranking por Categoría */}
+            <Card className="bg-gray-900/50 border-gray-800 mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Shield className="w-5 h-5 text-[#E2FC1D]" />
+                  Ranking por categoría
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {rankingPorCategoria.length > 0 ? (
+                  <div className="space-y-3">
+                    {rankingPorCategoria.map((ranking) => (
+                      <div key={ranking.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-[#E2FC1D]" />
+                          <span className="text-gray-300 font-medium">{ranking.categoria}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold">{ranking.puntos}</span>
+                          <span className="text-gray-400 text-sm">puntos</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <Shield className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">No hay puntos registrados por categoría</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
