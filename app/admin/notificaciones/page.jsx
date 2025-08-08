@@ -9,13 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { toast } from 'react-hot-toast'
+import { useToast } from '@/hooks/use-toast'
 import { Bell, Send, Users, User, Loader2, Trophy } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
 
 export default function NotificacionesPage() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [usuarios, setUsuarios] = useState([])
   const [usuariosLigasActivas, setUsuariosLigasActivas] = useState([])
@@ -45,7 +46,11 @@ export default function NotificacionesPage() {
       setUsuarios(data || [])
     } catch (error) {
       console.error('Error fetching users:', error)
-      toast.error('Error al cargar usuarios')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al cargar usuarios"
+      })
     }
   }
 
@@ -122,7 +127,11 @@ export default function NotificacionesPage() {
       setUsuariosLigasActivas(usuariosConInfo)
     } catch (error) {
       console.error('Error fetching users in active leagues:', error)
-      toast.error('Error al cargar usuarios de ligas activas')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al cargar usuarios de ligas activas"
+      })
     }
   }
 
@@ -130,12 +139,20 @@ export default function NotificacionesPage() {
     e.preventDefault()
     
     if (!formData.titulo || !formData.mensaje) {
-      toast.error('Título y mensaje son requeridos')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Título y mensaje son requeridos"
+      })
       return
     }
 
     if (!formData.es_masiva && !selectedUsuario) {
-      toast.error('Debes seleccionar un usuario para notificación individual')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debes seleccionar un usuario para notificación individual"
+      })
       return
     }
 
@@ -146,7 +163,11 @@ export default function NotificacionesPage() {
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {
-        toast.error('Debes iniciar sesión para enviar notificaciones')
+        toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debes iniciar sesión para enviar notificaciones"
+      })
         return
       }
 
@@ -168,7 +189,10 @@ export default function NotificacionesPage() {
         throw new Error(result.error || 'Error al crear notificación')
       }
 
-      toast.success(result.message)
+      toast({
+        title: "Éxito",
+        description: result.message
+      })
       
       // Limpiar formulario
       setFormData({
@@ -181,7 +205,11 @@ export default function NotificacionesPage() {
       setSelectedUsuario('')
     } catch (error) {
       console.error('Error creating notification:', error)
-      toast.error(error.message)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      })
     } finally {
       setLoading(false)
     }

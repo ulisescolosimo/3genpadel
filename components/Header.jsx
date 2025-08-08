@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import LiveMatchTicker from './LiveMatchTicker'
 import NotificationDropdown from './NotificationDropdown'
-import { toast } from 'react-hot-toast'
+import { useToast } from '@/hooks/use-toast'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const { toast } = useToast()
 
   useEffect(() => {
     const getUserData = async () => {
@@ -79,7 +80,11 @@ export default function Header() {
       })
       if (error) throw error
     } catch (error) {
-      toast.error('Error al iniciar sesión')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al iniciar sesión"
+      })
       console.error('Error:', error)
     }
   }
@@ -92,7 +97,11 @@ export default function Header() {
       setUserData(null)
       router.push('/')
     } catch (error) {
-      toast.error('Error al cerrar sesión')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al cerrar sesión"
+      })
       console.error('Error:', error)
     }
   }
