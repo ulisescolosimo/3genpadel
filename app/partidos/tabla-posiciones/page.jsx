@@ -451,57 +451,42 @@ export default function TablaPosicionesPage() {
         {/* Filtros de liga y categoría */}
         <Card className="mb-6 bg-black/20 backdrop-blur-sm border-white/10">
           <CardContent className="p-4">
-            <div className="space-y-4">
-              {/* Filtros en columna para mobile */}
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-white">Seleccionar Liga</label>
-                  <Select value={selectedLiga} onValueChange={setSelectedLiga}>
-                    <SelectTrigger className="bg-black/20 border-white/20 text-white h-12 w-full">
-                      <SelectValue placeholder="Todas las ligas" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-white/20">
-                      <SelectItem value="all">Todas las ligas</SelectItem>
-                      {ligas.map(liga => (
-                        <SelectItem key={liga.id} value={liga.id.toString()}>
-                          {liga.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-white">Seleccionar Categoría</label>
-                  <Select 
-                    value={selectedCategoria} 
-                    onValueChange={setSelectedCategoria}
-                    disabled={selectedLiga === 'all' || filteredCategorias.length === 0}
-                  >
-                    <SelectTrigger className="bg-black/20 border-white/20 text-white h-12 w-full">
-                      <SelectValue placeholder="Todas las categorías" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-white/20">
-                      <SelectItem value="all">Todas las categorías</SelectItem>
-                      {filteredCategorias.map(categoria => (
-                        <SelectItem key={categoria.id} value={categoria.id.toString()}>
-                          {categoria.categoria}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block text-white">Seleccionar Liga</label>
+                <Select value={selectedLiga} onValueChange={setSelectedLiga}>
+                  <SelectTrigger className="bg-black/20 border-white/20 text-white h-12 w-full">
+                    <SelectValue placeholder="Todas las ligas" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-white/20">
+                    <SelectItem value="all">Todas las ligas</SelectItem>
+                    {ligas.map(liga => (
+                      <SelectItem key={liga.id} value={liga.id.toString()}>
+                        {liga.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              
-              {/* Botón de actualizar centrado para mobile */}
-              <div className="flex justify-center">
-                <Button 
-                  onClick={fetchData} 
-                  disabled={refreshing}
-                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 flex items-center gap-2 h-12 px-8 w-full sm:w-auto"
+              <div>
+                <label className="text-sm font-medium mb-2 block text-white">Seleccionar Categoría</label>
+                <Select 
+                  value={selectedCategoria} 
+                  onValueChange={setSelectedCategoria}
+                  disabled={selectedLiga === 'all' || filteredCategorias.length === 0}
                 >
-                  <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
-                  Actualizar
-                </Button>
+                  <SelectTrigger className="bg-black/20 border-white/20 text-white h-12 w-full">
+                    <SelectValue placeholder="Todas las categorías" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-white/20">
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    {filteredCategorias.map(categoria => (
+                      <SelectItem key={categoria.id} value={categoria.id.toString()}>
+                        {categoria.categoria}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
