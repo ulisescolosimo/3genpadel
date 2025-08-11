@@ -77,29 +77,25 @@ export default function Ranking() {
             id,
             nombre,
             apellido,
-            avatar_url,
-            ranking_puntos
+            avatar_url
           ),
           usuarios_titular_2:usuarios!ligainscripciones_titular_2_id_fkey(
             id,
             nombre,
             apellido,
-            avatar_url,
-            ranking_puntos
+            avatar_url
           ),
           usuarios_suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey(
             id,
             nombre,
             apellido,
-            avatar_url,
-            ranking_puntos
+            avatar_url
           ),
           usuarios_suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey(
             id,
             nombre,
             apellido,
-            avatar_url,
-            ranking_puntos
+            avatar_url
           )
         `)
         .neq('usuarios_titular_1.rol', 'admin')
@@ -125,7 +121,7 @@ export default function Ranking() {
                nombre: jugador.nombre,
                apellido: jugador.apellido,
                avatar_url: jugador.avatar_url,
-               ranking_puntos: jugador.ranking_puntos || 0,
+               ranking_puntos: 0,
                inscripciones: [],
                partidosJugados: 0,
                partidosGanados: 0
@@ -149,7 +145,7 @@ export default function Ranking() {
                nombre: jugador.nombre,
                apellido: jugador.apellido,
                avatar_url: jugador.avatar_url,
-               ranking_puntos: jugador.ranking_puntos || 0,
+               ranking_puntos: 0,
                inscripciones: [],
                partidosJugados: 0,
                partidosGanados: 0
@@ -173,7 +169,7 @@ export default function Ranking() {
                nombre: jugador.nombre,
                apellido: jugador.apellido,
                avatar_url: jugador.avatar_url,
-               ranking_puntos: jugador.ranking_puntos || 0,
+               ranking_puntos: 0,
                inscripciones: [],
                partidosJugados: 0,
                partidosGanados: 0
@@ -197,7 +193,7 @@ export default function Ranking() {
                nombre: jugador.nombre,
                apellido: jugador.apellido,
                avatar_url: jugador.avatar_url,
-               ranking_puntos: jugador.ranking_puntos || 0,
+               ranking_puntos: 0,
                inscripciones: [],
                partidosJugados: 0,
                partidosGanados: 0
@@ -319,8 +315,8 @@ export default function Ranking() {
         }
       })
 
-      // Ordenar por puntos de ranking
-      const jugadoresOrdenados = jugadoresInscritos.sort((a, b) => b.ranking_puntos - a.ranking_puntos)
+      // Ordenar por nombre (ya no hay puntos de ranking)
+      const jugadoresOrdenados = jugadoresInscritos.sort((a, b) => a.nombre.localeCompare(b.nombre))
 
       // Actualizar caché
       rankingCache = jugadoresOrdenados
@@ -438,9 +434,9 @@ export default function Ranking() {
               <div className="flex items-center gap-3">
                 <Trophy className="w-8 h-8 text-yellow-400" />
                 <div>
-                  <p className="text-gray-400 text-sm">Con puntos</p>
+                  <p className="text-gray-400 text-sm">Total jugadores</p>
                   <p className="text-white text-2xl font-bold">
-                    {jugadores.filter(j => j.ranking_puntos > 0).length}
+                    {jugadores.length}
                   </p>
                 </div>
               </div>
@@ -535,7 +531,7 @@ export default function Ranking() {
                             <div className="flex items-center gap-4 text-sm text-gray-400">
                               <span className="flex items-center gap-1">
                                 <Award className="w-4 h-4" />
-                                {jugador.ranking_puntos} puntos
+                                {jugador.totalInscripciones} inscripciones
                               </span>
                               {jugador.totalTitulos > 0 && (
                                 <span className="flex items-center gap-1">

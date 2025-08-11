@@ -539,30 +539,26 @@ export default function PartidosPage() {
 
                               <CardContent className="pt-0 px-4 sm:px-6 pb-4 sm:pb-6">
                                 {/* Equipos */}
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+                                <div className="flex flex-col items-center justify-center gap-4">
                                   {/* Equipo A */}
-                                  <div className={`flex-1 text-center p-2 sm:p-2 rounded-xl transition-all duration-300 w-full ${
+                                  <div className={`w-full text-center p-3 rounded-xl transition-all duration-300 ${
                                     partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_a?.id 
-                                      ? 'bg-[#E2FF1B]/20 border-2 border-[#E2FF1B]/50 shadow-lg shadow-[#E2FF1B]/20' 
+                                      ? 'bg-black/20 border-2 border-[#E2FF1B] hover:border-[#E2FF1B]/80'
                                       : userInEquipoA && userIsPlaying
                                       ? 'bg-[#E2FC1D]/20 border-2 border-[#E2FC1D]/50 shadow-lg shadow-[#E2FC1D]/20 animate-pulse'
                                       : 'bg-black/20 border border-white/20 hover:border-[#E2FF1B]/30'
                                   }`}>
-                                    <div className="space-y-1 sm:space-y-2">
+                                    <div className="space-y-2">
                                       <div className="flex flex-col gap-1">
                                         <span className={`font-bold text-sm sm:text-base ${
-                                          partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_a?.id 
-                                            ? 'text-[#E2FF1B]' 
-                                            : userInEquipoA && userIsPlaying
+                                          userInEquipoA && userIsPlaying
                                             ? 'text-[#E2FC1D]'
                                             : 'text-white'
                                         }`}>
                                           {getNombreAbreviado(partido.equipo_a?.titular_1)}
                                         </span>
                                         <span className={`font-bold text-sm sm:text-base ${
-                                          partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_a?.id 
-                                            ? 'text-[#E2FF1B]' 
-                                            : userInEquipoA && userIsPlaying
+                                          userInEquipoA && userIsPlaying
                                             ? 'text-[#E2FC1D]'
                                             : 'text-white'
                                         }`}>
@@ -570,9 +566,7 @@ export default function PartidosPage() {
                                         </span>
                                       </div>
                                       <div className={`text-xs ${
-                                        partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_a?.id 
-                                          ? 'text-[#E2FF1B]/80' 
-                                          : userInEquipoA && userIsPlaying
+                                        userInEquipoA && userIsPlaying
                                           ? 'text-[#E2FC1D]/80'
                                           : 'text-gray-400'
                                       }`}>
@@ -582,35 +576,30 @@ export default function PartidosPage() {
                                   </div>
 
                                   {/* VS */}
-                                  <div className="flex flex-col items-center justify-center px-2 sm:px-4">
-                                    <div className="text-xl sm:text-3xl font-bold text-[#E2FF1B] mb-1 sm:mb-2">VS</div>
-                                    <div className="w-6 sm:w-8 h-0.5 bg-[#E2FF1B] mb-2"></div>
+                                  <div className="flex flex-col items-center justify-center px-4">
+                                    <div className="text-xl sm:text-3xl font-bold text-[#E2FF1B] mb-2">VS</div>
+                                    <div className="w-8 h-0.5 bg-[#E2FF1B] mb-2"></div>
                                   </div>
 
                                   {/* Equipo B */}
-                                  <div className={`flex-1 text-center p-2 sm:p-2 rounded-xl transition-all duration-300 w-full ${
+                                  <div className={`w-full text-center p-3 rounded-xl transition-all duration-300 ${
                                     partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_b?.id 
-                                      ? 'bg-[#E2FF1B]/20 border-2 border-[#E2FF1B]/50 shadow-lg shadow-[#E2FF1B]/20' 
+                                      ? 'bg-black/20 border-2 border-[#E2FF1B] hover:border-[#E2FF1B]/80'
                                       : userInEquipoB && userIsPlaying
                                       ? 'bg-[#E2FC1D]/20 border-2 border-[#E2FC1D]/50 shadow-lg shadow-[#E2FC1D]/20 animate-pulse'
                                       : 'bg-black/20 border border-white/20 hover:border-[#E2FF1B]/30'
                                   }`}>
-                                    
-                                    <div className="space-y-1 sm:space-y-2">
+                                    <div className="space-y-2">
                                       <div className="flex flex-col gap-1">
                                         <span className={`font-bold text-sm sm:text-base ${
-                                          partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_b?.id 
-                                            ? 'text-[#E2FF1B]' 
-                                            : userInEquipoB && userIsPlaying
+                                          userInEquipoB && userIsPlaying
                                             ? 'text-[#E2FC1D]'
                                             : 'text-white'
                                         }`}>
                                           {getNombreAbreviado(partido.equipo_b?.titular_1)}
                                         </span>
                                         <span className={`font-bold text-sm sm:text-base ${
-                                          partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_b?.id 
-                                            ? 'text-[#E2FF1B]' 
-                                            : userInEquipoB && userIsPlaying
+                                          userInEquipoB && userIsPlaying
                                             ? 'text-[#E2FC1D]'
                                             : 'text-white'
                                         }`}>
@@ -618,9 +607,7 @@ export default function PartidosPage() {
                                         </span>
                                       </div>
                                       <div className={`text-xs ${
-                                        partido.estado === 'jugado' && partido.equipo_ganador_id === partido.equipo_b?.id 
-                                          ? 'text-[#E2FF1B]/80' 
-                                          : userInEquipoB && userIsPlaying
+                                        userInEquipoB && userIsPlaying
                                           ? 'text-[#E2FC1D]/80'
                                           : 'text-gray-400'
                                       }`}>
@@ -629,12 +616,46 @@ export default function PartidosPage() {
                                     </div>
                                   </div>
                                 </div>
+
+                                {/* Cancha */}
                                 {partido.cancha && (
-                                      <div className="flex items-center justify-center mt-4 gap-1 text-[#E2FC1D]">
-                                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span className="font-medium text-xs sm:text-sm">Cancha {partido.cancha}</span>
+                                  <div className="flex items-center justify-center mt-4 gap-1 text-[#E2FC1D]">
+                                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="font-medium text-xs sm:text-sm">Cancha {partido.cancha}</span>
+                                  </div>
+                                )}
+
+                                {/* Resultado del partido cuando ya finalizó */}
+                                {partido.estado === 'jugado' && partido.equipo_ganador_id && (
+                                  <div className="mt-4 p-3 bg-[#E2FF1B]/10 border border-[#E2FF1B]/30 rounded-lg">
+                                    <div className="text-center">
+                                      <div className="flex items-center justify-center gap-2 mb-2">
+                                        <Trophy className="w-4 h-4 text-[#E2FF1B]" />
+                                        <span className="text-[#E2FF1B] font-semibold text-sm">Ganador</span>
                                       </div>
-                                    )}
+                                      <div className="text-white text-sm mb-3">
+                                        <span className="font-medium">
+                                          {partido.equipo_ganador_id === partido.equipo_a?.id 
+                                            ? getEquipoNombreAbreviado(partido.equipo_a)
+                                            : getEquipoNombreAbreviado(partido.equipo_b)
+                                          }
+                                        </span>
+                                      </div>
+                                      
+                                      {/* Resultado del partido */}
+                                      {partido.resultado && (
+                                        <div className="border-t border-[#E2FF1B]/30 pt-3">
+                                          <div className="flex items-center justify-center gap-2 mb-2">
+                                            <span className="text-[#E2FF1B] font-semibold text-sm">Resultado</span>
+                                          </div>
+                                          <div className="text-white text-sm">
+                                            <span className="font-medium">{partido.resultado}</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </CardContent>
                             </Card>
                           )

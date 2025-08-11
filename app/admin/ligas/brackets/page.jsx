@@ -253,27 +253,7 @@ export default function AdminLigasBracketsPage() {
             equipoAnterior.suplente_2_id
           ].filter(Boolean)
 
-          if (jugadoresIds.length > 0) {
-            try {
-              for (const userId of jugadoresIds) {
-                const { data: usuario, error: fetchUserError } = await supabase
-                  .from('usuarios')
-                  .select('ranking_puntos')
-                  .eq('id', userId)
-                  .single()
-
-                if (!fetchUserError && usuario) {
-                  const nuevosPuntos = Math.max(usuario.ranking_puntos - partidoActual.puntos_por_jugador, 0)
-                  await supabase
-                    .from('usuarios')
-                    .update({ ranking_puntos: nuevosPuntos })
-                    .eq('id', userId)
-                }
-              }
-            } catch (fallbackError) {
-              console.error('Error restando puntos:', fallbackError)
-            }
-          }
+          // Los puntos ahora se manejan solo en ranking_jugadores, no en usuarios.ranking_puntos
         }
       }
 
@@ -287,10 +267,8 @@ export default function AdminLigasBracketsPage() {
 
       if (error) throw error
 
-      // Determinar el mensaje según si se restaron puntos o no
-      const mensaje = partidoActual.equipo_ganador_id && partidoActual.equipo_ganador_id !== equipoGanadorId
-        ? `Ganador editado correctamente. Se restaron ${partidoActual.puntos_por_jugador} puntos al equipo anterior y se sumaron al nuevo ganador.`
-        : "Ganador editado correctamente. Los puntos han sido ajustados."
+      // Mensaje de confirmación
+      const mensaje = "Ganador editado correctamente. Los puntos han sido ajustados en el sistema de ranking."
 
       toast({
         title: "Éxito",

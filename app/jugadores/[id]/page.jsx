@@ -51,17 +51,8 @@ export default function JugadorPerfil() {
       if (posicionFromUrl) {
         setPosicionRanking(parseInt(posicionFromUrl))
       } else {
-        // Fallback: calcular posición si no viene en la URL
-        const { data: rankingData, error: rankingError } = await supabase
-          .from('usuarios')
-          .select('id, ranking_puntos')
-          .not('ranking_puntos', 'is', null)
-          .order('ranking_puntos', { ascending: false })
-
-        if (rankingError) throw rankingError
-        
-        const posicion = rankingData.findIndex(user => user.id === jugadorId) + 1
-        setPosicionRanking(posicion)
+        // Ya no hay ranking_puntos, usar posición por defecto
+        setPosicionRanking(0)
       }
 
       // 3. Obtener estadísticas de partidos

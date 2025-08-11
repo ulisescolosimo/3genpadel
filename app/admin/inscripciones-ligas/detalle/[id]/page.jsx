@@ -69,8 +69,7 @@ export default function AdminInscripcionDetallePage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           ),
           titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
@@ -78,8 +77,7 @@ export default function AdminInscripcionDetallePage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           ),
           suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
@@ -87,8 +85,7 @@ export default function AdminInscripcionDetallePage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           ),
           suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
@@ -96,8 +93,7 @@ export default function AdminInscripcionDetallePage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           )
         `)
         .eq('id', id)
@@ -113,25 +109,25 @@ export default function AdminInscripcionDetallePage() {
         titular_1_apellido: data.titular_1?.apellido || data.titular_1_apellido || '',
         titular_1_email: data.titular_1?.email || data.titular_1_email || 'N/A',
         titular_1_telefono: data.titular_1?.telefono || 'N/A',
-        titular_1_ranking: data.titular_1?.ranking_puntos || 0,
+        titular_1_ranking: 0,
         
         titular_2_nombre: data.titular_2?.nombre || data.titular_2_nombre || 'N/A',
         titular_2_apellido: data.titular_2?.apellido || data.titular_2_apellido || '',
         titular_2_email: data.titular_2?.email || data.titular_2_email || 'N/A',
         titular_2_telefono: data.titular_2?.telefono || 'N/A',
-        titular_2_ranking: data.titular_2?.ranking_puntos || 0,
+        titular_2_ranking: 0,
         
         suplente_1_nombre: data.suplente_1?.nombre || data.suplente_1_nombre || 'N/A',
         suplente_1_apellido: data.suplente_1?.apellido || data.suplente_1_apellido || '',
         suplente_1_email: data.suplente_1?.email || data.suplente_1_email || 'N/A',
         suplente_1_telefono: data.suplente_1?.telefono || 'N/A',
-        suplente_1_ranking: data.suplente_1?.ranking_puntos || 0,
+        suplente_1_ranking: 0,
         
         suplente_2_nombre: data.suplente_2?.nombre || data.suplente_2_nombre || 'N/A',
         suplente_2_apellido: data.suplente_2?.apellido || data.suplente_2_apellido || '',
         suplente_2_email: data.suplente_2?.email || data.suplente_2_email || 'N/A',
         suplente_2_telefono: data.suplente_2?.telefono || 'N/A',
-        suplente_2_ranking: data.suplente_2?.ranking_puntos || 0
+        suplente_2_ranking: 0
       }
 
       setInscripcion(inscripcionProcesada)

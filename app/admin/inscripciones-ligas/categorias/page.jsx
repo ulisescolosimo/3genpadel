@@ -61,31 +61,27 @@ export default function AdminInscripcionesCategoriasPage() {
             apellido,
             email,
             telefono,
-            ranking_puntos
           ),
           titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
             nombre,
             apellido,
             email,
-            telefono,
-            ranking_puntos
+            telefono
           ),
           suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
             nombre,
             apellido,
             email,
-            telefono,
-            ranking_puntos
+            telefono
           ),
           suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
             nombre,
             apellido,
             email,
-            telefono,
-            ranking_puntos
+            telefono
           )
         `)
         .order('created_at', { ascending: false })
@@ -105,25 +101,25 @@ export default function AdminInscripcionesCategoriasPage() {
         titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
         titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
         titular_1_telefono: inscripcion.titular_1?.telefono || inscripcion.titular_1_telefono || 'N/A',
-        titular_1_ranking: inscripcion.titular_1?.ranking_puntos || inscripcion.titular_1_ranking || 0,
+        titular_1_ranking: inscripcion.titular_1_ranking || 0,
         
         titular_2_nombre: inscripcion.titular_2?.nombre || inscripcion.titular_2_nombre || 'N/A',
         titular_2_apellido: inscripcion.titular_2?.apellido || inscripcion.titular_2_apellido || '',
         titular_2_email: inscripcion.titular_2?.email || inscripcion.titular_2_email || 'N/A',
         titular_2_telefono: inscripcion.titular_2?.telefono || inscripcion.titular_2_telefono || 'N/A',
-        titular_2_ranking: inscripcion.titular_2?.ranking_puntos || inscripcion.titular_2_ranking || 0,
+        titular_2_ranking: inscripcion.titular_2_ranking || 0,
         
         suplente_1_nombre: inscripcion.suplente_1?.nombre || inscripcion.suplente_1_nombre || 'N/A',
         suplente_1_apellido: inscripcion.suplente_1?.apellido || inscripcion.suplente_1_apellido || '',
         suplente_1_email: inscripcion.suplente_1?.email || inscripcion.suplente_1_email || 'N/A',
         suplente_1_telefono: inscripcion.suplente_1?.telefono || inscripcion.suplente_1_telefono || 'N/A',
-        suplente_1_ranking: inscripcion.suplente_1?.ranking_puntos || inscripcion.suplente_1_ranking || 0,
+        suplente_1_ranking: inscripcion.suplente_1_ranking || 0,
         
         suplente_2_nombre: inscripcion.suplente_2?.nombre || inscripcion.suplente_2_nombre || 'N/A',
         suplente_2_apellido: inscripcion.suplente_2?.apellido || inscripcion.suplente_2_apellido || '',
         suplente_2_email: inscripcion.suplente_2?.email || inscripcion.suplente_2_email || 'N/A',
         suplente_2_telefono: inscripcion.suplente_2?.telefono || inscripcion.suplente_2_telefono || 'N/A',
-        suplente_2_ranking: inscripcion.suplente_2?.ranking_puntos || inscripcion.suplente_2_ranking || 0
+        suplente_2_ranking: inscripcion.suplente_2_ranking || 0
       })) || []
 
       console.log('Inscripciones procesadas:', inscripcionesProcesadas)

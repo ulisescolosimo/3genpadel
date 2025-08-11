@@ -1,5 +1,22 @@
 "use client"
 
+/**
+ * Página de administración de partidos de ligas
+ * 
+ * Funcionalidades principales:
+ * - Crear, editar y eliminar partidos
+ * - Selección específica de jugadores ganadores (T1, T2, S1, S2)
+ * - Asignación de puntos solo a jugadores seleccionados
+ * - Visualización detallada de los 4 jugadores por equipo
+ * - Integración con ranking_jugadores para puntos por categoría
+ * 
+ * Cambios implementados:
+ * - Mostrar los 4 jugadores inscriptos por equipo (titular 1, titular 2, suplente 1, suplente 2)
+ * - Permitir seleccionar específicamente qué jugadores ganaron
+ * - Asignar puntos solo a los jugadores seleccionados
+ * - Vincular correctamente con ranking_jugadores
+ */
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Trophy, Users, Calendar, Eye, CheckCircle, XCircle, Clock, Search, RefreshCw, Plus, Edit, Trash2, Award, Filter, BarChart3, Activity, Target, Gamepad2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
+import { handleRankingProfile } from '@/lib/ranking-utils'
 import Link from 'next/link'
 
 // Función de utilidad para formatear fechas
@@ -64,7 +82,6 @@ const PartidoCard = ({
   onEdit, 
   onDelete, 
   onSetWinner, 
-  onWinnerSelection,
   getEquipoNombre, 
   getCategoriaNombre, 
   getEstadoBadge 
@@ -110,13 +127,38 @@ const PartidoCard = ({
                   ? "text-black" 
                   : "text-white"
               }`}>Equipo A</p>
-              <p className={`text-xs sm:text-sm mt-1 leading-tight ${
+              <div className={`text-xs sm:text-sm mt-1 leading-tight ${
                 ganadorNombre && partido.equipo_ganador_id === partido.equipo_a?.id 
                   ? "text-black" 
                   : "text-gray-300"
               }`}>
-                {equipoANombre}
-              </p>
+                <div className="space-y-1">
+                  {partido.equipo_a?.titular_1?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded">T1</span>
+                      <span>{partido.equipo_a.titular_1.apellido}</span>
+                    </div>
+                  )}
+                  {partido.equipo_a?.titular_2?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded">T2</span>
+                      <span>{partido.equipo_a.titular_2.apellido}</span>
+                    </div>
+                  )}
+                  {partido.equipo_a?.suplente_1?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-green-500/20 text-green-400 px-1 rounded">S1</span>
+                      <span>{partido.equipo_a.suplente_1.apellido}</span>
+                    </div>
+                  )}
+                  {partido.equipo_a?.suplente_2?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-green-500/20 text-green-400 px-1 rounded">S2</span>
+                      <span>{partido.equipo_a.suplente_2.apellido}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* VS y Fecha - Centrado */}
@@ -154,13 +196,38 @@ const PartidoCard = ({
                   ? "text-black" 
                   : "text-white"
               }`}>Equipo B</p>
-              <p className={`text-xs sm:text-sm mt-1 leading-tight ${
+              <div className={`text-xs sm:text-sm mt-1 leading-tight ${
                 ganadorNombre && partido.equipo_ganador_id === partido.equipo_b?.id 
                   ? "text-black" 
                   : "text-gray-300"
               }`}>
-                {equipoBNombre}
-              </p>
+                <div className="space-y-1">
+                  {partido.equipo_b?.titular_1?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded">T1</span>
+                      <span>{partido.equipo_b.titular_1.apellido}</span>
+                    </div>
+                  )}
+                  {partido.equipo_b?.titular_2?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded">T2</span>
+                      <span>{partido.equipo_b.titular_2.apellido}</span>
+                    </div>
+                  )}
+                  {partido.equipo_b?.suplente_1?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-green-500/20 text-green-400 px-1 rounded">S1</span>
+                      <span>{partido.equipo_b.suplente_1.apellido}</span>
+                    </div>
+                  )}
+                  {partido.equipo_b?.suplente_2?.apellido && (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-[10px] bg-green-500/20 text-green-400 px-1 rounded">S2</span>
+                      <span>{partido.equipo_b.suplente_2.apellido}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -176,12 +243,39 @@ const PartidoCard = ({
             <div className="text-center">
               <Badge 
                 variant="default" 
-                className="flex items-center gap-1 mx-auto w-fit text-black font-bold bg-[#E2FC1D]"
+                className="flex items-center gap-1 mx-auto w-fit text-black font-bold bg-[#E2FC1D] mb-2"
               >
                 <Award className="h-3 w-3" />
                 Ganador: {ganadorNombre}
                 <span className="ml-1">(+{partido.puntos_por_jugador} pts)</span>
               </Badge>
+              
+              {/* Mostrar jugadores del equipo ganador */}
+              <div className="text-xs text-gray-300 space-y-1">
+                <p className="text-[#E2FF1B] font-medium">Jugadores del equipo ganador:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {partido.equipo_ganador?.titular_1?.apellido && (
+                    <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-[10px]">
+                      T1: {partido.equipo_ganador.titular_1.apellido}
+                    </span>
+                  )}
+                  {partido.equipo_ganador?.titular_2?.apellido && (
+                    <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-[10px]">
+                      T2: {partido.equipo_ganador.titular_2.apellido}
+                    </span>
+                  )}
+                  {partido.equipo_ganador?.suplente_1?.apellido && (
+                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-[10px]">
+                      S1: {partido.equipo_ganador.suplente_1.apellido}
+                    </span>
+                  )}
+                  {partido.equipo_ganador?.suplente_2?.apellido && (
+                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-[10px]">
+                      S2: {partido.equipo_ganador.suplente_2.apellido}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -197,37 +291,7 @@ const PartidoCard = ({
             </div>
           )}
 
-          {/* Botones de selección de ganador para partidos pendientes */}
-          {esPendiente && (
-            <div className="text-center space-y-2">
-              <p className="text-xs text-gray-400 mb-2">Seleccionar ganador:</p>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Button
-                  size="sm"
-                  onClick={() => onWinnerSelection(partido.equipo_a_id)}
-                  className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
-                  title={`Ganador: ${equipoANombre}`}
-                >
-                  <Award className="h-3 w-3 mr-1" />
-                  <span className="hidden sm:inline">{equipoANombre}</span>
-                  <span className="sm:hidden">Equipo A</span>
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => onWinnerSelection(partido.equipo_b_id)}
-                  className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
-                  title={`Ganador: ${equipoBNombre}`}
-                >
-                  <Award className="h-3 w-3 mr-1" />
-                  <span className="hidden sm:inline">{equipoBNombre}</span>
-                  <span className="sm:hidden">Equipo B</span>
-                </Button>
-              </div>
-              <p className="text-xs text-[#E2FF1B] mt-1">
-                +{partido.puntos_por_jugador} puntos por jugador
-              </p>
-            </div>
-          )}
+
         </div>
 
         {/* Botones de acción - Responsive */}
@@ -279,14 +343,16 @@ export default function AdminLigasPartidosPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingPartido, setEditingPartido] = useState(null)
-  const [showWinnerModal, setShowWinnerModal] = useState(false)
   const [selectedPartido, setSelectedPartido] = useState(null)
+  const [selectedJugadores, setSelectedJugadores] = useState([])
+  const [showJugadoresSelection, setShowJugadoresSelection] = useState(false)
   const [formData, setFormData] = useState({
     liga_categoria_id: '',
     ronda: '',
     equipo_a_id: '',
     equipo_b_id: '',
     equipo_ganador_id: '',
+    jugadores_ganadores: [],
     puntos_por_jugador: '',
     fecha: '',
     estado: 'pendiente',
@@ -398,6 +464,16 @@ export default function AdminLigasPartidosPage() {
               id,
               nombre,
               apellido
+            ),
+            suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
+              id,
+              nombre,
+              apellido
             )
           ),
           equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
@@ -411,6 +487,16 @@ export default function AdminLigasPartidosPage() {
               id,
               nombre,
               apellido
+            ),
+            suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
+              id,
+              nombre,
+              apellido
             )
           ),
           equipo_ganador:ligainscripciones!liga_partidos_equipo_ganador_id_fkey (
@@ -421,6 +507,16 @@ export default function AdminLigasPartidosPage() {
               apellido
             ),
             titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
+              id,
+              nombre,
+              apellido
+            ),
+            suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
               id,
               nombre,
               apellido
@@ -443,9 +539,23 @@ export default function AdminLigasPartidosPage() {
 
   const getEquipoNombre = (equipo) => {
     if (!equipo) return 'N/A'
-    const titular1 = equipo.titular_1?.apellido || 'N/A'
-    const titular2 = equipo.titular_2?.apellido || 'N/A'
-    return `${titular1} & ${titular2}`
+    
+    const jugadores = []
+    
+    if (equipo.titular_1?.apellido) {
+      jugadores.push(`${equipo.titular_1.apellido} (T1)`)
+    }
+    if (equipo.titular_2?.apellido) {
+      jugadores.push(`${equipo.titular_2.apellido} (T2)`)
+    }
+    if (equipo.suplente_1?.apellido) {
+      jugadores.push(`${equipo.suplente_1.apellido} (S1)`)
+    }
+    if (equipo.suplente_2?.apellido) {
+      jugadores.push(`${equipo.suplente_2.apellido} (S2)`)
+    }
+    
+    return jugadores.length > 0 ? jugadores.join(' & ') : 'N/A'
   }
 
   const getCategoriaNombre = (partido) => {
@@ -463,6 +573,86 @@ export default function AdminLigasPartidosPage() {
     return <Badge variant={variants[estado]}>{estado}</Badge>
   }
 
+  // Función auxiliar para obtener solo titulares de un equipo (para selección de equipo ganador)
+  const getTitularesEquipo = (equipo) => {
+    const jugadores = []
+    
+    if (equipo.titular_1?.id) {
+      jugadores.push({
+        id: equipo.titular_1.id,
+        nombre: equipo.titular_1.nombre,
+        apellido: equipo.titular_1.apellido,
+        tipo: 'Titular 1',
+        rol: 'T1',
+        color: 'bg-blue-500/20 text-blue-400'
+      })
+    }
+    
+    if (equipo.titular_2?.id) {
+      jugadores.push({
+        id: equipo.titular_2.id,
+        nombre: equipo.titular_2.nombre,
+        apellido: equipo.titular_2.apellido,
+        tipo: 'Titular 2',
+        rol: 'T2',
+        color: 'bg-blue-500/20 text-blue-400'
+      })
+    }
+    
+    return jugadores
+  }
+
+  // Función auxiliar para obtener todos los jugadores de un equipo
+  const getJugadoresEquipo = (equipo) => {
+    const jugadores = []
+    
+    if (equipo.titular_1?.id) {
+      jugadores.push({
+        id: equipo.titular_1.id,
+        nombre: equipo.titular_1.nombre,
+        apellido: equipo.titular_1.apellido,
+        tipo: 'Titular 1',
+        rol: 'T1',
+        color: 'bg-blue-500/20 text-blue-400'
+      })
+    }
+    
+    if (equipo.titular_2?.id) {
+      jugadores.push({
+        id: equipo.titular_2.id,
+        nombre: equipo.titular_2.nombre,
+        apellido: equipo.titular_2.apellido,
+        tipo: 'Titular 2',
+        rol: 'T2',
+        color: 'bg-blue-500/20 text-blue-400'
+      })
+    }
+    
+    if (equipo.suplente_1?.id) {
+      jugadores.push({
+        id: equipo.suplente_1.id,
+        nombre: equipo.suplente_1.nombre,
+        apellido: equipo.suplente_1.apellido,
+        tipo: 'Suplente 1',
+        rol: 'S1',
+        color: 'bg-green-500/20 text-green-400'
+      })
+    }
+    
+    if (equipo.suplente_2?.id) {
+      jugadores.push({
+        id: equipo.suplente_2.id,
+        nombre: equipo.suplente_2.nombre,
+        apellido: equipo.suplente_2.apellido,
+        tipo: 'Suplente 2',
+        rol: 'S2',
+        color: 'bg-green-500/20 text-green-400'
+      })
+    }
+    
+    return jugadores
+  }
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -477,6 +667,7 @@ export default function AdminLigasPartidosPage() {
       equipo_a_id: '',
       equipo_b_id: '',
       equipo_ganador_id: '',
+      jugadores_ganadores: [],
       puntos_por_jugador: '',
       fecha: '',
       estado: 'pendiente',
@@ -512,12 +703,25 @@ export default function AdminLigasPartidosPage() {
         return
       }
 
+      // Validar que si hay equipo ganador, se seleccionen los jugadores
+      if (formData.equipo_ganador_id && formData.equipo_ganador_id !== 'none' && formData.estado === 'jugado') {
+        if (!formData.jugadores_ganadores || formData.jugadores_ganadores.length !== 2) {
+          toast({
+            title: "Error",
+            description: "Debes seleccionar exactamente 2 jugadores del equipo ganador",
+            variant: "destructive"
+          })
+          return
+        }
+      }
+
       const partidoData = {
         ...formData,
         liga_categoria_id: parseInt(formData.liga_categoria_id),
         equipo_a_id: parseInt(formData.equipo_a_id),
         equipo_b_id: parseInt(formData.equipo_b_id),
         equipo_ganador_id: formData.equipo_ganador_id && formData.equipo_ganador_id !== 'none' ? parseInt(formData.equipo_ganador_id) : null,
+        jugadores_ganadores: formData.jugadores_ganadores || null,
         puntos_por_jugador: parseInt(formData.puntos_por_jugador),
         fecha: fechaISO,
         cancha: formData.cancha ? parseInt(formData.cancha) : null,
@@ -525,6 +729,51 @@ export default function AdminLigasPartidosPage() {
       }
 
       if (editingPartido) {
+        // Si estamos editando y hay un cambio en el ganador o jugadores, manejar los puntos
+        if (editingPartido.equipo_ganador_id !== partidoData.equipo_ganador_id || 
+            JSON.stringify(editingPartido.jugadores_ganadores) !== JSON.stringify(formData.jugadores_ganadores)) {
+          
+          // Si había un ganador anterior, restar sus puntos
+          if (editingPartido.equipo_ganador_id && editingPartido.estado === 'jugado') {
+            await handleRemovePreviousWinnerPoints(editingPartido)
+          }
+          
+          // Si hay un nuevo ganador y jugadores seleccionados, asignar puntos
+          // SOLO si el estado es 'jugado' y hay un cambio real
+          if (partidoData.equipo_ganador_id && 
+              formData.jugadores_ganadores?.length === 2 && 
+              partidoData.estado === 'jugado' &&
+              (editingPartido.equipo_ganador_id !== partidoData.equipo_ganador_id || 
+               !editingPartido.jugadores_ganadores || 
+               editingPartido.jugadores_ganadores.length === 0)) {
+            
+            console.log('🔍 DEBUG: Asignando puntos por cambio de ganador')
+            console.log('Puntos por jugador:', partidoData.puntos_por_jugador)
+            console.log('Jugadores ganadores:', formData.jugadores_ganadores)
+            
+            const categoriaPartido = await getCategoriaFromPartido(editingPartido.id)
+            if (categoriaPartido) {
+              for (const jugadorId of formData.jugadores_ganadores) {
+                const { data: userData } = await supabase
+                  .from('usuarios')
+                  .select('id, nombre, apellido')
+                  .eq('id', jugadorId)
+                  .single()
+                
+                if (userData) {
+                  console.log(`🎯 Asignando ${partidoData.puntos_por_jugador} puntos a ${userData.nombre} ${userData.apellido}`)
+                  await handleRankingProfile(userData, partidoData.puntos_por_jugador, categoriaPartido)
+                }
+              }
+            }
+          } else {
+            console.log('🔍 DEBUG: No se asignaron puntos - condiciones no cumplidas')
+            console.log('Estado:', partidoData.estado)
+            console.log('Equipo ganador:', partidoData.equipo_ganador_id)
+            console.log('Jugadores ganadores:', formData.jugadores_ganadores)
+          }
+        }
+
         const { error } = await supabase
           .from('liga_partidos')
           .update(partidoData)
@@ -584,6 +833,7 @@ export default function AdminLigasPartidosPage() {
        equipo_a_id: partido.equipo_a_id.toString(),
        equipo_b_id: partido.equipo_b_id.toString(),
        equipo_ganador_id: partido.equipo_ganador_id?.toString() || 'none',
+       jugadores_ganadores: partido.jugadores_ganadores || [],
        puntos_por_jugador: partido.puntos_por_jugador,
        fecha: fechaFormateada,
        estado: partido.estado,
@@ -611,31 +861,7 @@ export default function AdminLigasPartidosPage() {
           .eq('id', partido.equipo_ganador_id)
           .single()
 
-        if (!equipoError && equipoGanadorData) {
-          const puntos = partido.puntos_por_jugador || 3
-
-          if (equipoGanadorData.titular_1_id) {
-            updates.push(
-              supabase
-                .from('usuarios')
-                .update({ 
-                  ranking_puntos: supabase.raw(`GREATEST(COALESCE(ranking_puntos, 0) - ${puntos}, 0)`) 
-                })
-                .eq('id', equipoGanadorData.titular_1_id)
-            )
-          }
-
-          if (equipoGanadorData.titular_2_id) {
-            updates.push(
-              supabase
-                .from('usuarios')
-                .update({ 
-                  ranking_puntos: supabase.raw(`GREATEST(COALESCE(ranking_puntos, 0) - ${puntos}, 0)`) 
-                })
-                .eq('id', equipoGanadorData.titular_2_id)
-            )
-          }
-        }
+        // Los puntos ahora se manejan solo en ranking_jugadores, no en usuarios.ranking_puntos
       }
 
       // Ejecutar las actualizaciones de puntos si las hay
@@ -656,9 +882,7 @@ export default function AdminLigasPartidosPage() {
 
       if (error) throw error
 
-      const mensaje = partido.equipo_ganador_id && partido.estado === 'jugado'
-        ? "El partido se eliminó correctamente y se restaron los puntos del equipo ganador."
-        : "El partido se eliminó correctamente"
+      const mensaje = "El partido se eliminó correctamente"
 
       toast({
         title: "Partido eliminado",
@@ -679,11 +903,20 @@ export default function AdminLigasPartidosPage() {
 
   const handleSetWinner = (partido) => {
     setSelectedPartido(partido)
-    setShowWinnerModal(true)
+    setSelectedJugadores([])
+    setShowJugadoresSelection(true)
   }
 
+  // Función para selección de ganador con selección específica de jugadores
   const handleWinnerSelection = async (equipoId) => {
-    if (!selectedPartido) return
+    if (!selectedPartido || selectedJugadores.length !== 2) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar exactamente 2 jugadores",
+        variant: "destructive"
+      })
+      return
+    }
 
     try {
       const nuevoGanadorId = parseInt(equipoId)
@@ -697,6 +930,12 @@ export default function AdminLigasPartidosPage() {
         })
         return
       }
+
+      // Paso 1: Si hay un ganador anterior, restar sus puntos antes de asignar los nuevos
+      if (selectedPartido.equipo_ganador_id && selectedPartido.equipo_ganador_id !== nuevoGanadorId) {
+        await handleRemovePreviousWinnerPoints(selectedPartido)
+      }
+
       const updates = []
 
       // Paso 2: Actualizar el partido
@@ -710,75 +949,46 @@ export default function AdminLigasPartidosPage() {
 
       if (updateError) throw updateError
 
-      // Paso 3: Obtener equipo ganador con información de titulares
+      // Paso 3: Obtener equipo ganador con información de todos los jugadores
       const { data: equipoGanadorData, error: equipoError } = await supabase
         .from('ligainscripciones')
         .select(`
           id,
           titular_1_id,
-          titular_2_id
+          titular_2_id,
+          suplente_1_id,
+          suplente_2_id
         `)
         .eq('id', nuevoGanadorId)
         .single()
 
       if (equipoError) throw equipoError
 
-      // Paso 4: Sumar puntos a titulares del nuevo ganador
+      // Paso 4: Sumar puntos solo a los jugadores seleccionados
       const categoriaPartido = selectedPartido.liga_categorias?.categoria
       
-      if (equipoGanadorData.titular_1_id) {
-        // Actualizar usuarios.ranking_puntos
-        updates.push(
-          supabase
-            .from('usuarios')
-            .update({ 
-              ranking_puntos: supabase.raw(`COALESCE(ranking_puntos, 0) + ${puntos}`) 
-            })
-            .eq('id', equipoGanadorData.titular_1_id)
-        )
-        
-        // Actualizar ranking_jugadores
-        if (categoriaPartido) {
-          updates.push(
-            supabase
-              .from('ranking_jugadores')
-              .upsert({
-                usuario_id: equipoGanadorData.titular_1_id,
-                categoria: categoriaPartido,
-                puntos: supabase.raw(`COALESCE(puntos, 0) + ${puntos}`),
-                activo: true
-              }, {
-                onConflict: 'usuario_id,categoria'
-              })
-          )
-        }
-      }
+      // Procesar cada jugador seleccionado
+      for (const jugadorId of selectedJugadores) {
+        // Obtener datos del usuario
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('id, nombre, apellido')
+          .eq('id', jugadorId)
+          .single()
 
-      if (equipoGanadorData.titular_2_id) {
-        // Actualizar usuarios.ranking_puntos
-        updates.push(
-          supabase
-            .from('usuarios')
-            .update({ 
-              ranking_puntos: supabase.raw(`COALESCE(ranking_puntos, 0) + ${puntos}`) 
-            })
-            .eq('id', equipoGanadorData.titular_2_id)
-        )
-        
-        // Actualizar ranking_jugadores
-        if (categoriaPartido) {
-          updates.push(
-            supabase
-              .from('ranking_jugadores')
-              .upsert({
-                usuario_id: equipoGanadorData.titular_2_id,
-                categoria: categoriaPartido,
-                puntos: supabase.raw(`COALESCE(puntos, 0) + ${puntos}`),
-                activo: true
-              }, {
-                onConflict: 'usuario_id,categoria'
-              })
-          )
+        if (!userError && userData) {
+          // Los puntos ahora se manejan solo en ranking_jugadores
+          
+          // Usar la nueva función helper para manejar ranking_jugadores
+          if (categoriaPartido) {
+            try {
+              const result = await handleRankingProfile(userData, puntos, categoriaPartido)
+              console.log(`Perfil de ranking ${result.created ? 'creado' : 'actualizado'} para ${userData.nombre} ${userData.apellido}`)
+            } catch (error) {
+              console.error(`Error procesando perfil de ranking para ${userData.nombre} ${userData.apellido}:`, error)
+              // Continuar con otros jugadores aunque falle uno
+            }
+          }
         }
       }
 
@@ -796,8 +1006,8 @@ export default function AdminLigasPartidosPage() {
 
       // Mensaje personalizado según si se cambió el ganador o se estableció por primera vez
       const mensaje = selectedPartido.equipo_ganador_id && selectedPartido.equipo_ganador_id !== nuevoGanadorId
-        ? `Se cambió el ganador del partido. Se sumaron ${puntos} puntos al nuevo ganador (ranking general y ${categoriaPartido}).`
-        : `Se estableció el ganador del partido y se sumaron ${puntos} puntos a cada jugador del equipo ganador (ranking general y ${categoriaPartido}).`
+        ? `Se cambió el ganador del partido. Se sumaron ${puntos} puntos a los jugadores seleccionados (${categoriaPartido}).`
+        : `Se estableció el ganador del partido y se sumaron ${puntos} puntos a los jugadores seleccionados (${categoriaPartido}).`
 
       toast({
         title: "Ganador establecido",
@@ -805,8 +1015,9 @@ export default function AdminLigasPartidosPage() {
         variant: "default"
       })
 
-      setShowWinnerModal(false)
+      setShowJugadoresSelection(false)
       setSelectedPartido(null)
+      setSelectedJugadores([])
       fetchPartidos()
     } catch (error) {
       console.error('Error setting winner:', error)
@@ -818,148 +1029,123 @@ export default function AdminLigasPartidosPage() {
     }
   }
 
-  const handleDirectWinnerSelection = async (partido, equipoId) => {
+  // Función para eliminar puntos del ganador anterior si existe
+  const handleRemovePreviousWinnerPoints = async (partido) => {
     try {
-      const nuevoGanadorId = parseInt(equipoId)
-      const puntos = partido.puntos_por_jugador
-      
-      if (!puntos || puntos <= 0) {
-        toast({
-          title: "Error",
-          description: "El partido debe tener puntos por jugador configurados",
-          variant: "destructive"
-        })
-        return
-      }
-
-      // Paso 2: Actualizar el partido
-      const { error: updateError } = await supabase
-        .from('liga_partidos')
-        .update({ 
-          equipo_ganador_id: nuevoGanadorId,
-          estado: 'jugado'
-        })
-        .eq('id', partido.id)
-
-      if (updateError) throw updateError
-
-      // Paso 3: Obtener información completa del partido para la categoría
-      const { data: partidoCompleto, error: partidoError } = await supabase
-        .from('liga_partidos')
-        .select(`
-          *,
-          liga_categorias (
-            id,
-            categoria
-          )
-        `)
-        .eq('id', partido.id)
-        .single()
-
-      if (partidoError) throw partidoError
-
-      // Obtener equipo ganador con información de titulares
       const { data: equipoGanadorData, error: equipoError } = await supabase
         .from('ligainscripciones')
         .select(`
           id,
           titular_1_id,
-          titular_2_id
+          titular_2_id,
+          suplente_1_id,
+          suplente_2_id
         `)
-        .eq('id', nuevoGanadorId)
+        .eq('id', partido.equipo_ganador_id)
         .single()
 
-      if (equipoError) throw equipoError
+      if (equipoError) {
+        console.error('Error al obtener datos del equipo ganador anterior:', equipoError)
+        return
+      }
 
-      // Paso 4: Sumar puntos a titulares del nuevo ganador
-      const categoriaPartido = partidoCompleto.liga_categorias?.categoria
-      
-      if (equipoGanadorData.titular_1_id) {
-        // Actualizar usuarios.ranking_puntos
-        const { data: user1Data, error: user1Error } = await supabase
-          .from('usuarios')
-          .select('ranking_puntos')
-          .eq('id', equipoGanadorData.titular_1_id)
-          .single()
+      const jugadoresIds = [
+        equipoGanadorData.titular_1_id,
+        equipoGanadorData.titular_2_id,
+        equipoGanadorData.suplente_1_id,
+        equipoGanadorData.suplente_2_id
+      ].filter(Boolean)
 
-        if (!user1Error && user1Data) {
-          const nuevosPuntos = (user1Data.ranking_puntos || 0) + puntos
-          await supabase
-            .from('usuarios')
-            .update({ ranking_puntos: nuevosPuntos })
-            .eq('id', equipoGanadorData.titular_1_id)
-        }
-        
-        // Actualizar ranking_jugadores
-        if (categoriaPartido) {
-          await supabase
-            .from('ranking_jugadores')
-            .upsert({
-              usuario_id: equipoGanadorData.titular_1_id,
-              categoria: categoriaPartido,
-              puntos: supabase.raw(`COALESCE(puntos, 0) + ${puntos}`),
-              activo: true
-            }, {
-              onConflict: 'usuario_id,categoria'
-            })
+      const updates = []
+      for (const jugadorId of jugadoresIds) {
+        if (jugadorId) {
+          // Los puntos ahora se manejan solo en ranking_jugadores, no en usuarios.ranking_puntos
         }
       }
 
-      if (equipoGanadorData.titular_2_id) {
-        // Actualizar usuarios.ranking_puntos
-        const { data: user2Data, error: user2Error } = await supabase
-          .from('usuarios')
-          .select('ranking_puntos')
-          .eq('id', equipoGanadorData.titular_2_id)
-          .single()
-
-        if (!user2Error && user2Data) {
-          const nuevosPuntos = (user2Data.ranking_puntos || 0) + puntos
-          await supabase
-            .from('usuarios')
-            .update({ ranking_puntos: nuevosPuntos })
-            .eq('id', equipoGanadorData.titular_2_id)
-        }
-        
-        // Actualizar ranking_jugadores
-        if (categoriaPartido) {
-          await supabase
-            .from('ranking_jugadores')
-            .upsert({
-              usuario_id: equipoGanadorData.titular_2_id,
-              categoria: categoriaPartido,
-              puntos: supabase.raw(`COALESCE(puntos, 0) + ${puntos}`),
-              activo: true
-            }, {
-              onConflict: 'usuario_id,categoria'
-            })
+      if (updates.length > 0) {
+        const updateResults = await Promise.all(updates)
+        const errors = updateResults.filter(result => result.error)
+        if (errors.length > 0) {
+          console.error('Errores al restar puntos del ganador anterior:', errors)
+          throw new Error('Error al restar puntos del ganador anterior')
         }
       }
-
-      // Mensaje personalizado según si se cambió el ganador o se estableció por primera vez
-      const mensaje = partido.equipo_ganador_id && partido.equipo_ganador_id !== nuevoGanadorId
-        ? `Se cambió el ganador del partido. Se sumaron ${puntos} puntos al nuevo ganador (ranking general y ${categoriaPartido}).`
-        : `Se estableció el ganador del partido y se sumaron ${puntos} puntos a cada jugador del equipo ganador (ranking general y ${categoriaPartido}).`
-
-      toast({
-        title: "Ganador establecido",
-        description: mensaje,
-        variant: "default"
-      })
-
-      fetchPartidos()
     } catch (error) {
-      console.error('Error setting winner:', error)
-      toast({
-        title: "Error",
-        description: "No se pudo establecer el ganador ni actualizar puntos",
-        variant: "destructive"
+      console.error('Error en handleRemovePreviousWinnerPoints:', error)
+      throw error
+    }
+  }
+
+
+
+  // Nota: handleRankingProfile se importa desde @/lib/ranking-utils
+
+  // Función para obtener información de los jugadores ganadores
+  const getJugadoresGanadores = (partido) => {
+    if (!partido.equipo_ganador_id || !partido.equipo_ganador) return null
+    
+    const equipoGanador = partido.equipo_ganador
+    const jugadores = []
+    
+    if (equipoGanador.titular_1?.id) {
+      jugadores.push({
+        nombre: equipoGanador.titular_1.nombre,
+        apellido: equipoGanador.titular_1.apellido,
+        tipo: 'Titular 1',
+        rol: 'T1'
       })
     }
+    if (equipoGanador.titular_2?.id) {
+      jugadores.push({
+        nombre: equipoGanador.titular_2.nombre,
+        apellido: equipoGanador.titular_2.apellido,
+        tipo: 'Titular 2',
+        rol: 'T2'
+      })
+    }
+    if (equipoGanador.suplente_1?.id) {
+      jugadores.push({
+        nombre: equipoGanador.suplente_1.nombre,
+        apellido: equipoGanador.suplente_1.apellido,
+        tipo: 'Suplente 1',
+        rol: 'S1'
+      })
+    }
+    if (equipoGanador.suplente_2?.id) {
+      jugadores.push({
+        nombre: equipoGanador.suplente_2.nombre,
+        apellido: equipoGanador.suplente_2.apellido,
+        tipo: 'Suplente 2',
+        rol: 'S2'
+      })
+    }
+    
+    return jugadores
   }
 
   const getInscripcionesByCategoria = (categoriaId) => {
     return inscripciones.filter(ins => ins.liga_categoria_id === parseInt(categoriaId))
+  }
+
+  // Función auxiliar para obtener la categoría de un partido
+  const getCategoriaFromPartido = async (partidoId) => {
+    try {
+      const { data: partido, error } = await supabase
+        .from('liga_partidos')
+        .select(`
+          liga_categoria_id,
+          liga_categorias!inner(categoria)
+        `)
+        .eq('id', partidoId)
+        .single()
+      
+      if (error) throw error
+      return partido.liga_categorias?.categoria
+    } catch (error) {
+      console.error('Error obteniendo categoría del partido:', error)
+      return null
+    }
   }
 
   const filteredPartidos = partidos.filter(partido => {
@@ -1165,7 +1351,7 @@ export default function AdminLigasPartidosPage() {
                  onEdit={handleEdit}
                  onDelete={handleDelete}
                  onSetWinner={handleSetWinner}
-                 onWinnerSelection={(equipoId) => handleDirectWinnerSelection(partido, equipoId)}
+
                  getEquipoNombre={getEquipoNombre}
                  getCategoriaNombre={getCategoriaNombre}
                  getEstadoBadge={getEstadoBadge}
@@ -1183,7 +1369,7 @@ export default function AdminLigasPartidosPage() {
 
                      {/* Modal de creación/edición mejorado - Mobile Responsive */}
            <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-             <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 mx-4 sm:mx-0">
+             <DialogContent className="max-w-4xl bg-gray-900 border-gray-800 mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
                <DialogHeader>
                  <DialogTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                    <Gamepad2 className="h-5 w-5 text-[#E2FF1B]" />
@@ -1198,66 +1384,85 @@ export default function AdminLigasPartidosPage() {
                    {editingPartido ? 'Modifica los datos del partido' : 'Define un nuevo partido para la liga'}
                  </DialogDescription>
                </DialogHeader>
+               
+                                {/* Información sobre selección de jugadores */}
+                 <div className="p-3 sm:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4">
+                   <p className="text-xs sm:text-sm text-blue-400 mb-2 font-medium">💡 Nueva funcionalidad:</p>
+                   <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                     Cuando selecciones un equipo ganador con estado "jugado", podrás elegir exactamente 2 jugadores específicos (T1, T2, S1, S2) que recibirán los puntos del partido.
+                   </p>
+                 </div>
                <form onSubmit={handleSubmit} className="space-y-4">
-                 {/* Primera fila - Categoría y Ronda */}
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                 {/* Primera fila - Categoría, Ronda y Puntos */}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Categoría</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Categoría</label>
                      <Select 
                        value={formData.liga_categoria_id} 
                        onValueChange={(value) => handleInputChange('liga_categoria_id', value)}
                        required
                      >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base">
                          <SelectValue placeholder="Seleccionar categoría" />
                        </SelectTrigger>
-                       <SelectContent className="bg-gray-800 border-gray-700">
+                       <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
                          {categorias.map(categoria => (
-                           <SelectItem key={categoria.id} value={categoria.id.toString()}>
-                             {categoria.ligas?.nombre} - {categoria.categoria}
+                           <SelectItem key={categoria.id} value={categoria.id.toString()} className="text-sm sm:text-base py-3 sm:py-2">
+                             <span className="truncate block">{categoria.ligas?.nombre} - {categoria.categoria}</span>
                            </SelectItem>
                          ))}
                        </SelectContent>
                      </Select>
                    </div>
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Ronda</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Ronda</label>
                      <Select 
                        value={formData.ronda} 
                        onValueChange={(value) => handleInputChange('ronda', value)}
                        required
                      >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base">
                          <SelectValue placeholder="Seleccionar ronda" />
                        </SelectTrigger>
                        <SelectContent className="bg-gray-800 border-gray-700">
                          {rondas.map(ronda => (
-                           <SelectItem key={ronda} value={ronda}>
+                           <SelectItem key={ronda} value={ronda} className="text-sm sm:text-base py-3 sm:py-2">
                              {ronda}
                            </SelectItem>
                          ))}
                        </SelectContent>
                      </Select>
                    </div>
+                   <div>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Puntos por jugador</label>
+                     <Input
+                       type="number"
+                       min="0"
+                       value={formData.puntos_por_jugador}
+                       onChange={(e) => handleInputChange('puntos_por_jugador', e.target.value)}
+                       required
+                       className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base"
+                     />
+                   </div>
                  </div>
 
                  {/* Segunda fila - Equipos */}
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Equipo A</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Equipo A</label>
                      <Select 
                        value={formData.equipo_a_id} 
                        onValueChange={(value) => handleInputChange('equipo_a_id', value)}
                        required
                      >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base">
                          <SelectValue placeholder="Seleccionar equipo A" />
                        </SelectTrigger>
-                       <SelectContent className="bg-gray-800 border-gray-700">
+                       <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
                          {formData.liga_categoria_id && 
                            getInscripcionesByCategoria(formData.liga_categoria_id).map(inscripcion => (
-                             <SelectItem key={inscripcion.id} value={inscripcion.id.toString()}>
-                               {getEquipoNombre(inscripcion)}
+                             <SelectItem key={inscripcion.id} value={inscripcion.id.toString()} className="text-sm sm:text-base py-3 sm:py-2">
+                               <span className="truncate block">{getEquipoNombre(inscripcion)}</span>
                              </SelectItem>
                            ))
                          }
@@ -1265,22 +1470,22 @@ export default function AdminLigasPartidosPage() {
                      </Select>
                    </div>
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Equipo B</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Equipo B</label>
                      <Select 
                        value={formData.equipo_b_id} 
                        onValueChange={(value) => handleInputChange('equipo_b_id', value)}
                        required
                      >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base">
                          <SelectValue placeholder="Seleccionar equipo B" />
                        </SelectTrigger>
-                       <SelectContent className="bg-gray-800 border-gray-700">
+                       <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
                          {formData.liga_categoria_id && 
                            getInscripcionesByCategoria(formData.liga_categoria_id)
                              .filter(ins => ins.id.toString() !== formData.equipo_a_id)
                              .map(inscripcion => (
-                               <SelectItem key={inscripcion.id} value={inscripcion.id.toString()}>
-                                 {getEquipoNombre(inscripcion)}
+                               <SelectItem key={inscripcion.id} value={inscripcion.id.toString()} className="text-sm sm:text-base py-3 sm:py-2">
+                                 <span className="truncate block">{getEquipoNombre(inscripcion)}</span>
                                </SelectItem>
                              ))
                          }
@@ -1290,20 +1495,9 @@ export default function AdminLigasPartidosPage() {
                  </div>
 
                  {/* Tercera fila - Configuración del partido */}
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Puntos por jugador</label>
-                     <Input
-                       type="number"
-                       min="0"
-                       value={formData.puntos_por_jugador}
-                       onChange={(e) => handleInputChange('puntos_por_jugador', e.target.value)}
-                       required
-                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
-                     />
-                   </div>
-                   <div>
-                     <label className="text-sm font-medium mb-2 block text-white">
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">
                        Fecha del Partido
                      </label>
                      <Input
@@ -1317,11 +1511,11 @@ export default function AdminLigasPartidosPage() {
                            : '12:00'
                          handleInputChange('fecha', `${nuevaFecha}T${horaExistente}`)
                        }}
-                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                       className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base"
                      />
                    </div>
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">
                        Hora del Partido
                      </label>
                      <Input
@@ -1335,22 +1529,22 @@ export default function AdminLigasPartidosPage() {
                            : new Date().toISOString().split('T')[0]
                          handleInputChange('fecha', `${fechaExistente}T${nuevaHora}`)
                        }}
-                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                       className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base"
                      />
                    </div>
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Estado</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Estado</label>
                      <Select 
                        value={formData.estado} 
                        onValueChange={(value) => handleInputChange('estado', value)}
                        required
                      >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base">
                          <SelectValue placeholder="Seleccionar estado" />
                        </SelectTrigger>
                        <SelectContent className="bg-gray-800 border-gray-700">
                          {estados.map(estado => (
-                           <SelectItem key={estado} value={estado}>
+                           <SelectItem key={estado} value={estado} className="text-sm sm:text-base py-3 sm:py-2">
                              {estado}
                            </SelectItem>
                          ))}
@@ -1362,17 +1556,17 @@ export default function AdminLigasPartidosPage() {
                  {/* Cuarta fila - Cancha y Resultado */}
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Cancha</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Cancha</label>
                      <Select 
                        value={formData.cancha} 
                        onValueChange={(value) => handleInputChange('cancha', value)}
                      >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base">
                          <SelectValue placeholder="Seleccionar cancha" />
                        </SelectTrigger>
                        <SelectContent className="bg-gray-800 border-gray-700">
                          {canchas.map(cancha => (
-                           <SelectItem key={cancha} value={cancha.toString()}>
+                           <SelectItem key={cancha} value={cancha.toString()} className="text-sm sm:text-base py-3 sm:py-2">
                              Cancha {cancha}
                            </SelectItem>
                          ))}
@@ -1380,42 +1574,184 @@ export default function AdminLigasPartidosPage() {
                      </Select>
                    </div>
                    <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Resultado</label>
+                     <label className="text-sm sm:text-base font-medium mb-2 block text-white">Resultado</label>
                      <Input
                        type="text"
                        placeholder="Ej: 6-1 / 5-7 / 6-4"
                        value={formData.resultado}
                        onChange={(e) => handleInputChange('resultado', e.target.value)}
-                       className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9"
+                       className="bg-gray-800/50 border-gray-700 text-white h-12 sm:h-10 text-sm sm:text-base"
                      />
                    </div>
                  </div>
 
                  {/* Equipo Ganador - Condicional */}
                  {formData.estado === 'jugado' && (
-                   <div>
-                     <label className="text-sm font-medium mb-2 block text-white">Equipo Ganador</label>
-                     <Select 
-                       value={formData.equipo_ganador_id} 
-                       onValueChange={(value) => handleInputChange('equipo_ganador_id', value)}
-                     >
-                       <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
-                         <SelectValue placeholder="Seleccionar ganador" />
-                       </SelectTrigger>
-                       <SelectContent className="bg-gray-800 border-gray-700">
-                         <SelectItem value="none">Sin ganador</SelectItem>
-                         {formData.equipo_a_id && (
-                           <SelectItem value={formData.equipo_a_id}>
-                             {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_a_id))}
-                           </SelectItem>
+                   <div className="space-y-3">
+                     <div>
+                       <label className="text-sm font-medium mb-2 block text-white">Equipo Ganador</label>
+                       <Select 
+                         value={formData.equipo_ganador_id} 
+                         onValueChange={(value) => {
+                           handleInputChange('equipo_ganador_id', value)
+                           // Limpiar jugadores seleccionados al cambiar equipo
+                           if (value !== formData.equipo_ganador_id) {
+                             setFormData(prev => ({ ...prev, jugadores_ganadores: [] }))
+                           }
+                         }}
+                       >
+                         <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                           <SelectValue placeholder="Seleccionar ganador" />
+                         </SelectTrigger>
+                         <SelectContent className="bg-gray-800 border-gray-700">
+                           <SelectItem value="none">Sin ganador</SelectItem>
+                           {formData.equipo_a_id && (
+                             <SelectItem value={formData.equipo_a_id}>
+                               {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_a_id))}
+                             </SelectItem>
+                           )}
+                           {formData.equipo_b_id && (
+                             <SelectItem value={formData.equipo_b_id}>
+                               {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_b_id))}
+                             </SelectItem>
+                           )}
+                         </SelectContent>
+                       </Select>
+                     </div>
+
+                     {/* Selección de jugadores específicos del equipo ganador */}
+                     {formData.equipo_ganador_id && formData.equipo_ganador_id !== 'none' && (
+                       <div className="space-y-3">
+                         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                           <p className="text-xs text-blue-400 mb-1">Equipo ganador seleccionado:</p>
+                           <p className="text-sm text-white font-medium">
+                             {(() => {
+                               const equipoGanador = inscripciones.find(ins => ins.id.toString() === formData.equipo_ganador_id)
+                               if (!equipoGanador) return 'Equipo no encontrado'
+                               return getEquipoNombre(equipoGanador)
+                             })()}
+                           </p>
+                           <p className="text-xs text-gray-400 mt-1">
+                             Selecciona exactamente 2 jugadores que jugaron y ganaron el partido:
+                           </p>
+                           <p className="text-xs text-gray-400 mt-2">
+                             <strong>Roles disponibles:</strong> T1 (Titular 1), T2 (Titular 2), S1 (Suplente 1), S2 (Suplente 2)
+                           </p>
+                         </div>
+                         
+                         <div className="flex items-center justify-between">
+                           <p className="text-sm text-gray-400 font-medium">Jugadores que recibirán puntos:</p>
+                           <span className={`text-xs px-2 py-1 rounded ${
+                             (formData.jugadores_ganadores?.length || 0) === 2 
+                               ? 'bg-green-500/20 text-green-400' 
+                               : 'bg-yellow-500/20 text-yellow-400'
+                           }`}>
+                             {formData.jugadores_ganadores?.length || 0}/2
+                           </span>
+                         </div>
+                         
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                           <div>
+                             <label className="text-sm text-gray-400 mb-2 block">Primer jugador:</label>
+                             <Select 
+                               value={formData.jugadores_ganadores?.[0] || ''} 
+                               onValueChange={(value) => {
+                                 if (value) {
+                                   setFormData(prev => ({
+                                     ...prev,
+                                     jugadores_ganadores: [value, prev.jugadores_ganadores?.[1]].filter(Boolean)
+                                   }))
+                                 }
+                                 // Si se cambia el primer jugador y el segundo era el mismo, limpiar el segundo
+                                 if (value && formData.jugadores_ganadores?.[1] === value) {
+                                   setFormData(prev => ({
+                                     ...prev,
+                                     jugadores_ganadores: [value]
+                                   }))
+                                 }
+                               }}
+                             >
+                               <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                                 <SelectValue placeholder="Seleccionar jugador" />
+                               </SelectTrigger>
+                               <SelectContent className="bg-gray-800 border-gray-700">
+                                 {(() => {
+                                   const equipoGanador = inscripciones.find(ins => ins.id.toString() === formData.equipo_ganador_id)
+                                   if (!equipoGanador) return []
+                                   const jugadores = getJugadoresEquipo(equipoGanador)
+                                   
+                                   return jugadores.map((jugador) => (
+                                     <SelectItem key={jugador.id} value={jugador.id}>
+                                       <div className="flex items-center gap-2">
+                                         <span className={`text-xs px-2 py-1 rounded-full ${jugador.color}`}>
+                                           {jugador.rol}
+                                         </span>
+                                         <span>{jugador.nombre} {jugador.apellido}</span>
+                                       </div>
+                                     </SelectItem>
+                                   ))
+                                 })()}
+                               </SelectContent>
+                             </Select>
+                           </div>
+                           
+                           <div>
+                             <label className="text-sm text-gray-400 mb-2 block">Segundo jugador:</label>
+                             <Select 
+                               value={formData.jugadores_ganadores?.[1] || ''} 
+                               onValueChange={(value) => {
+                                 if (value) {
+                                   setFormData(prev => ({
+                                     ...prev,
+                                     jugadores_ganadores: [prev.jugadores_ganadores?.[0], value].filter(Boolean)
+                                   }))
+                                 }
+                               }}
+                             >
+                               <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                                 <SelectValue placeholder="Seleccionar jugador" />
+                               </SelectTrigger>
+                               <SelectContent className="bg-gray-800 border-gray-700">
+                                 {(() => {
+                                   const equipoGanador = inscripciones.find(ins => ins.id.toString() === formData.equipo_ganador_id)
+                                   if (!equipoGanador) return []
+                                   const jugadores = getJugadoresEquipo(equipoGanador)
+                                   
+                                   // Filtrar jugadores para excluir el primer jugador seleccionado
+                                   const jugadoresDisponibles = jugadores.filter(jugador => jugador.id !== formData.jugadores_ganadores?.[0])
+                                   
+                                   return jugadoresDisponibles.map((jugador) => (
+                                     <SelectItem key={jugador.id} value={jugador.id}>
+                                       <div className="flex items-center gap-2">
+                                         <span className={`text-xs px-2 py-1 rounded-full ${jugador.color}`}>
+                                           {jugador.rol}
+                                         </span>
+                                         <span>{jugador.nombre} {jugador.apellido}</span>
+                                       </div>
+                                     </SelectItem>
+                                   ))
+                                 })()}
+                               </SelectContent>
+                             </Select>
+                           </div>
+                         </div>
+                         
+                         {/* Botón para limpiar selección */}
+                         {(formData.jugadores_ganadores?.[0] || formData.jugadores_ganadores?.[1]) && (
+                           <div className="flex justify-center">
+                             <Button
+                               type="button"
+                               variant="outline"
+                               size="sm"
+                               onClick={() => setFormData(prev => ({ ...prev, jugadores_ganadores: [] }))}
+                               className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                             >
+                               Limpiar selección
+                             </Button>
+                           </div>
                          )}
-                         {formData.equipo_b_id && (
-                           <SelectItem value={formData.equipo_b_id}>
-                             {getEquipoNombre(inscripciones.find(ins => ins.id.toString() === formData.equipo_b_id))}
-                           </SelectItem>
-                         )}
-                       </SelectContent>
-                     </Select>
+                       </div>
+                     )}
                    </div>
                  )}
 
@@ -1440,17 +1776,17 @@ export default function AdminLigasPartidosPage() {
              </DialogContent>
            </Dialog>
 
-               {/* Modal para seleccionar ganador - Mobile Responsive */}
-        <Dialog open={showWinnerModal} onOpenChange={setShowWinnerModal}>
-          <DialogContent className="max-w-md bg-gray-900 border-gray-800 mx-4 sm:mx-0">
+               {/* Modal para seleccionar jugadores y ganador - Mobile Responsive */}
+        <Dialog open={showJugadoresSelection} onOpenChange={setShowJugadoresSelection}>
+          <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 mx-4 sm:mx-0">
             <DialogHeader>
               <DialogTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                 <Award className="h-5 w-5 text-[#E2FF1B]" />
-                <span className="hidden sm:inline">Seleccionar Ganador</span>
-                <span className="sm:hidden">Ganador</span>
+                <span className="hidden sm:inline">Seleccionar Ganador y Jugadores</span>
+                <span className="sm:hidden">Ganador y Jugadores</span>
               </DialogTitle>
               <DialogDescription className="text-gray-400 text-sm">
-                Elige el equipo ganador del partido
+                Selecciona el equipo ganador y los 2 jugadores que recibirán los puntos
               </DialogDescription>
             </DialogHeader>
             
@@ -1463,7 +1799,7 @@ export default function AdminLigasPartidosPage() {
                   </p>
                   <p className="text-xs text-gray-500 mt-1">{selectedPartido.ronda}</p>
                   <p className="text-xs text-[#E2FF1B] mt-2">
-                    +{selectedPartido.puntos_por_jugador} puntos por jugador
+                    +{selectedPartido.puntos_por_jugador} puntos por jugador seleccionado
                   </p>
                 </div>
 
@@ -1475,54 +1811,212 @@ export default function AdminLigasPartidosPage() {
                       {getEquipoNombre(selectedPartido.equipo_ganador)}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      Al cambiar el ganador, se sumarán {selectedPartido.puntos_por_jugador} puntos al nuevo ganador
+                      Al cambiar el ganador, se restarán los puntos anteriores y se sumarán {selectedPartido.puntos_por_jugador} puntos a los jugadores seleccionados
                     </p>
                   </div>
                 )}
-                
-                <div className="grid grid-cols-1 gap-3">
-                  <Button
-                    onClick={() => handleWinnerSelection(selectedPartido.equipo_a_id)}
-                    className={`h-12 sm:h-10 ${
-                      selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id
-                        ? 'bg-yellow-600 hover:bg-yellow-700'
-                        : 'bg-green-600 hover:bg-green-700'
-                    } text-white`}
-                  >
-                    <Award className="h-4 w-4 mr-2" />
-                    <span className="text-sm sm:text-base">
-                      {getEquipoNombre(selectedPartido.equipo_a)}
-                    </span>
-                    {selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id && (
-                      <span className="text-xs ml-2 opacity-75">(Ganador actual)</span>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    onClick={() => handleWinnerSelection(selectedPartido.equipo_b_id)}
-                    className={`h-12 sm:h-10 ${
-                      selectedPartido.equipo_ganador_id === selectedPartido.equipo_b_id
-                        ? 'bg-yellow-600 hover:bg-yellow-700'
-                        : 'bg-green-600 hover:bg-green-700'
-                    } text-white`}
-                  >
-                    <Award className="h-4 w-4 mr-2" />
-                    <span className="text-sm sm:text-base">
-                      {getEquipoNombre(selectedPartido.equipo_b)}
-                    </span>
-                    {selectedPartido.equipo_ganador_id === selectedPartido.equipo_b_id && (
-                      <span className="text-xs ml-2 opacity-75">(Ganador actual)</span>
-                    )}
-                  </Button>
+
+                {/* Selección de equipo ganador */}
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-400 font-medium">Selecciona el equipo ganador:</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Button
+                      onClick={() => {
+                        setSelectedJugadores([])
+                        setSelectedPartido(prev => ({ ...prev, equipo_ganador_id: prev.equipo_a_id }))
+                      }}
+                      className={`h-12 sm:h-10 ${
+                        selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id
+                          ? 'bg-yellow-600 hover:bg-yellow-700'
+                          : 'bg-green-600 hover:bg-green-700'
+                      } text-white`}
+                    >
+                      <Award className="h-4 w-4 mr-2" />
+                      <div className="text-left">
+                        <span className="text-sm sm:text-base block">
+                          {(() => {
+                            const equipo = selectedPartido.equipo_a
+                            const titulares = getTitularesEquipo(equipo)
+                            return titulares.map(t => `${t.apellido} (${t.rol})`).join(' & ')
+                          })()}
+                        </span>
+                        {selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id && (
+                          <span className="text-xs opacity-75">(Ganador actual)</span>
+                        )}
+                      </div>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        setSelectedJugadores([])
+                        setSelectedPartido(prev => ({ ...prev, equipo_ganador_id: prev.equipo_b_id }))
+                      }}
+                      className={`h-12 sm:h-10 ${
+                        selectedPartido.equipo_ganador_id === selectedPartido.equipo_b_id
+                          ? 'bg-yellow-600 hover:bg-yellow-700'
+                          : 'bg-green-600 hover:bg-green-700'
+                      } text-white`}
+                    >
+                      <Award className="h-4 w-4 mr-2" />
+                      <div className="text-left">
+                        <span className="text-sm sm:text-base block">
+                          {(() => {
+                            const equipo = selectedPartido.equipo_b
+                            const titulares = getTitularesEquipo(equipo)
+                            return titulares.map(t => `${t.apellido} (${t.rol})`).join(' & ')
+                          })()}
+                        </span>
+                        {selectedPartido.equipo_ganador_id === selectedPartido.equipo_b_id && (
+                          <span className="text-xs opacity-75">(Ganador actual)</span>
+                        )}
+                      </div>
+                    </Button>
+                  </div>
                 </div>
-                
-                <div className="flex justify-end">
+
+                {/* Selección de jugadores */}
+                {selectedPartido.equipo_ganador_id && (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-3">
+                      <p className="text-xs text-blue-400 mb-1">Equipo ganador seleccionado:</p>
+                      <p className="text-sm text-white font-medium">
+                        {(() => {
+                          const equipoGanador = selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id 
+                            ? selectedPartido.equipo_a 
+                            : selectedPartido.equipo_b
+                          const titulares = getTitularesEquipo(equipoGanador)
+                          return titulares.map(t => `${t.apellido} (${t.rol})`).join(' & ')
+                        })()}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Ahora selecciona exactamente 2 jugadores que jugaron y ganaron el partido (pueden ser titulares, suplentes o una mezcla):
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-400 font-medium">Selecciona exactamente 2 jugadores que recibirán los puntos:</p>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        selectedJugadores.length === 2 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {selectedJugadores.length}/2
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm text-gray-400 mb-2 block">Primer jugador:</label>
+                          <Select 
+                            value={selectedJugadores[0] || ''} 
+                            onValueChange={(value) => {
+                              if (value) {
+                                setSelectedJugadores(prev => [value, prev[1]].filter(Boolean))
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                              <SelectValue placeholder="Seleccionar jugador" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-800 border-gray-700">
+                              {(() => {
+                                const equipoGanador = selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id 
+                                  ? selectedPartido.equipo_a 
+                                  : selectedPartido.equipo_b
+                                const jugadores = getJugadoresEquipo(equipoGanador)
+                                
+                                return jugadores.map((jugador) => (
+                                  <SelectItem key={jugador.id} value={jugador.id}>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-xs px-2 py-1 rounded-full ${jugador.color}`}>
+                                        {jugador.rol}
+                                      </span>
+                                      <span>{jugador.nombre} {jugador.apellido}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              })()}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm text-gray-400 mb-2 block">Segundo jugador:</label>
+                          <Select 
+                            value={selectedJugadores[1] || ''} 
+                            onValueChange={(value) => {
+                              if (value) {
+                                setSelectedJugadores(prev => [prev[0], value].filter(Boolean))
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                              <SelectValue placeholder="Seleccionar jugador" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-800 border-gray-700">
+                              {(() => {
+                                const equipoGanador = selectedPartido.equipo_ganador_id === selectedPartido.equipo_a_id 
+                                  ? selectedPartido.equipo_a 
+                                  : selectedPartido.equipo_b
+                                const jugadores = getJugadoresEquipo(equipoGanador)
+                                
+                                return jugadores.map((jugador) => (
+                                  <SelectItem key={jugador.id} value={jugador.id}>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-xs px-2 py-1 rounded-full ${jugador.color}`}>
+                                        {jugador.rol}
+                                      </span>
+                                      <span>{jugador.nombre} {jugador.apellido}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              })()}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      {/* Botón para limpiar selección */}
+                      {(selectedJugadores[0] || selectedJugadores[1]) && (
+                        <div className="flex justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedJugadores([])}
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                          >
+                            Limpiar selección
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    
+
+                  </div>
+                )}
+
+                {/* Botones de acción */}
+                <div className="flex justify-between">
                   <Button 
                     variant="outline" 
-                    onClick={() => setShowWinnerModal(false)}
+                    onClick={() => {
+                      setShowJugadoresSelection(false)
+                      setSelectedPartido(null)
+                      setSelectedJugadores([])
+                    }}
                     className="border-white/20 text-white hover:bg-white/10 h-10 sm:h-9"
                   >
                     Cancelar
+                  </Button>
+                  
+                  <Button
+                    onClick={() => handleWinnerSelection(selectedPartido.equipo_ganador_id)}
+                    disabled={selectedJugadores.length !== 2}
+                    className="bg-[#E2FF1B] hover:bg-[#E2FF1B]/80 text-gray-900 font-medium h-10 sm:h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Confirmar Ganador
                   </Button>
                 </div>
               </div>
@@ -1534,3 +2028,5 @@ export default function AdminLigasPartidosPage() {
      </div>
    )
 } 
+
+   

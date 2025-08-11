@@ -51,8 +51,7 @@ export default function AdminInscripcionesLigasPage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           ),
           titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
             id,
@@ -60,8 +59,7 @@ export default function AdminInscripcionesLigasPage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           ),
           suplente_1:usuarios!ligainscripciones_suplente_1_id_fkey (
             id,
@@ -69,8 +67,7 @@ export default function AdminInscripcionesLigasPage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           ),
           suplente_2:usuarios!ligainscripciones_suplente_2_id_fkey (
             id,
@@ -78,8 +75,7 @@ export default function AdminInscripcionesLigasPage() {
             apellido,
             email,
             telefono,
-            dni,
-            ranking_puntos
+            dni
           )
         `)
         .order('created_at', { ascending: false })
@@ -100,39 +96,41 @@ export default function AdminInscripcionesLigasPage() {
         titular_1_apellido: inscripcion.titular_1?.apellido || inscripcion.titular_1_apellido || '',
         titular_1_email: inscripcion.titular_1?.email || inscripcion.titular_1_email || 'N/A',
         titular_1_telefono: inscripcion.titular_1?.telefono || 'N/A',
-        titular_1_ranking: inscripcion.titular_1?.ranking_puntos || 0,
+        titular_1_ranking: 0, // Will be updated with ranking_jugadores data
         
         titular_2_nombre: inscripcion.titular_2?.nombre || inscripcion.titular_2_nombre || 'N/A',
         titular_2_apellido: inscripcion.titular_2?.apellido || inscripcion.titular_2_apellido || '',
         titular_2_email: inscripcion.titular_2?.email || inscripcion.titular_2_email || 'N/A',
         titular_2_telefono: inscripcion.titular_2?.telefono || 'N/A',
-        titular_2_ranking: inscripcion.titular_2?.ranking_puntos || 0,
+        titular_2_ranking: 0, // Will be updated with ranking_jugadores data
         
         suplente_1_nombre: inscripcion.suplente_1?.nombre || inscripcion.suplente_1_nombre || 'N/A',
         suplente_1_apellido: inscripcion.suplente_1?.apellido || inscripcion.suplente_1_apellido || '',
         suplente_1_email: inscripcion.suplente_1?.email || inscripcion.suplente_1_email || 'N/A',
         suplente_1_telefono: inscripcion.suplente_1?.telefono || 'N/A',
-        suplente_1_ranking: inscripcion.suplente_1?.ranking_puntos || 0,
+        suplente_1_ranking: 0, // Will be updated with ranking_jugadores data
         
         suplente_2_nombre: inscripcion.suplente_2?.nombre || inscripcion.suplente_2_nombre || 'N/A',
         suplente_2_apellido: inscripcion.suplente_2?.apellido || inscripcion.suplente_2_apellido || '',
         suplente_2_email: inscripcion.suplente_2?.email || inscripcion.suplente_2_email || 'N/A',
         suplente_2_telefono: inscripcion.suplente_2?.telefono || 'N/A',
-        suplente_2_ranking: inscripcion.suplente_2?.ranking_puntos || 0
+        suplente_2_ranking: 0 // Will be updated with ranking_jugadores data
       }))
 
-      setInscripciones(inscripcionesProcesadas)
+      // Fetch ranking points for all users
+      const inscripcionesConRanking = await fetchRankingPoints(inscripcionesProcesadas)
+      setInscripciones(inscripcionesConRanking)
 
       // Extraer categorías y ligas únicas para los filtros
-      const categorias = [...new Set(inscripcionesProcesadas.map(i => i.categoria).filter(c => c !== 'N/A'))]
-      const ligas = [...new Set(inscripcionesProcesadas.map(i => i.liga).filter(l => l !== 'N/A'))]
+      const categorias = [...new Set(inscripcionesConRanking.map(i => i.categoria).filter(c => c !== 'N/A'))]
+      const ligas = [...new Set(inscripcionesConRanking.map(i => i.liga).filter(l => l !== 'N/A'))]
       
       setCategoriasDisponibles(categorias)
       setLigasDisponibles(ligas)
 
       // Calcular información de cupos por categoría
       const cuposCalculados = {}
-      inscripcionesProcesadas.forEach(inscripcion => {
+      inscripcionesConRanking.forEach(inscripcion => {
         if (inscripcion.liga_categoria_id) {
           const key = `${inscripcion.liga_categoria_id}`
           if (!cuposCalculados[key]) {
@@ -170,6 +168,47 @@ export default function AdminInscripcionesLigasPage() {
     } finally {
       setLoading(false)
       setRefreshing(false)
+    }
+  }
+
+  const fetchRankingPoints = async (inscripcionesData) => {
+    try {
+      // Get all unique user IDs from the inscripciones
+      const userIds = new Set()
+      inscripcionesData.forEach(inscripcion => {
+        if (inscripcion.titular_1?.id) userIds.add(inscripcion.titular_1.id)
+        if (inscripcion.titular_2?.id) userIds.add(inscripcion.titular_2.id)
+        if (inscripcion.suplente_1?.id) userIds.add(inscripcion.suplente_1.id)
+        if (inscripcion.suplente_2?.id) userIds.add(inscripcion.suplente_2.id)
+      })
+
+      if (userIds.size === 0) return inscripcionesData
+
+      // Fetch ranking points for all users
+      const { data: rankingData, error: rankingError } = await supabase
+        .from('ranking_jugadores')
+        .select('usuario_id, puntos, categoria')
+        .in('usuario_id', Array.from(userIds))
+
+      if (rankingError) throw rankingError
+
+      // Create a map of user ID to ranking points
+      const rankingMap = new Map()
+      rankingData.forEach(ranking => {
+        rankingMap.set(ranking.usuario_id, ranking.puntos || 0)
+      })
+
+      // Update inscripciones with ranking points
+      return inscripcionesData.map(inscripcion => ({
+        ...inscripcion,
+        titular_1_ranking: inscripcion.titular_1?.id ? (rankingMap.get(inscripcion.titular_1.id) || 0) : 0,
+        titular_2_ranking: inscripcion.titular_2?.id ? (rankingMap.get(inscripcion.titular_2.id) || 0) : 0,
+        suplente_1_ranking: inscripcion.suplente_1?.id ? (rankingMap.get(inscripcion.suplente_1.id) || 0) : 0,
+        suplente_2_ranking: inscripcion.suplente_2?.id ? (rankingMap.get(inscripcion.suplente_2.id) || 0) : 0
+      }))
+    } catch (error) {
+      console.error('Error fetching ranking points:', error)
+      return inscripcionesData
     }
   }
 

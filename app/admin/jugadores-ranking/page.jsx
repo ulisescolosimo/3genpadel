@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AdminHeader from '@/components/AdminHeader'
+import { linkGhostProfileToUser, getGhostProfiles, findDuplicateProfiles, mergeDuplicateProfiles } from '@/lib/ranking-utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -58,6 +59,12 @@ export default function JugadoresRanking() {
   const [importData, setImportData] = useState('')
   const [importCategoria, setImportCategoria] = useState('')
   const [importing, setImporting] = useState(false)
+
+  // Estados para perfiles fantasma
+  const [ghostProfiles, setGhostProfiles] = useState([])
+  const [showGhostProfilesModal, setShowGhostProfilesModal] = useState(false)
+  const [duplicateProfiles, setDuplicateProfiles] = useState([])
+  const [showDuplicatesModal, setShowDuplicatesModal] = useState(false)
 
   useEffect(() => {
     fetchJugadores()
@@ -287,6 +294,10 @@ export default function JugadoresRanking() {
   }
 
   const openLinkModal = (jugador) => {
+    if (!jugador) {
+      console.error('No jugador provided to openLinkModal')
+      return
+    }
     setSelectedJugador(jugador)
     setSearchUsuario('')
     fetchUsuariosDisponibles()
@@ -556,6 +567,100 @@ export default function JugadoresRanking() {
     a.download = `jugadores-ranking-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     window.URL.revokeObjectURL(url)
+  }
+
+  // Función para cargar perfiles fantasma
+  const loadGhostProfiles = async () => {
+    try {
+      const profiles = await getGhostProfiles()
+      setGhostProfiles(profiles)
+    } catch (error) {
+      console.error('Error cargando perfiles fantasma:', error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los perfiles fantasma",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Función para cargar perfiles duplicados
+  const loadDuplicateProfiles = async () => {
+    try {
+      const duplicates = await findDuplicateProfiles()
+      setDuplicateProfiles(duplicates)
+    } catch (error) {
+      console.error('Error cargando perfiles duplicados:', error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los perfiles duplicados",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Función para vincular perfil fantasma a usuario
+  const handleLinkGhostProfile = async (ghostProfileId, userId) => {
+    try {
+      const result = await linkGhostProfileToUser(ghostProfileId, userId)
+      
+      if (result.success) {
+        toast({
+          title: "Éxito",
+          description: result.message,
+          variant: "default"
+        })
+        
+        // Recargar datos
+        fetchJugadores()
+        loadGhostProfiles()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "No se pudo vincular el perfil",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error vinculando perfil fantasma:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo vincular el perfil fantasma",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Función para fusionar perfiles duplicados
+  const handleMergeDuplicates = async (profilesToMerge) => {
+    try {
+      const result = await mergeDuplicateProfiles(profilesToMerge)
+      
+      if (result.success) {
+        toast({
+          title: "Éxito",
+          description: result.message,
+          variant: "default"
+        })
+        
+        // Recargar datos
+        fetchJugadores()
+        loadDuplicateProfiles()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "No se pudieron fusionar los perfiles",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error fusionando perfiles:', error)
+      toast({
+        title: "Error",
+        description: "No se pudieron fusionar los perfiles duplicados",
+        variant: "destructive"
+      })
+    }
   }
 
   // Filtrar jugadores
@@ -1011,65 +1116,81 @@ export default function JugadoresRanking() {
        </Dialog>
 
              {/* Modal para vincular usuarios */}
-       <Dialog open={showLinkModal} onOpenChange={setShowLinkModal}>
+       <Dialog open={showLinkModal} onOpenChange={(open) => {
+         if (!open) {
+           setSelectedJugador(null)
+           setSearchUsuario('')
+         }
+         setShowLinkModal(open)
+       }}>
          <DialogContent className="bg-gray-900 border-gray-800 w-[95vw] max-w-2xl mx-auto">
            <DialogHeader>
              <DialogTitle className="text-white text-lg sm:text-xl">Vincular Jugador con Usuario</DialogTitle>
            </DialogHeader>
            <div className="space-y-4">
-             <div>
-               <p className="text-sm text-gray-400 mb-4">
-                 Vinculando: <strong className="text-white">{selectedJugador?.nombre} {selectedJugador?.apellido}</strong>
-               </p>
-             </div>
+             {selectedJugador ? (
+               <div>
+                 <p className="text-sm text-gray-400 mb-4">
+                   Vinculando: <strong className="text-white">{selectedJugador.nombre} {selectedJugador.apellido}</strong>
+                 </p>
+               </div>
+             ) : (
+               <div className="text-center py-4 text-red-400">
+                 Error: No se seleccionó un jugador válido
+               </div>
+             )}
              
-             {/* Barra de búsqueda */}
-             <div className="relative">
-               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-               <Input
-                 placeholder="Buscar usuario por nombre, apellido o email..."
-                 value={searchUsuario}
-                 onChange={(e) => setSearchUsuario(e.target.value)}
-                 className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-               />
-             </div>
-             
-             <div className="max-h-80 overflow-y-auto space-y-2">
-               {usuariosDisponibles
-                 .filter(usuario => 
+             {selectedJugador && (
+               <>
+                 {/* Barra de búsqueda */}
+                 <div className="relative">
+                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                   <Input
+                     placeholder="Buscar usuario por nombre, apellido o email..."
+                     value={searchUsuario}
+                     onChange={(e) => setSearchUsuario(e.target.value)}
+                     className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                   />
+                 </div>
+                 
+                 <div className="max-h-80 overflow-y-auto space-y-2">
+                   {usuariosDisponibles
+                     .filter(usuario => 
+                       !searchUsuario || 
+                       `${usuario.nombre} ${usuario.apellido} ${usuario.email}`
+                         .toLowerCase()
+                         .includes(searchUsuario.toLowerCase())
+                     )
+                     .map((usuario) => (
+                     <div
+                       key={usuario.id}
+                       className="flex items-center justify-between p-3 border border-gray-700 rounded-lg hover:bg-gray-800 cursor-pointer transition-colors"
+                       onClick={() => handleLinkUser(selectedJugador.id, usuario.id)}
+                     >
+                       <div className="flex-1 min-w-0">
+                         <div className="font-medium text-white truncate">
+                           {usuario.nombre} {usuario.apellido}
+                         </div>
+                         <div className="text-sm text-gray-400 truncate">{usuario.email}</div>
+                       </div>
+                       <Button size="sm" variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 ml-2 flex-shrink-0 p-2">
+                         <Link className="w-4 h-4" />
+                       </Button>
+                     </div>
+                   ))}
+                 </div>
+                 
+                 {usuariosDisponibles.filter(usuario => 
                    !searchUsuario || 
                    `${usuario.nombre} ${usuario.apellido} ${usuario.email}`
                      .toLowerCase()
                      .includes(searchUsuario.toLowerCase())
-                 )
-                 .map((usuario) => (
-                 <div
-                   key={usuario.id}
-                   className="flex items-center justify-between p-3 border border-gray-700 rounded-lg hover:bg-gray-800 cursor-pointer transition-colors"
-                   onClick={() => handleLinkUser(selectedJugador.id, usuario.id)}
-                 >
-                   <div className="flex-1 min-w-0">
-                     <div className="font-medium text-white truncate">
-                       {usuario.nombre} {usuario.apellido}
-                     </div>
-                     <div className="text-sm text-gray-400 truncate">{usuario.email}</div>
+                 ).length === 0 && (
+                   <div className="text-center py-4 text-gray-400">
+                     {searchUsuario ? 'No se encontraron usuarios que coincidan con la búsqueda' : 'No hay usuarios disponibles para vincular'}
                    </div>
-                   <Button size="sm" variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 ml-2 flex-shrink-0 p-2">
-                     <Link className="w-4 h-4" />
-                   </Button>
-                 </div>
-               ))}
-             </div>
-             
-             {usuariosDisponibles.filter(usuario => 
-               !searchUsuario || 
-               `${usuario.nombre} ${usuario.apellido} ${usuario.email}`
-                 .toLowerCase()
-                 .includes(searchUsuario.toLowerCase())
-             ).length === 0 && (
-               <div className="text-center py-4 text-gray-400">
-                 {searchUsuario ? 'No se encontraron usuarios que coincidan con la búsqueda' : 'No hay usuarios disponibles para vincular'}
-               </div>
+                 )}
+               </>
              )}
            </div>
          </DialogContent>
