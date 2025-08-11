@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Trophy, Users, Calendar, Eye, BarChart3, RefreshCw, Medal, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { useToast } from '@/hooks/use-toast'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Trophy, Medal, TrendingUp, TrendingDown, RefreshCw, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 // Componente para mostrar la tabla de posiciones
@@ -29,20 +28,8 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
   }
 
   // Función para calcular diferencias de sets y games basándose en el resultado
-  // Ejemplo: resultado = "6-4 / 5-7 / 6-1" (3 sets)
-  // Para el equipo A: gamesAFavor = 6+5+6 = 17, gamesEnContra = 4+7+1 = 12
-  // DIF GAMES = 17 - 12 = +5
-  // Para el equipo A: setsAFavor = 2 (ganó 6-4 y 6-1), setsEnContra = 1 (perdió 5-7)
-  // DIF SETS = 2 - 1 = +1
-  // 
-  // Ejemplo: resultado = "7-6 / 6-4" (2 sets)
-  // Para el equipo A: gamesAFavor = 7+6 = 13, gamesEnContra = 6+4 = 10
-  // DIF GAMES = 13 - 10 = +3
-  // Para el equipo A: setsAFavor = 2 (ganó ambos), setsEnContra = 0
-  // DIF SETS = 2 - 0 = +2
   const calcularDiferenciasResultado = (partido, equipoId) => {
     if (!validarFormatoResultado(partido.resultado)) {
-      console.warn(`Partido ${partido.id}: Resultado con formato inválido: ${partido.resultado}`)
       return { difSets: 0, difGames: 0 }
     }
     
@@ -56,7 +43,6 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
     sets.forEach((set, index) => {
       const [gamesA, gamesB] = set.split('-').map(g => parseInt(g.trim()))
       if (isNaN(gamesA) || isNaN(gamesB)) {
-        console.warn(`Partido ${partido.id}: Set ${index + 1} inválido: ${set}`)
         return
       }
       
@@ -76,20 +62,6 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
         else setsEnContra++
       }
     })
-    
-    // Debug log para verificar cálculos
-    if (partido.resultado && (gamesAFavor > 0 || gamesEnContra > 0)) {
-      console.log(`Partido ${partido.id} - Equipo ${equipoId}:`, {
-        resultado: partido.resultado,
-        cantidadSets: sets.length,
-        gamesAFavor,
-        gamesEnContra,
-        setsAFavor,
-        setsEnContra,
-        difSets: setsAFavor - setsEnContra,
-        difGames: gamesAFavor - gamesEnContra
-      })
-    }
     
     return {
       difSets: setsAFavor - setsEnContra,
@@ -181,21 +153,18 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
   })
 
   return (
-    <Card className="bg-gray-900/50 border-gray-800">
+    <Card className="bg-black/20 backdrop-blur-sm border-white/10">
       <CardHeader>
         <CardTitle className="text-white flex items-center gap-2">
           <Trophy className="h-5 w-5 text-[#E2FF1B]" />
           {categoria ? `${liga.nombre} - ${categoria.categoria}` : `Tabla de Posiciones - ${liga.nombre}`}
         </CardTitle>
-        <CardDescription className="text-gray-400">
-          {categoria ? `${liga.nombre} - ${categoria.categoria}` : 'Clasificación actual de los equipos'}
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-700">
+              <tr className="border-b border-white/20">
                 <th className="text-left p-3 text-gray-300 font-medium">Pos</th>
                 <th className="text-left p-3 text-gray-300 font-medium">Equipo</th>
                 <th className="text-center p-3 text-gray-300 font-medium">PJ</th>
@@ -211,22 +180,19 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
               {equiposOrdenados.map((equipo, index) => (
                 <tr 
                   key={equipo.id} 
-                  className={`border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors ${
+                  className={`border-b border-white/10 hover:bg-white/5 transition-colors ${
                     index < 3 ? 'bg-[#E2FF1B]/5' : ''
                   }`}
                 >
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      {index === 0 && <Medal className="h-4 w-4 text-yellow-400" />}
-                      {index === 1 && <Medal className="h-4 w-4 text-gray-400" />}
-                      {index === 2 && <Medal className="h-4 w-4 text-orange-600" />}
-                      <span className={`font-bold ${
-                        index < 3 ? 'text-[#E2FF1B]' : 'text-white'
-                      }`}>
-                        {index + 1}
-                      </span>
-                    </div>
-                  </td>
+                                     <td className="p-3">
+                     <div className="flex items-center gap-2">
+                       <span className={`font-bold ${
+                         index < 3 ? 'text-[#E2FF1B]' : 'text-white'
+                       }`}>
+                         {index + 1}
+                       </span>
+                     </div>
+                   </td>
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <span className="text-white font-medium">{equipo.nombre}</span>
@@ -292,7 +258,6 @@ const TablaPosiciones = ({ liga, partidos, inscripciones, categoria }) => {
 }
 
 export default function TablaPosicionesPage() {
-  const { toast } = useToast()
   const [ligas, setLigas] = useState([])
   const [categorias, setCategorias] = useState([])
   const [partidos, setPartidos] = useState([])
@@ -307,19 +272,19 @@ export default function TablaPosicionesPage() {
     fetchData()
   }, [])
 
-     // Filtrar categorías cuando cambie la liga seleccionada
-   useEffect(() => {
-     if (selectedLiga === 'all') {
-       setFilteredCategorias([])
-       setSelectedCategoria('all')
-     } else {
-       const categoriasLiga = categorias.filter(cat => 
-         cat.liga_id === parseInt(selectedLiga)
-       )
-       setFilteredCategorias(categoriasLiga)
-       setSelectedCategoria('all')
-     }
-   }, [selectedLiga, categorias])
+  // Filtrar categorías cuando cambie la liga seleccionada
+  useEffect(() => {
+    if (selectedLiga === 'all') {
+      setFilteredCategorias([])
+      setSelectedCategoria('all')
+    } else {
+      const categoriasLiga = categorias.filter(cat => 
+        cat.liga_id === parseInt(selectedLiga)
+      )
+      setFilteredCategorias(categoriasLiga)
+      setSelectedCategoria('all')
+    }
+  }, [selectedLiga, categorias])
 
   const fetchData = async () => {
     try {
@@ -334,69 +299,69 @@ export default function TablaPosicionesPage() {
       if (ligasError) throw ligasError
       setLigas(ligasData || [])
 
-             // Obtener categorías
-       const { data: categoriasData, error: categoriasError } = await supabase
-         .from('liga_categorias')
-         .select(`
-           id,
-           categoria,
-           liga_id,
-           ligas (
-             id,
-             nombre,
-             fecha_inicio
-           )
-         `)
-         .order('categoria')
+      // Obtener categorías
+      const { data: categoriasData, error: categoriasError } = await supabase
+        .from('liga_categorias')
+        .select(`
+          id,
+          categoria,
+          liga_id,
+          ligas (
+            id,
+            nombre,
+            fecha_inicio
+          )
+        `)
+        .order('categoria')
 
-       if (categoriasError) throw categoriasError
-       setCategorias(categoriasData || [])
+      if (categoriasError) throw categoriasError
+      setCategorias(categoriasData || [])
 
-       // Obtener partidos con información relacionada
-       const { data: partidosData, error: partidosError } = await supabase
-         .from('liga_partidos')
-         .select(`
-           *,
-           liga_categorias (
-             id,
-             categoria,
-             ligas (
-               id,
-               nombre,
-               fecha_inicio
-             )
-           ),
-           equipo_a:ligainscripciones!liga_partidos_equipo_a_id_fkey (
-             id,
-             titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-               nombre,
-               apellido
-             ),
-             titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-               nombre,
-               apellido
-             )
-           ),
-           equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
-             id,
-             titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-               nombre,
-               apellido
-             ),
-             titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-               nombre,
-               apellido
-             )
-           ),
-           equipo_ganador:ligainscripciones!liga_partidos_equipo_ganador_id_fkey (
-             id
-           )
-         `)
-         .eq('estado', 'jugado')
-         .order('created_at', { ascending: false })
+      // Obtener partidos con información relacionada
+      const { data: partidosData, error: partidosError } = await supabase
+        .from('liga_partidos')
+        .select(`
+          *,
+          liga_categorias (
+            id,
+            categoria,
+            ligas (
+              id,
+              nombre,
+              fecha_inicio
+            )
+          ),
+          equipo_a:ligainscripciones!liga_partidos_equipo_a_id_fkey (
+            id,
+            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              nombre,
+              apellido
+            ),
+            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              nombre,
+              apellido
+            )
+          ),
+          equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
+            id,
+            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
+              nombre,
+              apellido
+            ),
+            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
+              nombre,
+              apellido
+            )
+          ),
+          equipo_ganador:ligainscripciones!liga_partidos_equipo_ganador_id_fkey (
+            id
+          )
+        `)
+        .eq('estado', 'jugado')
+        .order('created_at', { ascending: false })
 
-             if (partidosError) throw partidosError
-       setPartidos(partidosData || [])
+      if (partidosError) throw partidosError
+      setPartidos(partidosData || [])
 
       // Obtener inscripciones aprobadas
       const { data: inscripcionesData, error: inscripcionesError } = await supabase
@@ -422,11 +387,6 @@ export default function TablaPosicionesPage() {
       setInscripciones(inscripcionesData || [])
     } catch (error) {
       console.error('Error fetching data:', error)
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los datos",
-        variant: "destructive"
-      })
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -457,10 +417,10 @@ export default function TablaPosicionesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pt-16">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center h-64">
-            <div className="w-8 h-8 border-2 border-[#E2FF1B] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white pt-10">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E2FF1B]"></div>
           </div>
         </div>
       </div>
@@ -468,43 +428,39 @@ export default function TablaPosicionesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white pt-10">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="pt-4 sm:pt-8 pb-6 sm:pb-8">
-          <div className="flex items-center justify-between gap-4 sm:gap-6 mb-6">
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
-                <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-[#E2FF1B]" />
-                <span className="hidden sm:inline">Tablas de Posiciones</span>
-                <span className="sm:hidden">Posiciones</span>
-              </h1>
-              <p className="text-gray-400 mt-1 text-sm sm:text-base">
-                Clasificación de equipos por liga
-              </p>
-            </div>
-            <Button 
-              onClick={fetchData} 
-              disabled={refreshing}
-              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 flex items-center justify-center gap-2 w-auto"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Actualizar</span>
-              <span className="sm:hidden">Refrescar</span>
-            </Button>
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <Link href="/partidos">
+              <Button variant="ghost" className="text-white hover:text-[#E2FF1B] hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver a Partidos
+              </Button>
+            </Link>
           </div>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
+            <span className="text-[#E2FF1B]">Tabla de</span> Posiciones
+          </h1>
+          <p className="text-gray-300 text-sm sm:text-lg max-w-2xl mx-auto mb-4 px-4">
+            Consulta la clasificación actual de todas las ligas y categorías
+          </p>
+        </div>
 
-          {/* Filtros de liga y categoría */}
-          <Card className="mb-6 bg-gray-900/50 border-gray-800">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Filtros de liga y categoría */}
+        <Card className="mb-6 bg-black/20 backdrop-blur-sm border-white/10">
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              {/* Filtros en columna para mobile */}
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block text-white">Seleccionar Liga</label>
                   <Select value={selectedLiga} onValueChange={setSelectedLiga}>
-                    <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                    <SelectTrigger className="bg-black/20 border-white/20 text-white h-12 w-full">
                       <SelectValue placeholder="Todas las ligas" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectContent className="bg-gray-800 border-white/20">
                       <SelectItem value="all">Todas las ligas</SelectItem>
                       {ligas.map(liga => (
                         <SelectItem key={liga.id} value={liga.id.toString()}>
@@ -521,10 +477,10 @@ export default function TablaPosicionesPage() {
                     onValueChange={setSelectedCategoria}
                     disabled={selectedLiga === 'all' || filteredCategorias.length === 0}
                   >
-                    <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white h-10 sm:h-9">
+                    <SelectTrigger className="bg-black/20 border-white/20 text-white h-12 w-full">
                       <SelectValue placeholder="Todas las categorías" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectContent className="bg-gray-800 border-white/20">
                       <SelectItem value="all">Todas las categorías</SelectItem>
                       {filteredCategorias.map(categoria => (
                         <SelectItem key={categoria.id} value={categoria.id.toString()}>
@@ -535,158 +491,159 @@ export default function TablaPosicionesPage() {
                   </Select>
                 </div>
               </div>
+              
+              {/* Botón de actualizar centrado para mobile */}
+              <div className="flex justify-center">
+                <Button 
+                  onClick={fetchData} 
+                  disabled={refreshing}
+                  className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 flex items-center gap-2 h-12 px-8 w-full sm:w-auto"
+                >
+                  <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+                  Actualizar
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            </CardContent>
-          </Card>
+        {/* Tablas de posiciones */}
+        <div className="space-y-6">
+          {selectedLiga === 'all' ? (
+            // Mostrar todas las ligas con todas sus categorías
+            ligas.map(liga => {
+              const categoriasLiga = categorias.filter(cat => cat.liga_id === liga.id)
+              const partidosLiga = getPartidosByLiga(liga.id)
+              
+              // Solo mostrar ligas que tengan partidos jugados
+              if (partidosLiga.length === 0) return null
 
-                     {/* Tablas de posiciones */}
-           <div className="space-y-6">
-             {selectedLiga === 'all' ? (
-               // Mostrar todas las ligas con todas sus categorías
-               ligas.map(liga => {
-                 const categoriasLiga = categorias.filter(cat => cat.liga_id === liga.id)
-                 const partidosLiga = getPartidosByLiga(liga.id)
-                 
+              return (
+                <div key={liga.id} className="space-y-4">
+                  {categoriasLiga.map(categoria => {
+                    const partidosCategoria = getPartidosByLigaYCategoria(liga.id.toString(), categoria.id.toString())
+                    // Solo mostrar categorías que tengan partidos jugados
+                    if (partidosCategoria.length === 0) return null
 
-                 
-                 // Solo mostrar ligas que tengan partidos jugados
-                 if (partidosLiga.length === 0) return null
-
-                 return (
-                   <div key={liga.id} className="space-y-4">
-                     {categoriasLiga.map(categoria => {
-                       const partidosCategoria = getPartidosByLigaYCategoria(liga.id.toString(), categoria.id.toString())
-                       // Solo mostrar categorías que tengan partidos jugados
-                       if (partidosCategoria.length === 0) return null
-
-                       return (
-                         <TablaPosiciones
-                           key={categoria.id}
-                           liga={liga}
-                           partidos={partidosCategoria}
-                           inscripciones={inscripciones}
-                           categoria={categoria}
-                         />
-                       )
-                     })}
-                   </div>
-                 )
-               })
-             ) : (
-               // Mostrar liga específica con todas sus categorías o categoría específica
-               (() => {
-                 const liga = getLigaById(selectedLiga)
-                 if (!liga) return null
-
-                 // Si hay categoría específica seleccionada, mostrar solo esa
-                 if (selectedCategoria !== 'all') {
-                   const categoria = getCategoriaById(selectedCategoria)
-                   if (!categoria) return null
-
-                   const partidosFiltrados = getPartidosByLigaYCategoria(selectedLiga, selectedCategoria)
-                   if (partidosFiltrados.length === 0) return null
-
-                   return (
-                     <TablaPosiciones
-                       liga={liga}
-                       partidos={partidosFiltrados}
-                       inscripciones={inscripciones}
-                       categoria={categoria}
-                     />
-                   )
-                 }
-
-                 // Si no hay categoría específica, mostrar todas las categorías de la liga
-                 const categoriasLiga = filteredCategorias
-                 return (
-                   <div className="space-y-4">
-                     <div className="mb-4">
-                       <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                         <Trophy className="h-5 w-5 text-[#E2FF1B]" />
-                         {liga.nombre}
-                       </h2>
-                     </div>
-                     {categoriasLiga.map(categoria => {
-                       const partidosCategoria = getPartidosByLigaYCategoria(selectedLiga, categoria.id.toString())
-                       if (partidosCategoria.length === 0) return null
-
-                       return (
-                         <TablaPosiciones
-                           key={categoria.id}
-                           liga={liga}
-                           partidos={partidosCategoria}
-                           inscripciones={inscripciones}
-                           categoria={categoria}
-                         />
-                       )
-                     })}
-                   </div>
-                 )
-               })()
-             )}
-           </div>
-
-          {/* Estado vacío */}
-          {selectedLiga === 'all' && ligas.filter(liga => {
-            const categoriasLiga = categorias.filter(cat => cat.ligas?.id === liga.id)
-            return categoriasLiga.some(categoria => 
-              getPartidosByLigaYCategoria(liga.id.toString(), categoria.id.toString()).length > 0
-            )
-          }).length === 0 && (
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardContent className="pt-8 pb-8 text-center">
-                <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="h-10 w-10 text-gray-400" />
+                    return (
+                      <TablaPosiciones
+                        key={categoria.id}
+                        liga={liga}
+                        partidos={partidosCategoria}
+                        inscripciones={inscripciones}
+                        categoria={categoria}
+                      />
+                    )
+                  })}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">No hay partidos jugados</h3>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  No se encontraron partidos jugados para mostrar las tablas de posiciones
-                </p>
-                <div className="mt-4">
-                  <Link href="/admin/ligas/partidos">
-                    <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Gestionar Partidos
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              )
+            })
+          ) : (
+            // Mostrar liga específica con todas sus categorías o categoría específica
+            (() => {
+              const liga = getLigaById(selectedLiga)
+              if (!liga) return null
 
-          {selectedLiga !== 'all' && selectedCategoria === 'all' && 
-           filteredCategorias.every(categoria => 
-             getPartidosByLigaYCategoria(selectedLiga, categoria.id.toString()).length === 0
-           ) && (
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardContent className="pt-8 pb-8 text-center">
-                <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="h-10 w-10 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">No hay partidos jugados</h3>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  No se encontraron partidos jugados para la liga seleccionada
-                </p>
-              </CardContent>
-            </Card>
-          )}
+              // Si hay categoría específica seleccionada, mostrar solo esa
+              if (selectedCategoria !== 'all') {
+                const categoria = getCategoriaById(selectedCategoria)
+                if (!categoria) return null
 
-          {selectedLiga !== 'all' && selectedCategoria !== 'all' && 
-           getPartidosByLigaYCategoria(selectedLiga, selectedCategoria).length === 0 && (
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardContent className="pt-8 pb-8 text-center">
-                <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="h-10 w-10 text-gray-400" />
+                const partidosFiltrados = getPartidosByLigaYCategoria(selectedLiga, selectedCategoria)
+                if (partidosFiltrados.length === 0) return null
+
+                return (
+                  <TablaPosiciones
+                    liga={liga}
+                    partidos={partidosFiltrados}
+                    inscripciones={inscripciones}
+                    categoria={categoria}
+                  />
+                )
+              }
+
+              // Si no hay categoría específica, mostrar todas las categorías de la liga
+              const categoriasLiga = filteredCategorias
+              return (
+                <div className="space-y-4">
+                  <div className="mb-4">
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Trophy className="h-5 w-5 text-[#E2FF1B]" />
+                      {liga.nombre}
+                    </h2>
+                  </div>
+                  {categoriasLiga.map(categoria => {
+                    const partidosCategoria = getPartidosByLigaYCategoria(selectedLiga, categoria.id.toString())
+                    if (partidosCategoria.length === 0) return null
+
+                    return (
+                      <TablaPosiciones
+                        key={categoria.id}
+                        liga={liga}
+                        partidos={partidosCategoria}
+                        inscripciones={inscripciones}
+                        categoria={categoria}
+                      />
+                    )
+                  })}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">No hay partidos jugados</h3>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  No se encontraron partidos jugados para la liga y categoría seleccionadas
-                </p>
-              </CardContent>
-            </Card>
+              )
+            })()
           )}
         </div>
+
+        {/* Estado vacío */}
+        {selectedLiga === 'all' && ligas.filter(liga => {
+          const categoriasLiga = categorias.filter(cat => cat.ligas?.id === liga.id)
+          return categoriasLiga.some(categoria => 
+            getPartidosByLigaYCategoria(liga.id.toString(), categoria.id.toString()).length > 0
+          )
+        }).length === 0 && (
+          <Card className="bg-black/20 backdrop-blur-sm border-white/10">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">No hay partidos jugados</h3>
+              <p className="text-gray-400 max-w-md mx-auto">
+                No se encontraron partidos jugados para mostrar las tablas de posiciones
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedLiga !== 'all' && selectedCategoria === 'all' && 
+         filteredCategorias.every(categoria => 
+           getPartidosByLigaYCategoria(selectedLiga, categoria.id.toString()).length === 0
+         ) && (
+          <Card className="bg-black/20 backdrop-blur-sm border-white/10">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">No hay partidos jugados</h3>
+              <p className="text-gray-400 max-w-md mx-auto">
+                No se encontraron partidos jugados para la liga seleccionada
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedLiga !== 'all' && selectedCategoria !== 'all' && 
+         getPartidosByLigaYCategoria(selectedLiga, selectedCategoria).length === 0 && (
+          <Card className="bg-black/20 backdrop-blur-sm border-white/10">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">No hay partidos jugados</h3>
+              <p className="text-gray-400 max-w-md mx-auto">
+                No se encontraron partidos jugados para la liga y categoría seleccionadas
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
-} 
+}
