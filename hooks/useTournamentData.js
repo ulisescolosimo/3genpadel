@@ -26,11 +26,13 @@ export function TournamentProvider({ children }) {
 
       if (error) throw error
 
-      // Filtrar solo torneos que tengan datos mínimos
+      // Filtrar solo torneos que tengan datos mínimos y estén visibles
       const activeTournaments = data?.filter(tournament => 
-        tournament.nombre_torneo || 
-        tournament.jugador1_nombre || 
-        tournament.jugador2_nombre
+        tournament.visible !== false && ( // Filtrar por visibilidad individual
+          tournament.nombre_torneo || 
+          tournament.jugador1_nombre || 
+          tournament.jugador2_nombre
+        )
       ) || []
 
       setTournaments(activeTournaments)

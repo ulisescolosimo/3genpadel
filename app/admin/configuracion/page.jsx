@@ -47,6 +47,7 @@ export default function AdminConfiguracion() {
     link_en_vivo: '',
     proximo_partido_fecha: null, // null en lugar de string vacío
     proximo_partido_hora: '',
+    visible: true, // Por defecto visible
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   })
@@ -157,6 +158,8 @@ export default function AdminConfiguracion() {
       )
     )
   }
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -311,6 +314,8 @@ export default function AdminConfiguracion() {
             </Button>
           </div>
 
+
+
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {tournaments.length === 0 ? (
               <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
@@ -350,6 +355,14 @@ export default function AdminConfiguracion() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mr-3">
+                          <Switch
+                            id={`visible-switch-${tournament.id}`}
+                            checked={tournament.visible !== false}
+                            onCheckedChange={(checked) => handleTournamentChange(tournamentIndex, 'visible', checked)}
+                            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-600"
+                          />
+                        </div>
                         <Button
                           type="button"
                           variant="ghost"
