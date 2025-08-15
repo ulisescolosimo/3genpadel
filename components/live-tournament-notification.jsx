@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Trophy, ExternalLink, Calendar, MapPin, Users, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { useTournamentData } from '@/hooks/useTournamentData'
+import { useWhatsAppVisibility } from '@/hooks/useWhatsAppVisibility'
 
 // Función para formatear fecha
 const formatDate = (dateString) => {
@@ -47,8 +48,10 @@ export default function LiveTournamentNotification() {
   const [currentTournamentIndex, setCurrentTournamentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [direction, setDirection] = useState('right') // 'left' or 'right'
+  const [isMobile, setIsMobile] = useState(false)
   
   const { tournaments, loading } = useTournamentData()
+  const { hideWhatsApp, showWhatsApp } = useWhatsAppVisibility()
 
   useEffect(() => {
     // Reset índice si no hay torneos o si el índice actual es mayor que los torneos disponibles
@@ -56,6 +59,32 @@ export default function LiveTournamentNotification() {
       setCurrentTournamentIndex(0)
     }
   }, [tournaments, currentTournamentIndex])
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768) // md breakpoint
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
+
+  // Manejar visibilidad de WhatsApp basado en estado minimizado y móvil
+  useEffect(() => {
+    if (isMobile) {
+      if (isMinimized) {
+        showWhatsApp()
+      } else {
+        hideWhatsApp()
+      }
+    } else {
+      // En desktop siempre mostrar WhatsApp
+      showWhatsApp()
+    }
+  }, [isMinimized, isMobile, hideWhatsApp, showWhatsApp])
 
   // Función para cambiar entre torneos con animación
   const nextTournament = () => {

@@ -10,6 +10,7 @@ import Footer from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import ImpersonationBanner from '@/components/ImpersonationBanner'
 import { TournamentProvider } from '@/hooks/useTournamentData'
+import { WhatsAppVisibilityProvider } from '@/hooks/useWhatsAppVisibility'
 
 const montserrat = Montserrat({ 
   subsets: ['latin'],
@@ -138,14 +139,16 @@ export default function RootLayout({ children }) {
       <body className={montserrat.className}>
         <AuthProvider>
           <TournamentProvider>
-            <ImpersonationBanner />
-            <ClientLayout>
-              <main>
-                {children}
-              </main>
-            </ClientLayout>
-            <Toaster />
-            <SonnerToaster richColors position="top-right" />
+            <WhatsAppVisibilityProvider>
+              <ImpersonationBanner />
+              <ClientLayout>
+                <main>
+                  {children}
+                </main>
+              </ClientLayout>
+              <Toaster />
+              <SonnerToaster richColors position="top-right" />
+            </WhatsAppVisibilityProvider>
           </TournamentProvider>
         </AuthProvider>
       </body>

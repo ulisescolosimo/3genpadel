@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { FaWhatsapp, FaTimes } from 'react-icons/fa'
+import { useWhatsAppVisibility } from '@/hooks/useWhatsAppVisibility'
 
 export default function FloatingWhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false)
+  const { isWhatsAppVisible } = useWhatsAppVisibility()
   
   const phoneNumbers = [
     { number: '+5491135921988', label: '+54 9 11 3592-1988' },
@@ -23,6 +25,11 @@ export default function FloatingWhatsAppButton() {
     if (e.target === e.currentTarget) {
       setIsOpen(false)
     }
+  }
+
+  // No renderizar si no está visible
+  if (!isWhatsAppVisible) {
+    return null
   }
 
   return (
