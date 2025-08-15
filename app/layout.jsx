@@ -9,6 +9,7 @@ import { Toaster as SonnerToaster } from 'sonner'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/components/AuthProvider'
 import ImpersonationBanner from '@/components/ImpersonationBanner'
+import { TournamentProvider } from '@/hooks/useTournamentData'
 
 const montserrat = Montserrat({ 
   subsets: ['latin'],
@@ -136,14 +137,16 @@ export default function RootLayout({ children }) {
       </head>
       <body className={montserrat.className}>
         <AuthProvider>
-          <ImpersonationBanner />
-          <ClientLayout>
-            <main>
-              {children}
-            </main>
-          </ClientLayout>
-          <Toaster />
-          <SonnerToaster richColors position="top-right" />
+          <TournamentProvider>
+            <ImpersonationBanner />
+            <ClientLayout>
+              <main>
+                {children}
+              </main>
+            </ClientLayout>
+            <Toaster />
+            <SonnerToaster richColors position="top-right" />
+          </TournamentProvider>
         </AuthProvider>
       </body>
     </html>

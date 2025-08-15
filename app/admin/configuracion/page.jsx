@@ -11,7 +11,10 @@ import {
   Calendar,
   MapPin,
   Users,
-  Clock
+  Clock,
+  Plus,
+  Trash2,
+  Copy
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,23 +28,27 @@ export default function AdminConfiguracion() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
-  const [config, setConfig] = useState({
-    id: '31945174-ed96-4f54-a106-80067ab399c7',
-    torneo_en_vivo: {
-      activo: false,
-      nombre: '',
-      jugadores: [
-        { nombre: '', apellido: '', ranking: '' },
-        { nombre: '', apellido: '', ranking: '' }
-      ],
-      ubicacion: '',
-      fecha: '',
-      categoria: '',
-      resultado: '',
-      siguiente_partido: '',
-      hora: '',
-      link_en_vivo: ''
-    }
+  const [tournaments, setTournaments] = useState([])
+  const [duplicating, setDuplicating] = useState(null) // Para prevenir doble-click
+
+  // Función para crear un torneo vacío basado en la nueva estructura
+  const createEmptyTournament = () => ({
+    id: crypto.randomUUID(),
+    nombre_torneo: '',
+    jugador1_nombre: '',
+    jugador1_apellido: '',
+    jugador2_nombre: '',
+    jugador2_apellido: '',
+    ranking_jugador1: null,
+    ranking_jugador2: null,
+    ubicacion_torneo: '',
+    fecha: null, // null en lugar de string vacío
+    hora: '',
+    link_en_vivo: '',
+    proximo_partido_fecha: null, // null en lugar de string vacío
+    proximo_partido_hora: '',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   })
 
   useEffect(() => {
@@ -53,31 +60,14 @@ export default function AdminConfiguracion() {
       const { data, error } = await supabase
         .from('configuracion')
         .select('*')
-        .eq('id', '31945174-ed96-4f54-a106-80067ab399c7')
-        .single()
+        .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      if (data) {
-        setConfig({
-          id: '31945174-ed96-4f54-a106-80067ab399c7',
-          torneo_en_vivo: data.torneo_en_vivo || {
-            activo: false,
-            nombre: '',
-            jugadores: [
-              { nombre: '', apellido: '', ranking: '' },
-              { nombre: '', apellido: '', ranking: '' }
-            ],
-            ubicacion: '',
-            fecha: '',
-            categoria: '',
-            resultado: '',
-            siguiente_partido: '',
-            hora: '',
-            link_en_vivo: ''
-          }
-        })
-      }
+      // La nueva estructura maneja cada fila como un torneo separado
+      const tournamentsList = data || []
+      setTournaments(tournamentsList)
+      
       setLoading(false)
     } catch (err) {
       console.error('Error fetching config:', err)
@@ -88,26 +78,84 @@ export default function AdminConfiguracion() {
 
 
 
-  const handleTorneoEnVivoChange = (field, value) => {
-    setConfig(prev => ({
-      ...prev,
-      torneo_en_vivo: {
-        ...prev.torneo_en_vivo,
-        [field]: value
-      }
-    }))
+  // Funciones para manejar múltiples torneos
+  const addTournament = () => {
+    const newTournament = createEmptyTournament()
+    setTournaments(prev => [...prev, newTournament])
   }
 
-  const handleJugadorChange = (index, field, value) => {
-    setConfig(prev => ({
-      ...prev,
-      torneo_en_vivo: {
-        ...prev.torneo_en_vivo,
-        jugadores: prev.torneo_en_vivo.jugadores.map((jugador, i) => 
-          i === index ? { ...jugador, [field]: value } : jugador
-        )
+  const removeTournament = async (tournamentId) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar este torneo?')) {
+      return
+    }
+    
+    const tournament = tournaments.find(t => t.id === tournamentId)
+    if (!tournament) return
+    
+    // Intentar eliminar de la base de datos
+    try {
+      const { error } = await supabase
+        .from('configuracion')
+        .delete()
+        .eq('id', tournamentId)
+      
+      if (error) {
+        // Si el error es que no existe el registro, es OK (torneo local)
+        if (error.code === 'PGRST116' || error.message.includes('no rows')) {
+          toast.success('Torneo eliminado')
+        } else {
+          throw error
+        }
+      } else {
+        toast.success('Torneo eliminado de la base de datos')
       }
-    }))
+    } catch (err) {
+      console.error('Error deleting tournament:', err)
+      toast.error('Error al eliminar el torneo: ' + err.message)
+      return
+    }
+    
+    // Eliminar del estado local
+    setTournaments(prev => prev.filter(t => t.id !== tournamentId))
+  }
+
+  const duplicateTournament = (tournamentIndex) => {
+    // Prevenir doble-click
+    if (duplicating === tournamentIndex) return
+    setDuplicating(tournamentIndex)
+    
+    const tournament = tournaments[tournamentIndex]
+    if (!tournament) {
+      setDuplicating(null)
+      return
+    }
+    
+    const duplicatedTournament = {
+      ...tournament,
+      id: crypto.randomUUID(),
+      nombre_torneo: `${tournament.nombre_torneo || 'Torneo'} (copia)`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    
+    setTournaments(prev => [...prev, duplicatedTournament])
+    
+    // Resetear el estado de duplicación después de un breve delay
+    setTimeout(() => setDuplicating(null), 500)
+  }
+
+  const handleTournamentChange = (tournamentIndex, field, value) => {
+    setTournaments(prev => 
+      prev.map((tournament, index) => 
+        index === tournamentIndex 
+          ? { 
+              ...tournament, 
+              [field]: value,
+              updated_at: new Date().toISOString()
+            } 
+          : tournament
+      )
+    )
   }
 
   const handleSubmit = async (e) => {
@@ -115,16 +163,103 @@ export default function AdminConfiguracion() {
     setSaving(true)
 
     try {
-      const { error } = await supabase
-        .from('configuracion')
-        .upsert([config])
+      // Filtrar torneos válidos (con datos mínimos requeridos)
+      const validTournaments = tournaments.filter(tournament => 
+        tournament.nombre_torneo?.trim() || 
+        tournament.jugador1_nombre?.trim() || 
+        tournament.jugador2_nombre?.trim()
+      )
 
-      if (error) throw error
+      // Preparar datos para guardar
+      const tournamentsToSave = validTournaments.map(tournament => {
+        const { id, created_at, updated_at, ...tournamentData } = tournament
+        
+        // Limpiar campos de fecha: convertir strings vacíos a null
+        const cleanedData = {
+          ...tournamentData,
+          fecha: tournamentData.fecha?.trim() || null,
+          proximo_partido_fecha: tournamentData.proximo_partido_fecha?.trim() || null,
+          // Limpiar campos de texto vacíos
+          nombre_torneo: tournamentData.nombre_torneo?.trim() || '',
+          jugador1_nombre: tournamentData.jugador1_nombre?.trim() || '',
+          jugador1_apellido: tournamentData.jugador1_apellido?.trim() || '',
+          jugador2_nombre: tournamentData.jugador2_nombre?.trim() || '',
+          jugador2_apellido: tournamentData.jugador2_apellido?.trim() || '',
+          ubicacion_torneo: tournamentData.ubicacion_torneo?.trim() || null,
+          hora: tournamentData.hora?.trim() || null,
+          link_en_vivo: tournamentData.link_en_vivo?.trim() || null,
+          proximo_partido_hora: tournamentData.proximo_partido_hora?.trim() || null,
+          // Asegurar que los rankings sean números o null
+          ranking_jugador1: tournamentData.ranking_jugador1 ? parseInt(tournamentData.ranking_jugador1) : null,
+          ranking_jugador2: tournamentData.ranking_jugador2 ? parseInt(tournamentData.ranking_jugador2) : null
+        }
+        
+        return { originalId: id, data: cleanedData }
+      })
 
-      toast.success('Configuración guardada correctamente')
+      if (tournamentsToSave.length === 0) {
+        toast.error('No hay torneos válidos para guardar')
+        setSaving(false)
+        return
+      }
+
+      const results = []
+      
+      // Procesar cada torneo individualmente
+      for (const { originalId, data } of tournamentsToSave) {
+        try {
+          if (originalId) {
+            // Intentar UPDATE primero
+            const { data: updatedData, error: updateError } = await supabase
+              .from('configuracion')
+              .update(data)
+              .eq('id', originalId)
+              .select()
+            
+            if (updateError) throw updateError
+            
+            if (updatedData && updatedData.length > 0) {
+              // UPDATE exitoso
+              results.push(...updatedData)
+            } else {
+              // No se encontró el registro, hacer INSERT
+              const { data: insertedData, error: insertError } = await supabase
+                .from('configuracion')
+                .insert([data])
+                .select()
+              
+              if (insertError) throw insertError
+              if (insertedData) results.push(...insertedData)
+            }
+          } else {
+            // Sin ID, hacer INSERT directamente
+            const { data: insertedData, error: insertError } = await supabase
+              .from('configuracion')
+              .insert([data])
+              .select()
+            
+            if (insertError) throw insertError
+            if (insertedData) results.push(...insertedData)
+          }
+        } catch (err) {
+          console.error('Error saving tournament:', err)
+          // Continuar con el siguiente torneo
+        }
+      }
+
+      // Actualizar el estado local con los datos devueltos por la BD
+      if (results.length > 0) {
+        setTournaments(results)
+      }
+      
+      toast.success(`${results.length} torneo(s) guardado(s) correctamente`)
+      
+      // Recargar datos para sincronizar
+      await fetchConfig()
+      
     } catch (err) {
-      console.error('Error saving config:', err)
-      toast.error('Error al guardar la configuración')
+      console.error('Error saving tournaments:', err)
+      toast.error('Error al guardar los torneos')
     } finally {
       setSaving(false)
     }
@@ -161,159 +296,241 @@ export default function AdminConfiguracion() {
     <div className="min-h-screen bg-black p-4 sm:p-8">
       <div className="container mx-auto max-w-6xl">
         <div className="space-y-4 sm:space-y-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Configuración de Torneo en Vivo</h1>
-            <p className="text-gray-400">Gestiona la notificación flotante de torneos en vivo</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Gestión de Torneos en Vivo</h1>
+              <p className="text-gray-400">Gestiona múltiples notificaciones flotantes de torneos en vivo</p>
+            </div>
+            <Button
+              type="button"
+              onClick={addTournament}
+              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Torneo
+            </Button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="flex items-center gap-3 mb-6 sm:mb-8">
-              <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-[#E2FF1B]" />
-              <h2 className="text-lg sm:text-xl font-semibold text-white">Notificación de Torneo en Vivo</h2>
-            </div>
-            
-            <div className="space-y-6 sm:space-y-8">
-              {/* Toggle para activar/desactivar */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-medium text-gray-400">Activar notificación de torneo en vivo</Label>
-                  <p className="text-xs text-gray-500 mt-1">Muestra una notificación flotante cuando hay un torneo en curso</p>
+            {tournaments.length === 0 ? (
+              <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+                <div className="p-8 text-center">
+                  <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-400 mb-2">No hay torneos configurados</h3>
+                  <p className="text-gray-500 mb-4">Agrega tu primer torneo en vivo para comenzar</p>
+                  <Button
+                    type="button"
+                    onClick={addTournament}
+                    className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Crear Primer Torneo
+                  </Button>
                 </div>
-                <Switch
-                  checked={config.torneo_en_vivo.activo}
-                  onCheckedChange={(checked) => handleTorneoEnVivoChange('activo', checked)}
-                />
-              </div>
+              </Card>
+            ) : (
+              tournaments.map((tournament, tournamentIndex) => (
+                <Card key={tournament.id} className="bg-gray-900/50 border-gray-800 shadow-xl">
+                  <div className="p-4 sm:p-6 lg:p-8">
+                    <div className="flex items-center justify-between mb-6 sm:mb-8">
+                      <div className="flex items-center gap-3">
+                        <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-[#E2FF1B]" />
+                        <div>
+                          <h2 className="text-lg sm:text-xl font-semibold text-white">
+                            Torneo #{tournamentIndex + 1}
+                            {tournament.nombre_torneo && ` - ${tournament.nombre_torneo}`}
+                          </h2>
+                          <p className="text-xs text-gray-500">
+                            {tournament.fecha ? (
+                              <span className="text-green-400">● {tournament.fecha}</span>
+                            ) : (
+                              <span className="text-gray-500">○ Sin fecha</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => duplicateTournament(tournamentIndex)}
+                          disabled={duplicating === tournamentIndex}
+                          className="text-gray-400 hover:text-white disabled:opacity-50"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeTournament(tournament.id)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 sm:space-y-6">
+                      {/* Información del Torneo */}
+                      <div>
+                        <label className="text-sm font-medium text-gray-400">Nombre del Torneo</label>
+                        <Input
+                          value={tournament.nombre_torneo || ''}
+                          onChange={(e) => handleTournamentChange(tournamentIndex, 'nombre_torneo', e.target.value)}
+                          className="mt-1 bg-gray-800 border-gray-700 text-white"
+                          placeholder="Ej: Final del Torneo Internacional"
+                        />
+                      </div>
 
-                             {/* Campos del torneo - solo mostrar si está activo */}
-                               {config.torneo_en_vivo.activo && (
-                  <div className="space-y-4 sm:space-y-6 border-t border-gray-700 pt-4 sm:pt-6">
-                  <div>
-                    <label className="text-sm font-medium text-gray-400">Nombre del Torneo</label>
-                    <Input
-                      value={config.torneo_en_vivo.nombre}
-                      onChange={(e) => handleTorneoEnVivoChange('nombre', e.target.value)}
-                      className="mt-1 bg-gray-800 border-gray-700 text-white"
-                      placeholder="Ej: Torneo Internacional de Pádel"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-400">Categoría</label>
-                    <Input
-                      value={config.torneo_en_vivo.categoria}
-                      onChange={(e) => handleTorneoEnVivoChange('categoria', e.target.value)}
-                      className="mt-1 bg-gray-800 border-gray-700 text-white"
-                      placeholder="Ej: Open"
-                    />
-                  </div>
-
-                  {/* Jugadores */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-400 mb-3 block">Jugadores</label>
-                    <div className="space-y-3">
-                      {config.torneo_en_vivo.jugadores.map((jugador, index) => (
-                        <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-gray-800/50 rounded-lg">
-                          <div>
-                            <label className="text-xs text-gray-500">Nombre</label>
-                            <Input
-                              value={jugador.nombre}
-                              onChange={(e) => handleJugadorChange(index, 'nombre', e.target.value)}
-                              className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
-                              placeholder="Nombre"
-                            />
+                      {/* Jugadores */}
+                      <div>
+                        <label className="text-sm font-medium text-gray-400 mb-3 block">Jugadores en Vivo</label>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {/* Jugador 1 */}
+                          <div className="p-4 bg-gray-800/50 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-300 mb-3">Jugador 1</h4>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs text-gray-500">Nombre</label>
+                                <Input
+                                  value={tournament.jugador1_nombre || ''}
+                                  onChange={(e) => handleTournamentChange(tournamentIndex, 'jugador1_nombre', e.target.value)}
+                                  className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
+                                  placeholder="Nombre"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-500">Apellido</label>
+                                <Input
+                                  value={tournament.jugador1_apellido || ''}
+                                  onChange={(e) => handleTournamentChange(tournamentIndex, 'jugador1_apellido', e.target.value)}
+                                  className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
+                                  placeholder="Apellido"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-500">Ranking</label>
+                                <Input
+                                  type="number"
+                                  value={tournament.ranking_jugador1 ?? ''}
+                                  onChange={(e) => handleTournamentChange(tournamentIndex, 'ranking_jugador1', e.target.value ? parseInt(e.target.value) : null)}
+                                  className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
+                                  placeholder="Ej: 15"
+                                />
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <label className="text-xs text-gray-500">Apellido</label>
-                            <Input
-                              value={jugador.apellido}
-                              onChange={(e) => handleJugadorChange(index, 'apellido', e.target.value)}
-                              className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
-                              placeholder="Apellido"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500">Ranking</label>
-                            <Input
-                              value={jugador.ranking}
-                              onChange={(e) => handleJugadorChange(index, 'ranking', e.target.value)}
-                              className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
-                              placeholder="Ej: Top 50"
-                            />
+
+                          {/* Jugador 2 */}
+                          <div className="p-4 bg-gray-800/50 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-300 mb-3">Jugador 2</h4>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs text-gray-500">Nombre</label>
+                                <Input
+                                  value={tournament.jugador2_nombre || ''}
+                                  onChange={(e) => handleTournamentChange(tournamentIndex, 'jugador2_nombre', e.target.value)}
+                                  className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
+                                  placeholder="Nombre"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-500">Apellido</label>
+                                <Input
+                                  value={tournament.jugador2_apellido || ''}
+                                  onChange={(e) => handleTournamentChange(tournamentIndex, 'jugador2_apellido', e.target.value)}
+                                  className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
+                                  placeholder="Apellido"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-500">Ranking</label>
+                                <Input
+                                  type="number"
+                                  value={tournament.ranking_jugador2 ?? ''}
+                                  onChange={(e) => handleTournamentChange(tournamentIndex, 'ranking_jugador2', e.target.value ? parseInt(e.target.value) : null)}
+                                  className="mt-1 bg-gray-700 border-gray-600 text-white text-sm"
+                                  placeholder="Ej: 22"
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-400">Ubicación</label>
-                      <Input
-                        value={config.torneo_en_vivo.ubicacion}
-                        onChange={(e) => handleTorneoEnVivoChange('ubicacion', e.target.value)}
-                        className="mt-1 bg-gray-800 border-gray-700 text-white"
-                        placeholder="Ej: Madrid, España"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-400">Fecha</label>
-                      <Input
-                        value={config.torneo_en_vivo.fecha}
-                        onChange={(e) => handleTorneoEnVivoChange('fecha', e.target.value)}
-                        className="mt-1 bg-gray-800 border-gray-700 text-white"
-                        placeholder="Ej: 15-17 Marzo 2025"
-                      />
-                    </div>
-                  </div>
+                      {/* Ubicación y Fecha del Partido */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-400">Ubicación del Torneo</label>
+                          <Input
+                            value={tournament.ubicacion_torneo || ''}
+                            onChange={(e) => handleTournamentChange(tournamentIndex, 'ubicacion_torneo', e.target.value)}
+                            className="mt-1 bg-gray-800 border-gray-700 text-white"
+                            placeholder="Ej: Madrid, España"
+                          />
+                        </div>
+                                                  <div>
+                            <label className="text-sm font-medium text-gray-400">Fecha del Partido</label>
+                            <Input
+                              type="date"
+                              value={tournament.fecha || ''}
+                              onChange={(e) => handleTournamentChange(tournamentIndex, 'fecha', e.target.value || null)}
+                              className="mt-1 bg-gray-800 border-gray-700 text-white"
+                            />
+                          </div>
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-400">Hora</label>
-                      <Input
-                        value={config.torneo_en_vivo.hora}
-                        onChange={(e) => handleTorneoEnVivoChange('hora', e.target.value)}
-                        className="mt-1 bg-gray-800 border-gray-700 text-white"
-                        placeholder="Ej: 18:30"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-400">Resultado Actual</label>
-                      <Input
-                        value={config.torneo_en_vivo.resultado}
-                        onChange={(e) => handleTorneoEnVivoChange('resultado', e.target.value)}
-                        className="mt-1 bg-gray-800 border-gray-700 text-white"
-                        placeholder="Ej: 1-0"
-                      />
-                    </div>
-                  </div>
+                      {/* Hora y Link en Vivo */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-400">Hora del Partido</label>
+                          <Input
+                            value={tournament.hora || ''}
+                            onChange={(e) => handleTournamentChange(tournamentIndex, 'hora', e.target.value)}
+                            className="mt-1 bg-gray-800 border-gray-700 text-white"
+                            placeholder="Ej: 18:30"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-400">Link para Ver en Vivo</label>
+                          <Input
+                            type="url"
+                            value={tournament.link_en_vivo || ''}
+                            onChange={(e) => handleTournamentChange(tournamentIndex, 'link_en_vivo', e.target.value)}
+                            className="mt-1 bg-gray-800 border-gray-700 text-white"
+                            placeholder="Ej: https://stream.example.com"
+                          />
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-400">Próximo Partido</label>
-                    <Input
-                      value={config.torneo_en_vivo.siguiente_partido}
-                      onChange={(e) => handleTorneoEnVivoChange('siguiente_partido', e.target.value)}
-                      className="mt-1 bg-gray-800 border-gray-700 text-white"
-                      placeholder="Ej: Cuartos de Final"
-                    />
+                      {/* Próximo Partido */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-400">Fecha del Próximo Partido</label>
+                          <Input
+                            type="date"
+                            value={tournament.proximo_partido_fecha || ''}
+                            onChange={(e) => handleTournamentChange(tournamentIndex, 'proximo_partido_fecha', e.target.value || null)}
+                            className="mt-1 bg-gray-800 border-gray-700 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-400">Hora del Próximo Partido</label>
+                          <Input
+                            value={tournament.proximo_partido_hora || ''}
+                            onChange={(e) => handleTournamentChange(tournamentIndex, 'proximo_partido_hora', e.target.value)}
+                            className="mt-1 bg-gray-800 border-gray-700 text-white"
+                            placeholder="Ej: 20:00"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-400">Link para Ver en Vivo</label>
-                    <Input
-                      value={config.torneo_en_vivo.link_en_vivo}
-                      onChange={(e) => handleTorneoEnVivoChange('link_en_vivo', e.target.value)}
-                      className="mt-1 bg-gray-800 border-gray-700 text-white"
-                      placeholder="Ej: https://www.worldpadeltour.com"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+                </Card>
+              ))
+            )}
 
             <div className="flex justify-end">
               <Button

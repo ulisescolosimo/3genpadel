@@ -5,10 +5,12 @@ import { Trophy, Users, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { formatArgentineDateLong } from "@/lib/date-utils";
+import { useTournamentData } from "@/hooks/useTournamentData";
 
 export default function LiveMatchTicker() {
   const [partidos, setPartidos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { tournaments } = useTournamentData();
 
   // Contenido de fallback (academia)
   const academyInfo = [
@@ -136,9 +138,66 @@ export default function LiveMatchTicker() {
     return `${liga?.nombre || 'N/A'} - ${categoria}`;
   };
 
-  // Si no hay partidos próximos, mostrar contenido de academia
-  const displayData = partidos.length > 0 ? partidos : academyInfo;
-  const isPartidos = partidos.length > 0;
+  // Función para formatear fecha de torneos
+  const formatTournamentDate = (dateString) => {
+    if (!dateString) return null
+    try {
+      // Si viene en formato DD/MM o DD/MM/YYYY, parsearlo correctamente
+      if (dateString.includes('/')) {
+        const [day, month, year] = dateString.split('/')
+        const currentYear = new Date().getFullYear()
+        const fullYear = year || currentYear
+        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day))
+        
+        if (isNaN(date.getTime())) {
+          return dateString
+        }
+        
+        return date.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: 'short'
+        })
+      }
+      
+      // Si viene en formato ISO, parsearlo normalmente pero considerando zona horaria
+      const date = new Date(dateString + 'T00:00:00')
+      if (isNaN(date.getTime())) {
+        return dateString
+      }
+      
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short'
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  // Función para obtener información de jugadores del torneo
+  const getTournamentPlayers = (tournament) => {
+    const players = []
+    if (tournament.jugador1_nombre) {
+      players.push(`${tournament.jugador1_nombre} ${tournament.jugador1_apellido || ''}`.trim())
+    }
+    if (tournament.jugador2_nombre) {
+      players.push(`${tournament.jugador2_nombre} ${tournament.jugador2_apellido || ''}`.trim())
+    }
+    return players.join(' & ')
+  }
+
+  // Prioridad de datos: torneos > partidos > academia
+  let displayData, dataType
+  if (tournaments.length > 0) {
+    displayData = tournaments
+    dataType = 'tournaments'
+  } else if (partidos.length > 0) {
+    displayData = partidos
+    dataType = 'partidos'
+  } else {
+    displayData = academyInfo
+    dataType = 'academy'
+  }
 
   return (
     <div className="w-full bg-[#E2FF1B] text-black overflow-hidden">
@@ -159,7 +218,51 @@ export default function LiveMatchTicker() {
             <div className="flex items-center gap-8 animate-marquee-slow whitespace-nowrap">
               {displayData.map((item, index) => (
                 <div key={item.id || index} className="flex items-center gap-4">
-                  {isPartidos ? (
+                  {dataType === 'tournaments' ? (
+                    // Renderizar torneos en vivo
+                    <>
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                          <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-500 animate-ping opacity-75" />
+                        </div>
+                        <span className="font-bold text-red-600 uppercase text-sm">EN VIVO</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-4 h-4" />
+                        <span className="font-medium">{item.nombre_torneo || 'Torneo en Vivo'}</span>
+                        {item.categoria && (
+                          <span className="text-sm opacity-75">• {item.categoria}</span>
+                        )}
+                      </div>
+
+                      {getTournamentPlayers(item) && (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>{getTournamentPlayers(item)}</span>
+                        </div>
+                      )}
+
+                      {(item.fecha || item.hora) && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <span>
+                            {item.fecha && formatTournamentDate(item.fecha)}
+                            {item.fecha && item.hora && ' '}
+                            {item.hora}
+                          </span>
+                        </div>
+                      )}
+
+                      {item.ubicacion_torneo && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          <span>{item.ubicacion_torneo}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : dataType === 'partidos' ? (
                     // Renderizar partidos
                     <>
                       <div className="flex items-center gap-2">

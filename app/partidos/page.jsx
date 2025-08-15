@@ -194,6 +194,30 @@ export default function PartidosPage() {
     )
   }
 
+  // Función para formatear el resultado desde la perspectiva del ganador
+  const formatResultadoFromWinner = (resultado, equipoGanadorId, equipoAId, equipoBId) => {
+    if (!resultado || !equipoGanadorId) return resultado
+    
+    // Dividir el resultado en sets (ej: "6-7 / 6-1 / 6-3")
+    const sets = resultado.split('/').map(set => set.trim())
+    
+    // Si el equipo A es el ganador, mostrar los sets tal como están
+    if (equipoGanadorId === equipoAId) {
+      return resultado
+    }
+    
+    // Si el equipo B es el ganador, invertir el orden de los sets
+    if (equipoGanadorId === equipoBId) {
+      return sets.map(set => {
+        const [score1, score2] = set.split('-').map(s => s.trim())
+        return `${score2}-${score1}`
+      }).join(' / ')
+    }
+    
+    // Si no se puede determinar, mostrar el resultado original
+    return resultado
+  }
+
   // Función para buscar en el texto del partido
   const searchInPartido = (partido, searchTerm) => {
     if (!searchTerm) return true
@@ -658,7 +682,7 @@ export default function PartidosPage() {
                                             <span className="text-[#E2FF1B] font-semibold text-sm">Resultado</span>
                                           </div>
                                           <div className="text-white text-sm">
-                                            <span className="font-medium">{partido.resultado}</span>
+                                            <span className="font-medium">{formatResultadoFromWinner(partido.resultado, partido.equipo_ganador_id, partido.equipo_a?.id, partido.equipo_b?.id)}</span>
                                           </div>
                                         </div>
                                       )}
