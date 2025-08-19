@@ -123,10 +123,10 @@ export default function Footer() {
               <li className="flex items-center space-x-2">
                 <Mail className="h-5 w-5 text-[#E2FF1B]" />
                 <a 
-                  href="mailto:info@lanormanda.com" 
+                  href="mailto:tresgenpadel@hotmail.com" 
                   className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
                 >
-                  info@lanormanda.com
+                  tresgenpadel@hotmail.com
                 </a>
               </li>
             </ul>
