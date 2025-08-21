@@ -8,10 +8,22 @@ import { Trophy, Calendar, Clock, Users, MapPin } from 'lucide-react'
 export default function TorneoPage() {
   const bracketRef = useRef(null)
   const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    if (bracketRef.current) {
-      try {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    // Verificar que estamos en el cliente antes de crear el bracket
+    if (!isClient || !bracketRef.current) return
+
+    setIsLoading(true)
+    
+    try {
+      // Importar Bracketry dinámicamente solo en el cliente
+      import('bracketry').then(({ createBracket }) => {
         // Estructura simplificada para Bracketry - Estructura completa del torneo
         const data = {
           rounds: [
@@ -203,7 +215,6 @@ export default function TorneoPage() {
           }
         }
 
-        // Crear el bracket
         createBracket(data, bracketRef.current, {
           verticalScrollMode: "mixed",
           matchTextColor: "#ffffff",
@@ -218,13 +229,20 @@ export default function TorneoPage() {
           roundGap: 100,
           matchGap: 20
         })
+        
+        setIsLoading(false)
         setError(null)
-      } catch (err) {
-        console.error('Error creating bracket:', err)
-        setError(`Error al crear el bracket: ${err.message}`)
-      }
+      }).catch(err => {
+        console.error('Error loading Bracketry:', err)
+        setError('Error al cargar el bracket')
+        setIsLoading(false)
+      })
+    } catch (err) {
+      console.error('Error creating bracket:', err)
+      setError('Error al crear el bracket')
+      setIsLoading(false)
     }
-  }, [])
+  }, [isClient])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white pt-10">
@@ -245,19 +263,24 @@ export default function TorneoPage() {
 
         {/* Bracket */}
         <div className="bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 p-4 sm:p-6">
-          {error ? (
+          {!isClient ? (
+            <div className="text-center text-gray-400 py-8">
+              <p className="mb-4 text-lg">Inicializando...</p>
+              <p>Preparando la aplicación del torneo.</p>
+            </div>
+          ) : isLoading ? (
+            <div className="text-center text-gray-400 py-8">
+              <p className="mb-4 text-lg">Cargando brackets...</p>
+              <p>Por favor, espere mientras se carga la aplicación.</p>
+            </div>
+          ) : error ? (
             <div className="text-center text-red-400 py-8">
               <p className="mb-4 text-lg">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/80 font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#E2FF1B]/20"
-              >
-                Reintentar
-              </Button>
+              <p>Hubo un problema al cargar el bracket.</p>
             </div>
           ) : (
-            <div 
-              ref={bracketRef} 
+            <div
+              ref={bracketRef}
               className="w-full flex items-center justify-center"
               style={{ height: '800px', width: '100%' }}
             />
