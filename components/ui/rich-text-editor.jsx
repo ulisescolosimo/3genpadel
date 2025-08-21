@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useEditor, EditorContent } from '@tiptap/react'
 import { useState, useEffect } from 'react'
 import StarterKit from '@tiptap/starter-kit'

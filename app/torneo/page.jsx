@@ -1,9 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createBracket } from 'bracketry'
 import { Button } from '@/components/ui/button'
-import { Trophy, Calendar, Clock, Users, MapPin } from 'lucide-react'
+import { Trophy } from 'lucide-react'
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default function TorneoPage() {
   const bracketRef = useRef(null)

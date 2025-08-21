@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AdminHeader from '@/components/AdminHeader'
