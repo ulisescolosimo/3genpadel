@@ -210,12 +210,6 @@ export default function C7BracketPage() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
             <span className="text-[#E2FF1B]">Liga Agosto 2025 - C7</span>
           </h1>
-          <div className="flex justify-center mt-4">
-            <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#E2FF1B]/20">
-              <Trophy className="h-4 w-4 mr-2" />
-              Ver Partidos
-            </Button>
-          </div>
         </div>
 
         {/* Bracket */}
