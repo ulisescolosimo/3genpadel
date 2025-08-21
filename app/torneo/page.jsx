@@ -2,19 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Trophy } from 'lucide-react'
+import { Trophy, Calendar, Clock, Users, MapPin } from 'lucide-react'
 
-// Force dynamic rendering to prevent static generation issues
+// Configuración para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 export default function TorneoPage() {
   const bracketRef = useRef(null)
   const [error, setError] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    // Verificación adicional para asegurar que estamos en el cliente
+    if (typeof window === 'undefined') {
+      console.log('No estamos en el cliente, saltando inicialización')
+      return
+    }
+    
     setIsClient(true)
   }, [])
 
@@ -22,11 +28,35 @@ export default function TorneoPage() {
     // Verificar que estamos en el cliente antes de crear el bracket
     if (!isClient || !bracketRef.current) return
 
-    setIsLoading(true)
-    
-    try {
-      // Importar Bracketry dinámicamente solo en el cliente
-      import('bracketry').then(({ createBracket }) => {
+    // Importar Bracketry dinámicamente solo en el cliente
+    const loadBracketry = async () => {
+      try {
+        // Verificación adicional para asegurar que estamos en el cliente
+        if (typeof window === 'undefined') {
+          console.log('No estamos en el cliente, saltando carga de Bracketry')
+          return
+        }
+
+        // Verificación adicional para asegurar que el DOM esté listo
+        if (!document || !document.body) {
+          console.log('DOM no está listo, saltando carga de Bracketry')
+          return
+        }
+
+        // Verificación adicional para asegurar que el elemento ref esté disponible
+        if (!bracketRef.current) {
+          console.log('Elemento ref no está disponible, saltando carga de Bracketry')
+          return
+        }
+
+        const { createBracket } = await import('bracketry')
+        
+        // Verificación adicional para asegurar que la función createBracket esté disponible
+        if (typeof createBracket !== 'function') {
+          console.log('createBracket no es una función, saltando carga de Bracketry')
+          return
+        }
+        
         // Estructura simplificada para Bracketry - Estructura completa del torneo
         const data = {
           rounds: [
@@ -233,17 +263,19 @@ export default function TorneoPage() {
           matchGap: 20
         })
         
-        setIsLoading(false)
         setError(null)
-      }).catch(err => {
+      } catch (err) {
         console.error('Error loading Bracketry:', err)
         setError('Error al cargar el bracket')
-        setIsLoading(false)
-      })
-    } catch (err) {
-      console.error('Error creating bracket:', err)
-      setError('Error al crear el bracket')
-      setIsLoading(false)
+      }
+    }
+
+    // Solo ejecutar en el cliente con verificación adicional
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      // Agregar un pequeño delay para asegurar que el DOM esté completamente listo
+      setTimeout(() => {
+        loadBracketry()
+      }, 100)
     }
   }, [isClient])
 
@@ -263,18 +295,12 @@ export default function TorneoPage() {
           </div>
         </div>
 
-
         {/* Bracket */}
         <div className="bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 p-4 sm:p-6">
           {!isClient ? (
             <div className="text-center text-gray-400 py-8">
               <p className="mb-4 text-lg">Inicializando...</p>
               <p>Preparando la aplicación del torneo.</p>
-            </div>
-          ) : isLoading ? (
-            <div className="text-center text-gray-400 py-8">
-              <p className="mb-4 text-lg">Cargando brackets...</p>
-              <p>Por favor, espere mientras se carga la aplicación.</p>
             </div>
           ) : error ? (
             <div className="text-center text-red-400 py-8">
@@ -286,6 +312,7 @@ export default function TorneoPage() {
               ref={bracketRef}
               className="w-full flex items-center justify-center"
               style={{ height: '800px', width: '100%' }}
+              suppressHydrationWarning={true}
             />
           )}
         </div>
