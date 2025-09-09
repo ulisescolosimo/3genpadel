@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import LiveMatchTicker from './LiveMatchTicker'
 import NotificationDropdown from './NotificationDropdown'
+import VenuesModal from './VenuesModal'
 import { useToast } from '@/hooks/use-toast'
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ export default function Header() {
   const { user, loading } = useAuth()
   const [userData, setUserData] = useState(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isVenuesModalOpen, setIsVenuesModalOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const { toast } = useToast()
@@ -237,15 +239,13 @@ export default function Header() {
                 <Mail className="w-4 h-4" />
                 Contacto
               </Link>
-              <a 
-                href="https://atcsports.io/venues/normanda-caba" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <button 
+                onClick={() => setIsVenuesModalOpen(true)}
                 className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors"
               >
                 <MapPin className="w-4 h-4" />
                 Sedes
-              </a>
+              </button>
             </div>
 
             {/* User Section */}
@@ -412,16 +412,16 @@ export default function Header() {
                 <Mail className="w-4 h-4" />
                 Contacto
               </Link>
-              <a 
-                href="https://atcsports.io/venues/normanda-caba" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <button 
+                onClick={() => {
+                  setIsVenuesModalOpen(true)
+                  closeMenu()
+                }}
                 className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors"
-                onClick={closeMenu}
               >
                 <MapPin className="w-4 h-4" />
                 Sedes
-              </a>
+              </button>
               
               {/* User Section - Mobile */}
               {user ? (
@@ -514,6 +514,11 @@ export default function Header() {
           </div>
         </div>
       )}
+      
+      <VenuesModal 
+        isOpen={isVenuesModalOpen} 
+        onClose={() => setIsVenuesModalOpen(false)} 
+      />
     </header>
   )
 } 

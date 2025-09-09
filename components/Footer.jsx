@@ -2,8 +2,12 @@
 
 import Link from 'next/link'
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import VenuesModal from './VenuesModal'
 
 export default function Footer() {
+  const [isVenuesModalOpen, setIsVenuesModalOpen] = useState(false)
+
   return (
     <footer className="bg-black border-t border-gray-800">
       <div className="container mx-auto px-4 md:px-6 py-12">
@@ -60,14 +64,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a 
-                  href="https://atcsports.io/venues/normanda-caba" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <button 
+                  onClick={() => setIsVenuesModalOpen(true)}
                   className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
                 >
                   Sedes
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -151,6 +153,11 @@ export default function Footer() {
           <p>© {new Date().getFullYear()} 3gen Padel Academy. Todos los derechos reservados.</p>
         </div>
       </div>
+      
+      <VenuesModal 
+        isOpen={isVenuesModalOpen} 
+        onClose={() => setIsVenuesModalOpen(false)} 
+      />
     </footer>
   )
 } 
