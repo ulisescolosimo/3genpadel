@@ -391,11 +391,17 @@ export default function PartidosPage() {
           <p className="text-gray-300 text-sm sm:text-lg max-w-2xl mx-auto mb-4 px-4">
             Mantente al día con todos los partidos programados de nuestras ligas y torneos
           </p>
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center gap-4 mt-4">
             <Link href="/partidos/tabla-posiciones">
               <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#E2FF1B]/20">
                 <Trophy className="h-4 w-4 mr-2" />
                 Tabla de posiciones
+              </Button>
+            </Link>
+            <Link href="/partidos/brackets">
+              <Button variant="outline" className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B] hover:text-black font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#E2FF1B]/20">
+                <Users className="h-4 w-4 mr-2" />
+                Brackets
               </Button>
             </Link>
           </div>

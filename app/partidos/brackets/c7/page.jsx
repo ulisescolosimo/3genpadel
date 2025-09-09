@@ -67,34 +67,23 @@ export default function C7BracketPage() {
             { name: "Final" }
           ],
           matches: [
-            // Octavos de Final (roundIndex: 0)
+            // Octavos de Final (roundIndex: 0) - 8 partidos para completar el bracket
+            // Bracket superior izquierdo
             {
               roundIndex: 0,
               order: 0,
               sides: [
                 {
-                  contestantId: "schaefer_rodriguez"
+                  contestantId: "cobreros_montero" // 1 - Pasan directamente a cuartos
                 },
                 {
-                  contestantId: "vinue_hau"
+                  contestantId: "empty_1" // Bracket libre
                 }
               ]
             },
             {
               roundIndex: 0,
               order: 1,
-              sides: [
-                {
-                  contestantId: "urretabizcaya_diaz"
-                },
-                {
-                  contestantId: "delgado_delgado"
-                }
-              ]
-            },
-            {
-              roundIndex: 0,
-              order: 2,
               sides: [
                 {
                   contestantId: "torres_schvab"
@@ -104,9 +93,10 @@ export default function C7BracketPage() {
                 }
               ]
             },
+            // Bracket superior derecho
             {
               roundIndex: 0,
-              order: 3,
+              order: 2,
               sides: [
                 {
                   contestantId: "couto_sequeira"
@@ -115,47 +105,286 @@ export default function C7BracketPage() {
                   contestantId: "silva_madriz"
                 }
               ]
+            },
+            {
+              roundIndex: 0,
+              order: 3,
+              sides: [
+                {
+                  contestantId: "empty_2" // Bracket libre (arriba)
+                },
+                {
+                  contestantId: "barbieri_epstein" // 4 - Pasan directamente a cuartos (abajo)
+                }
+              ]
+            },
+            // Bracket inferior izquierdo
+            {
+              roundIndex: 0,
+              order: 4,
+              sides: [
+                {
+                  contestantId: "langer_len" // 3 - Pasan directamente a cuartos
+                },
+                {
+                  contestantId: "empty_3" // Bracket libre
+                }
+              ]
+            },
+            {
+              roundIndex: 0,
+              order: 5,
+              sides: [
+                {
+                  contestantId: "delgado_delgado"
+                },
+                {
+                  contestantId: "urretabizcaya_cutraro"
+                }
+              ]
+            },
+            // Bracket inferior derecho
+            {
+              roundIndex: 0,
+              order: 6,
+              sides: [
+                {
+                  contestantId: "schaefer_muedra"
+                },
+                {
+                  contestantId: "vinue_hau"
+                }
+              ]
+            },
+            {
+              roundIndex: 0,
+              order: 7,
+              sides: [
+                {
+                  contestantId: "empty_4" // Bracket libre (arriba)
+                },
+                {
+                  contestantId: "gaffney_clucellas" // 2 - Pasan directamente a cuartos (abajo)
+                }
+              ]
+            },
+            // Cuartos de Final (roundIndex: 1) - 4 partidos ya jugados
+            {
+              roundIndex: 1,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "cobreros_montero", // 1 - Pasa directamente a cuartos (arriba)
+                  score: "6-4 / 6-2"
+                },
+                {
+                  contestantId: "torres_schvab" // Torres-Schvab pasa directamente a cuartos
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 1,
+              sides: [
+                {
+                  contestantId: "couto_sequeira", // Couto-Sequeira pasa directamente a cuartos
+                  score: "6-3 / 6-1"
+                },
+                {
+                  contestantId: "barbieri_epstein" // 4 - Pasa directamente a cuartos (abajo)
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 2,
+              sides: [
+                {
+                  contestantId: "langer_len", // 3 - Pasa directamente a cuartos (arriba)
+                  score: "6-2 / 6-4"
+                },
+                {
+                  contestantId: "delgado_delgado" // Delgado-Delgado pasa directamente a cuartos
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 3,
+              sides: [
+                {
+                  contestantId: "vinue_hau" // Vinue-Hau pasa directamente a cuartos
+                },
+                {
+                  contestantId: "gaffney_clucellas", // 2 - Pasa directamente a cuartos (abajo)
+                  score: "6-1 / 6-3"
+                }
+              ]
+            },
+            // Semifinal (roundIndex: 2) - Partidos ya jugados
+            {
+              roundIndex: 2,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "langer_len",
+                  score: "6-4 / 6-2"
+                },
+                {
+                  contestantId: "gaffney_clucellas"
+                }
+              ]
+            },
+            {
+              roundIndex: 2,
+              order: 1,
+              sides: [
+                {
+                  contestantId: "couto_sequeira"
+                },
+                {
+                  contestantId: "cobreros_montero",
+                  score: "6-3 / 6-1"
+                }
+              ]
+            },
+            // Final (roundIndex: 3) - Partido programado
+            {
+              roundIndex: 3,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "langer_len"
+                },
+                {
+                  contestantId: "cobreros_montero"
+                }
+              ]
             }
           ],
           contestants: {
-            schaefer_rodriguez: {
-              players: [
-                { title: "Schaefer - Rodriguez Muedra" }
-              ]
-            },
-            vinue_hau: {
-              players: [
-                { title: "Vinue - Hau" }
-              ]
-            },
-            urretabizcaya_diaz: {
-              players: [
-                { title: "Urretabizcaya - Diaz Cutraro" }
-              ]
-            },
-            delgado_delgado: {
-              players: [
-                { title: "Delgado - Delgado" }
-              ]
-            },
+            // Parejas que juegan en octavos
             torres_schvab: {
               players: [
-                { title: "Torres - Schvab" }
+                { title: "8 Torres - Schvab" }
               ]
             },
             firpo_propato: {
               players: [
-                { title: "Firpo - Propato" }
+                { title: "9 Firpo - Propato" }
               ]
             },
             couto_sequeira: {
               players: [
-                { title: "Couto Dondi - Sequeira" }
+                { title: "5 Couto - Sequeira" }
               ]
             },
             silva_madriz: {
               players: [
-                { title: "Silva - E Madriz M" }
+                { title: "12 Silva - Madriz" }
+              ]
+            },
+            delgado_delgado: {
+              players: [
+                { title: "6 Delgado - Delgado" }
+              ]
+            },
+            urretabizcaya_cutraro: {
+              players: [
+                { title: "11 Urretabizcaya - Cutraro" }
+              ]
+            },
+            schaefer_muedra: {
+              players: [
+                { title: "7 Schaefer - Muedra" }
+              ]
+            },
+            vinue_hau: {
+              players: [
+                { title: "10 Vinue - Hau" }
+              ]
+            },
+            // Parejas que pasan directamente a cuartos (tienen bye)
+            cobreros_montero: {
+              players: [
+                { title: "1 Cobreros - Montero" }
+              ]
+            },
+            barbieri_epstein: {
+              players: [
+                { title: "4 Barbieri - Epstein" }
+              ]
+            },
+            langer_len: {
+              players: [
+                { title: "3 Langer - Len" }
+              ]
+            },
+            gaffney_clucellas: {
+              players: [
+                { title: "2 Gaffney - Clucellas" }
+              ]
+            },
+            // Brackets libres (sin partidos)
+            empty_1: {
+              players: [
+                { title: "" }
+              ]
+            },
+            empty_2: {
+              players: [
+                { title: "" }
+              ]
+            },
+            empty_3: {
+              players: [
+                { title: "" }
+              ]
+            },
+            empty_4: {
+              players: [
+                { title: "" }
+              ]
+            },
+            // Placeholders para los ganadores de octavos
+            winner_octavos_1: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_2: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_3: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_4: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_5: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_6: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_7: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_8: {
+              players: [
+                { title: "" }
               ]
             }
           }

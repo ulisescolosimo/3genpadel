@@ -58,7 +58,7 @@ export default function C6BracketPage() {
           return
         }
         
-        // Estructura simplificada para Bracketry - Estructura completa del torneo
+        // Estructura para Bracketry - Liga C6
         const data = {
           rounds: [
             { name: "Octavos de Final" },
@@ -67,10 +67,23 @@ export default function C6BracketPage() {
             { name: "Final" }
           ],
           matches: [
-            // Octavos de Final (roundIndex: 0)
+            // Octavos de Final (roundIndex: 0) - 8 partidos para completar el bracket
+            // Bracket superior izquierdo
             {
               roundIndex: 0,
               order: 0,
+              sides: [
+                {
+                  contestantId: "madrid_poggi" // 1 - Pasan directamente a cuartos
+                },
+                {
+                  contestantId: "empty_1" // Bracket libre
+                }
+              ]
+            },
+            {
+              roundIndex: 0,
+              order: 1,
               sides: [
                 {
                   contestantId: "paco_fernandez"
@@ -80,9 +93,10 @@ export default function C6BracketPage() {
                 }
               ]
             },
+            // Bracket superior derecho
             {
               roundIndex: 0,
-              order: 1,
+              order: 2,
               sides: [
                 {
                   contestantId: "borsani_cabrera"
@@ -94,7 +108,32 @@ export default function C6BracketPage() {
             },
             {
               roundIndex: 0,
-              order: 2,
+              order: 3,
+              sides: [
+                {
+                  contestantId: "empty_2" // Bracket libre (arriba)
+                },
+                {
+                  contestantId: "moyano_fernandez" // 4 - Pasan directamente a cuartos (abajo)
+                }
+              ]
+            },
+            // Bracket inferior izquierdo
+            {
+              roundIndex: 0,
+              order: 4,
+              sides: [
+                {
+                  contestantId: "sanchez_mendiola" // 3 - Pasan directamente a cuartos
+                },
+                {
+                  contestantId: "empty_3" // Bracket libre
+                }
+              ]
+            },
+            {
+              roundIndex: 0,
+              order: 5,
               sides: [
                 {
                   contestantId: "serrano_moschioni"
@@ -104,9 +143,10 @@ export default function C6BracketPage() {
                 }
               ]
             },
+            // Bracket inferior derecho
             {
               roundIndex: 0,
-              order: 3,
+              order: 6,
               sides: [
                 {
                   contestantId: "rossi_goldfarb"
@@ -115,47 +155,236 @@ export default function C6BracketPage() {
                   contestantId: "fainsod_heredia"
                 }
               ]
+            },
+            {
+              roundIndex: 0,
+              order: 7,
+              sides: [
+                {
+                  contestantId: "empty_4" // Bracket libre (arriba)
+                },
+                {
+                  contestantId: "levi_caro" // 2 - Pasan directamente a cuartos (abajo)
+                }
+              ]
+            },
+            // Cuartos de Final (roundIndex: 1) - 4 partidos ya jugados
+            {
+              roundIndex: 1,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "madrid_poggi" // 1 - Pasa directamente a cuartos (arriba)
+                },
+                {
+                  contestantId: "satalovsky_satalovsky", // Satalovsky-Satalovsky pasa directamente a cuartos
+                  score: "6-4 / 6-2"
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 1,
+              sides: [
+                {
+                  contestantId: "sanabria_palazzo", // Sanabria-Palazzo pasa directamente a cuartos
+                  score: "6-3 / 6-1"
+                },
+                {
+                  contestantId: "moyano_fernandez" // 4 - Pasa directamente a cuartos (abajo)
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 2,
+              sides: [
+                {
+                  contestantId: "sanchez_mendiola" // 3 - Pasa directamente a cuartos (arriba)
+                },
+                {
+                  contestantId: "serrano_moschioni", // Serrano-Moschioni pasa directamente a cuartos
+                  score: "6-2 / 6-4"
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 3,
+              sides: [
+                {
+                  contestantId: "rossi_goldfarb", // Rossi-Goldfarb pasa directamente a cuartos
+                  score: "6-1 / 6-3"
+                },
+                {
+                  contestantId: "levi_caro" // 2 - Pasa directamente a cuartos (abajo)
+                }
+              ]
+            },
+            // Semifinal (roundIndex: 2) - Partidos ya jugados
+            {
+              roundIndex: 2,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "sanabria_palazzo",
+                  score: "6-4 / 6-2"
+                },
+                {
+                  contestantId: "serrano_moschioni"
+                }
+              ]
+            },
+            {
+              roundIndex: 2,
+              order: 1,
+              sides: [
+                {
+                  contestantId: "moyano_fernandez",
+                  score: "6-3 / 6-1"
+                },
+                {
+                  contestantId: "rossi_goldfarb"
+                }
+              ]
+            },
+            // Final (roundIndex: 3) - Partido programado
+            {
+              roundIndex: 3,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "sanabria_palazzo"
+                },
+                {
+                  contestantId: "moyano_fernandez"
+                }
+              ]
             }
           ],
           contestants: {
+            // Parejas que juegan en octavos
             paco_fernandez: {
               players: [
-                { title: "Paco Fernandez Bergés" }
+                { title: "12 Paco Fernandez Bergés" }
               ]
             },
             satalovsky_satalovsky: {
               players: [
-                { title: "Satalovsky - Satalovsky" }
+                { title: "5 Satalovsky - Satalovsky" }
               ]
             },
             borsani_cabrera: {
               players: [
-                { title: "Borsani - Cabrera" }
+                { title: "10 Borsani - Cabrera" }
               ]
             },
             sanabria_palazzo: {
               players: [
-                { title: "Sanabria - Palazzo" }
+                { title: "7 Sanabria - Palazzo" }
               ]
             },
             serrano_moschioni: {
               players: [
-                { title: "Serrano - Moschioni" }
+                { title: "9 Serrano - Moschioni" }
               ]
             },
             barragan_diaz: {
               players: [
-                { title: "Barragán - Díaz" }
+                { title: "8 Barragán - Díaz" }
               ]
             },
             rossi_goldfarb: {
               players: [
-                { title: "Rossi - Francisco Goldfarb" }
+                { title: "6 Rossi - Francisco Goldfarb" }
               ]
             },
             fainsod_heredia: {
               players: [
-                { title: "Fainsod - Heredia" }
+                { title: "11 Fainsod - Heredia" }
+              ]
+            },
+            // Parejas que pasan directamente a cuartos (tienen bye)
+            madrid_poggi: {
+              players: [
+                { title: "1 Madrid - Poggi" }
+              ]
+            },
+            moyano_fernandez: {
+              players: [
+                { title: "4 Moyano - Fernandez" }
+              ]
+            },
+            sanchez_mendiola: {
+              players: [
+                { title: "3 Sanchez - Mendiola" }
+              ]
+            },
+            levi_caro: {
+              players: [
+                { title: "2 Levi - Caro" }
+              ]
+            },
+            // Brackets libres (sin partidos)
+            empty_1: {
+              players: [
+                { title: "" }
+              ]
+            },
+            empty_2: {
+              players: [
+                { title: "" }
+              ]
+            },
+            empty_3: {
+              players: [
+                { title: "" }
+              ]
+            },
+            empty_4: {
+              players: [
+                { title: "" }
+              ]
+            },
+            // Placeholders para los ganadores de octavos
+            winner_octavos_1: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_2: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_3: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_4: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_5: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_6: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_7: {
+              players: [
+                { title: "" }
+              ]
+            },
+            winner_octavos_8: {
+              players: [
+                { title: "" }
               ]
             }
           }

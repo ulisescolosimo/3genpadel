@@ -11,7 +11,9 @@ const categories = [
   { id: "grips", name: "Grips" },
   { id: "indumentaria", name: "Indumentaria" },
   { id: "calzado", name: "Calzado" },
-  { id: "accesorios", name: "Accesorios" }
+  { id: "accesorios", name: "Accesorios" },
+  { id: "bolsos y mochilas", name: "Bolsos y Mochilas" },
+  { id: "pelotas", name: "Pelotas" }
 ]
 
 export default function Merchandising() {

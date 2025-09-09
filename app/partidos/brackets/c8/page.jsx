@@ -66,13 +66,14 @@ export default function C8BracketPage() {
             { name: "Final" }
           ],
           matches: [
-            // Cuartos de Final (roundIndex: 0)
+            // Cuartos de Final (roundIndex: 0) - Partidos ya jugados
             {
               roundIndex: 0,
               order: 0,
               sides: [
                 {
-                  contestantId: "olivares_martia"
+                  contestantId: "olivares_martia",
+                  score: "6-4 / 6-2"
                 },
                 {
                   contestantId: "lifschitz_gutraich"
@@ -87,7 +88,8 @@ export default function C8BracketPage() {
                   contestantId: "coligionis_buchovsky"
                 },
                 {
-                  contestantId: "delupi_salaya"
+                  contestantId: "delupi_salaya",
+                  score: "6-3 / 6-1"
                 }
               ]
             },
@@ -96,7 +98,8 @@ export default function C8BracketPage() {
               order: 2,
               sides: [
                 {
-                  contestantId: "hueso_gimenez"
+                  contestantId: "hueso_gimenez",
+                  score: "6-2 / 6-4"
                 },
                 {
                   contestantId: "agrawal_knyazev"
@@ -108,10 +111,52 @@ export default function C8BracketPage() {
               order: 3,
               sides: [
                 {
-                  contestantId: "priegue_garcia"
+                  contestantId: "priegue_garcia",
+                  score: "6-1 / 6-3"
                 },
                 {
                   contestantId: "kitagawa_kitagawa"
+                }
+              ]
+            },
+            // Semifinal (roundIndex: 1) - Partidos ya jugados
+            {
+              roundIndex: 1,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "olivares_martia"
+                },
+                {
+                  contestantId: "delupi_salaya",
+                  score: "6-4 / 6-2"
+                }
+              ]
+            },
+            {
+              roundIndex: 1,
+              order: 1,
+              sides: [
+                {
+                  contestantId: "hueso_gimenez",
+                  score: "6-3 / 6-1"
+                },
+                {
+                  contestantId: "priegue_garcia"
+                }
+              ]
+            },
+            // Final (roundIndex: 2) - Partido ya jugado
+            {
+              roundIndex: 2,
+              order: 0,
+              sides: [
+                {
+                  contestantId: "hueso_gimenez",
+                  score: "7-5 / 6-4"
+                },
+                {
+                  contestantId: "priegue_garcia"
                 }
               ]
             }
@@ -172,7 +217,9 @@ export default function C8BracketPage() {
           matchWidth: 200,
           matchHeight: 60,
           roundGap: 100,
-          matchGap: 20
+          matchGap: 20,
+          winnerBackgroundColor: "#E2FC1D",
+          winnerTextColor: "#000000"
         })
         
         setError(null)
@@ -209,6 +256,21 @@ export default function C8BracketPage() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
             <span className="text-[#E2FF1B]">Liga Agosto 2025 - C8</span>
           </h1>
+          
+          {/* Campeones Banner */}
+          <div className="bg-gradient-to-r from-[#E2FF1B]/15 to-[#E2FF1B]/5 backdrop-blur-sm rounded-lg border border-[#E2FF1B]/30 p-4 mx-auto max-w-xl">
+            <div className="text-center">
+              <div className="text-sm font-medium text-[#E2FF1B] mb-1">
+                CAMPEONES
+              </div>
+              <div className="text-lg font-bold text-white">
+                Hueso - Gimenez
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Final: 7-5 / 6-4 vs Priegue - Garcia
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Bracket */}
