@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import * as XLSX from "xlsx"
-import { Loader2, Search } from "lucide-react"
+import { Loader2, Search, ChevronDown, Check } from "lucide-react"
 
 
 const categories = [
@@ -17,12 +17,13 @@ const categories = [
 ]
 
 export default function Merchandising() {
-  const [selectedCategory, setSelectedCategory] = useState("todos")
+  const [selectedCategories, setSelectedCategories] = useState(["todos"])
   const [searchTerm, setSearchTerm] = useState("")
   const [excelData, setExcelData] = useState(null)
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTalles, setSelectedTalles] = useState({})
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   // Función para verificar si un producto tiene talles válidos
   const hasValidTalles = (talle) => {
@@ -30,6 +31,60 @@ export default function Merchandising() {
     const talleLower = talle.toLowerCase()
     return talleLower !== 'na' && talleLower !== 'n/a' && talleLower !== 'no aplica'
   }
+
+  // Función para manejar la selección de categorías
+  const handleCategoryToggle = (categoryId) => {
+    if (categoryId === "todos") {
+      // Si se selecciona "todos", deseleccionar todo lo demás
+      setSelectedCategories(["todos"])
+    } else {
+      setSelectedCategories(prev => {
+        // Remover "todos" si está seleccionado
+        const withoutTodos = prev.filter(id => id !== "todos")
+        
+        if (prev.includes(categoryId)) {
+          // Si la categoría ya está seleccionada, la removemos
+          const newSelection = withoutTodos.filter(id => id !== categoryId)
+          // Si no queda ninguna categoría seleccionada, seleccionar "todos"
+          return newSelection.length === 0 ? ["todos"] : newSelection
+        } else {
+          // Si la categoría no está seleccionada, la agregamos
+          return [...withoutTodos, categoryId]
+        }
+      })
+    }
+  }
+
+  // Función para obtener el texto del botón del dropdown
+  const getDropdownText = () => {
+    if (selectedCategories.includes("todos")) {
+      return "Todas las categorías"
+    }
+    
+    if (selectedCategories.length === 0) {
+      return "Seleccionar categorías"
+    }
+    
+    if (selectedCategories.length === 1) {
+      return categories.find(c => c.id === selectedCategories[0])?.name || "Categorías"
+    }
+    
+    return `${selectedCategories.length} categorías seleccionadas`
+  }
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
 
   useEffect(() => {
     const fetchExcelData = async () => {
@@ -247,8 +302,8 @@ export default function Merchandising() {
   }
 
   const filteredProducts = products.filter(product => {
-    // Filtro por categoría
-    const categoryMatch = selectedCategory === "todos" || product.category === selectedCategory
+    // Filtro por categorías múltiples
+    const categoryMatch = selectedCategories.includes("todos") || selectedCategories.includes(product.category)
     
     // Filtro por búsqueda (nombre del producto)
     const searchMatch = searchTerm === "" || 
@@ -268,21 +323,52 @@ export default function Merchandising() {
         {/* Filtro de categorías y buscador */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* Filtro de categorías */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    selectedCategory === category.id
-                      ? "bg-[#E2FF1B] text-black"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
+            {/* Filtro de categorías - Dropdown con checkboxes */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center justify-between w-full lg:w-auto px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:border-transparent transition-all duration-200 min-w-[250px]"
+              >
+                <span className="text-sm font-medium">
+                  {getDropdownText()}
+                </span>
+                <ChevronDown 
+                  className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                    isDropdownOpen ? 'rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              
+              {/* Dropdown menu con checkboxes */}
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-full bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {categories.map((category) => {
+                    const isSelected = selectedCategories.includes(category.id)
+                    return (
+                      <div
+                        key={category.id}
+                        onClick={() => handleCategoryToggle(category.id)}
+                        className="flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 cursor-pointer hover:bg-gray-800 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        <div className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center transition-colors ${
+                          isSelected 
+                            ? 'bg-[#E2FF1B] border-[#E2FF1B]' 
+                            : 'border-gray-500'
+                        }`}>
+                          {isSelected && (
+                            <Check className="w-3 h-3 text-black" />
+                          )}
+                        </div>
+                        <span className={`transition-colors ${
+                          isSelected ? 'text-[#E2FF1B]' : 'text-gray-300'
+                        }`}>
+                          {category.name}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Buscador */}
@@ -306,7 +392,12 @@ export default function Merchandising() {
           <p className="text-gray-400">
             <>
               Mostrando {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''}
-              {selectedCategory !== "todos" && ` en ${categories.find(c => c.id === selectedCategory)?.name}`}
+              {selectedCategories.includes("todos") 
+                ? '' 
+                : ` en ${selectedCategories.length === 1 
+                  ? categories.find(c => c.id === selectedCategories[0])?.name 
+                  : `${selectedCategories.length} categorías`}`
+              }
               {searchTerm && ` que coinciden con "${searchTerm}"`}
             </>
           </p>
@@ -393,8 +484,8 @@ export default function Merchandising() {
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">
               {searchTerm 
-                ? `No se encontraron productos que coincidan con "${searchTerm}"${selectedCategory !== "todos" ? ` en ${categories.find(c => c.id === selectedCategory)?.name}` : ''}.`
-                : `No se encontraron productos en esta categoría.`
+                ? `No se encontraron productos que coincidan con "${searchTerm}"${!selectedCategories.includes("todos") ? ` en las categorías seleccionadas` : ''}.`
+                : `No se encontraron productos en las categorías seleccionadas.`
               }
             </p>
           </div>
