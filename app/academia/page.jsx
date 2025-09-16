@@ -31,7 +31,7 @@ export default function AcademiaPage() {
       id: 3,
       horario: 'Miércoles',
       horarios: ['08:00 - 10:00'],
-      nivel: 'Femenino'
+      nivel: 'Iniciantes'
     },
     {
       id: 4,
@@ -236,7 +236,7 @@ export default function AcademiaPage() {
                           <Target className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
                           <div className="flex-1">
                             <h4 className="font-semibold text-white mb-1">
-                              {turno.nivel === 'Femenino' ? '' : 'Nivel:'}
+                              {turno.nivel === 'Iniciantes' ? '' : 'Nivel:'}
                             </h4>
                             <p className="text-gray-300 text-sm md:text-base">{turno.nivel}</p>
                           </div>
