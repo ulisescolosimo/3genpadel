@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2 } from "lucide-react"
+import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2, BookOpen } from "lucide-react"
 import { motion } from "framer-motion"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
@@ -247,6 +247,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <Link href="/academia">
                 <Button
@@ -254,8 +255,22 @@ export default function Home() {
                   className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
+                    Academia
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                </Button>
+              </Link>
+              <Link href="/sede-olleros">
+                <Button
+                  size="lg"
+                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Conocé nuestra academia
+                    Clases
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -412,7 +427,20 @@ export default function Home() {
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
+            <Link href="/academia" className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20 cursor-pointer block">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
+                  <BookOpen className="h-6 w-6 text-[#E2FF1B]" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">
+                  Academia
+                </h3>
+              </div>
+              <p className="text-gray-400">
+                Formación completa con metodología estructurada y grupos organizados por niveles.
+              </p>
+            </Link>
+            <Link href="/sede-olleros" className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20 cursor-pointer block">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
                   <Trophy className="h-6 w-6 text-[#E2FF1B]" />
@@ -422,10 +450,9 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participá en clases organizadas por 3gen Padel Academy con
-                diferentes niveles de dificultad.
+                Clases personalizadas y grupales con horarios flexibles en nuestra sede Olleros.
               </p>
-            </div>
+            </Link>
             <a 
               href="https://wa.me/5491167617557?text=Hola! Me interesa reservar en 3gen Padel Academy"
               target="_blank"
@@ -659,6 +686,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <Link href="/academia">
                 <Button
@@ -666,8 +694,22 @@ export default function Home() {
                   className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
+                    Academia
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                </Button>
+              </Link>
+              <Link href="/sede-olleros">
+                <Button
+                  size="lg"
+                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Conocé nuestra academia
+                    Clases
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

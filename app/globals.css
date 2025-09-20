@@ -625,3 +625,125 @@ input[type="time"]::-moz-calendar-picker-indicator:hover {
     height: 20px;
   }
 }
+
+/* Animaciones para el carousel de sponsors */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes scroll-slow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-slow-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll-slow {
+  animation: scroll-slow 40s linear infinite;
+}
+
+.animate-scroll-slow-reverse {
+  animation: scroll-slow-reverse 40s linear infinite;
+}
+
+/* Efecto de hover mejorado para sponsors */
+.sponsor-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sponsor-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(226, 255, 27, 0.15);
+}
+
+/* Efecto de brillo en hover */
+.sponsor-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(226, 255, 27, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.sponsor-card:hover::before {
+  left: 100%;
+}
+
+/* Estilos personalizados para el Swiper de sponsors */
+.sponsors-swiper {
+  padding: 10px 0 40px 0;
+}
+
+.sponsors-swiper .swiper-pagination {
+  bottom: 20px;
+}
+
+.sponsors-swiper .swiper-pagination-bullet {
+  width: 12px;
+  height: 12px;
+  background: #6b7280;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.sponsors-swiper .swiper-pagination-bullet-active {
+  background: #E2FF1B;
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.sponsors-swiper .swiper-button-next,
+.sponsors-swiper .swiper-button-prev {
+  color: #E2FF1B;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+}
+
+.sponsors-swiper .swiper-button-next:after,
+.sponsors-swiper .swiper-button-prev:after {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.sponsors-swiper .swiper-button-next:hover,
+.sponsors-swiper .swiper-button-prev:hover {
+  background: rgba(226, 255, 27, 0.1);
+}
+
+@media (max-width: 768px) {
+  .sponsors-swiper .swiper-button-next,
+  .sponsors-swiper .swiper-button-prev {
+    display: none;
+  }
+}

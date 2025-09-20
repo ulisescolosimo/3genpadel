@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function SedeOllerosPage() {
   const [selectedImage, setSelectedImage] = useState(0)
@@ -32,6 +33,7 @@ export default function SedeOllerosPage() {
     'IMG_8844.jpg'
   ]
 
+
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % images.length)
   }
@@ -39,6 +41,27 @@ export default function SedeOllerosPage() {
   const prevImage = () => {
     setSelectedImage((prev) => (prev - 1 + images.length) % images.length)
   }
+
+  const openWhatsApp = (mensaje) => {
+    const message = encodeURIComponent(mensaje)
+    const whatsappUrl = `https://wa.me/5491167617557?text=${message}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://assets.calendly.com/assets/external/widget.js'
+    script.async = true
+    document.head.appendChild(script)
+
+    return () => {
+      // Cleanup script when component unmounts
+      const existingScript = document.querySelector('script[src="https://assets.calendly.com/assets/external/widget.js"]')
+      if (existingScript) {
+        document.head.removeChild(existingScript)
+      }
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -62,9 +85,201 @@ export default function SedeOllerosPage() {
         </div>
       </div>
 
+
       <div className="container mx-auto px-4 py-6 md:py-8">
-        {/* Main Content Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        {/* Horarios Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-white">
+              <Calendar className="w-6 h-6 md:w-8 md:h-8 inline mr-2 text-[#E2FF1B]" />
+              Reserva tu Clase - Sede Olleros
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-300">
+              Selecciona el horario que mejor se adapte a tu nivel y disponibilidad
+            </p>
+          </div>
+          <div className="calendly-inline-widget" data-url="https://calendly.com/3gen" style={{minWidth: '320px', height: '700px'}}></div>
+
+        </div>
+
+        {/* Clases Personalizadas Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+            <div className="text-center mb-8 md:mb-12">
+              <div className="bg-gradient-to-r from-[#E2FF1B]/10 to-transparent p-8 md:p-12 rounded-3xl border border-[#E2FF1B]/20 mb-8">
+                <div className="max-w-4xl mx-auto">
+                  <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30 mb-6">
+                    <Trophy className="w-6 h-6 text-[#E2FF1B]" />
+                    <span className="text-[#E2FF1B] font-semibold text-lg">Clases Privadas</span>
+                  </div>
+                  
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white">
+                    <span className="text-[#E2FF1B]">Reservar</span> Clase Privada
+                  </h2>
+                  
+                  <div className="space-y-4 mb-8">
+                    <p className="text-lg sm:text-xl md:text-2xl text-gray-200 leading-relaxed">
+                      Solicitá una clase privada con uno de nuestros entrenadores profesionales para una experiencia más personalizada.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* Head Coaches Section */}
+            <div className="mb-12">
+              <div className="text-center mb-8">
+                <h3 className="text-xl sm:text-2xl font-bold text-[#E2FF1B] mb-4">
+                  Entrenadores Profesionales
+                </h3>
+                <p className="text-gray-300">
+                  Nuestros Head Coaches combinan experiencia profesional con metodologías avanzadas
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                {/* Stefano Lorenzo */}
+                <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+                  <CardHeader className="text-center pb-4">
+                    <div className="flex justify-center mb-4">
+                      <div className="relative">
+                        <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#E2FF1B]/50 mx-auto">
+                          <img 
+                            src="/images/profesores/stf.jpg" 
+                            alt="Stefano Lorenzo"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#E2FF1B] rounded-full flex items-center justify-center">
+                          <Trophy className="w-4 h-4 text-black" />
+                        </div>
+                      </div>
+                    </div>
+                    <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Stefano Lorenzo</CardTitle>
+                    <CardDescription className="text-white font-medium mb-3">Head Coach</CardDescription>
+                    <div className="px-3 py-1 bg-[#E2FF1B]/20 text-[#E2FF1B] text-xs font-medium rounded-full inline-block mb-4 w-fit">
+                      Técnica Avanzada
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-gray-300 text-center leading-relaxed text-sm">
+                      Profesor de pádel con más de 10 años de experiencia. Jugador AJPP desde 2012.
+                    </p>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-white text-sm">Logros Destacados:</h4>
+                      <ul className="space-y-1">
+                        <li className="flex items-start text-gray-300 text-xs">
+                          <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                          Ranking actual: Nº 99 de Argentina
+                        </li>
+                        <li className="flex items-start text-gray-300 text-xs">
+                          <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                          Profesor de pádel con más de 10 años de experiencia
+                        </li>
+                        <li className="flex items-start text-gray-300 text-xs">
+                          <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                          Jugador AJPP desde 2012
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Stefano Lorenzo. ¿Podrían darme más información sobre disponibilidad y precios?')}
+                        className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105"
+                      >
+                        Reservar con Stefano
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Ignacio Begher */}
+                <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+                  <CardHeader className="text-center pb-4">
+                    <div className="flex justify-center mb-4">
+                      <div className="relative">
+                        <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#E2FF1B]/50 mx-auto">
+                          <img 
+                            src="/images/profesores/nacho2.jpg" 
+                            alt="Ignacio Begher"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#E2FF1B] rounded-full flex items-center justify-center">
+                          <Trophy className="w-4 h-4 text-black" />
+                        </div>
+                      </div>
+                    </div>
+                    <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Ignacio Begher</CardTitle>
+                    <CardDescription className="text-white font-medium mb-3">Head Coach</CardDescription>
+                    <div className="px-3 py-1 bg-[#E2FF1B]/20 text-[#E2FF1B] text-xs font-medium rounded-full inline-block mb-4 w-fit">
+                      Táctica Profesional
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-gray-300 text-center leading-relaxed text-sm">
+                      Profesor de pádel con más de 15 años de experiencia. Jugador AJPP desde 2007.
+                    </p>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-white text-sm">Logros Destacados:</h4>
+                      <ul className="space-y-1">
+                        <li className="flex items-start text-gray-300 text-xs">
+                          <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                          Ranking actual: Nº 97 de Argentina
+                        </li>
+                        <li className="flex items-start text-gray-300 text-xs">
+                          <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                          Profesor de pádel con más de 15 años de experiencia
+                        </li>
+                        <li className="flex items-start text-gray-300 text-xs">
+                          <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                          Jugador AJPP desde 2007
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Ignacio Begher. ¿Podrían darme más información sobre disponibilidad y precios?')}
+                        className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105"
+                      >
+                        Reservar con Nacho
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+
+            <div className="bg-gradient-to-r from-[#E2FF1B]/10 to-transparent p-6 md:p-8 rounded-2xl border border-[#E2FF1B]/20">
+              <div className="text-center">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 md:mb-4 text-[#E2FF1B]">
+                  <Star className="w-5 h-5 md:w-6 md:h-6 inline mr-2" />
+                  Profesionales de Primera División
+                </h3>
+                <p className="text-sm md:text-lg text-gray-300 leading-relaxed">
+                  Nuestras clases personalizadas están dirigidas por jugadores profesionales de primera división, 
+                  incluyendo Nacho y Stefano que comparten su experiencia y técnicas de alto nivel. 
+                  Aprovechá la oportunidad de entrenar con los mejores.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        {/* Contacto Section */}
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-white">
+              <MapPin className="w-6 h-6 md:w-8 md:h-8 inline mr-2 text-[#E2FF1B]" />
+              Contacto y Ubicación
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-300">
+              Información de contacto y ubicación de nuestra sede
+            </p>
+          </div>
+
+        {/* Map and Gallery Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8">
           {/* Image Gallery */}
           <div>
             <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6">Galería de Imágenes</h3>
@@ -100,28 +315,6 @@ export default function SedeOllerosPage() {
                 {selectedImage + 1} / {images.length}
               </div>
             </div>
-
-            {/* Thumbnail Grid - Hidden */}
-            <div className="hidden">
-              {images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImage === index 
-                      ? 'border-[#E2FF1B]' 
-                      : 'border-gray-700 hover:border-gray-500'
-                  }`}
-                >
-                  <Image
-                    src={`/images/olleros/${image}`}
-                    alt={`Thumbnail ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Map Section */}
@@ -138,6 +331,36 @@ export default function SedeOllerosPage() {
                 referrerPolicy="no-referrer-when-downgrade"
                 className="w-full h-full"
               />
+            </div>
+          </div>
+        </div>
+
+          {/* Contact Information - Full Width */}
+          <div className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full">
+                <MapPin className="w-6 h-6 text-[#E2FF1B] flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white text-lg mb-1">Dirección</h4>
+                  <p className="text-gray-300 text-base">Av. Olleros 1515, Palermo, CABA</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full">
+                <Phone className="w-6 h-6 text-[#E2FF1B] flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white text-lg mb-1">Teléfono</h4>
+                  <p className="text-gray-300 text-base">+54 9 11 6761-7557</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full">
+                <Mail className="w-6 h-6 text-[#E2FF1B] flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white text-lg mb-1">Email</h4>
+                  <p className="text-gray-300 text-base">tresgenpadel@hotmail.com</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

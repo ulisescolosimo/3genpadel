@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -212,6 +212,13 @@ export default function Header() {
                 Academia
               </Link>
               <Link 
+                href="/sede-olleros" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+              >
+                <Trophy className="w-4 h-4" />
+                Clases
+              </Link>
+              <Link 
                 href="/rankings" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
               >
@@ -238,6 +245,13 @@ export default function Header() {
               >
                 <Mail className="w-4 h-4" />
                 Contacto
+              </Link>
+              <Link 
+                href="/sponsors" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+              >
+                <Handshake className="w-4 h-4" />
+                Sponsors
               </Link>
               <button 
                 onClick={() => setIsVenuesModalOpen(true)}
@@ -381,6 +395,14 @@ export default function Header() {
                 Academia
               </Link>
               <Link 
+                href="/sede-olleros" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                onClick={closeMenu}
+              >
+                <Trophy className="w-4 h-4" />
+                Clases
+              </Link>
+              <Link 
                 href="/rankings" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                 onClick={closeMenu}
@@ -411,6 +433,14 @@ export default function Header() {
               >
                 <Mail className="w-4 h-4" />
                 Contacto
+              </Link>
+              <Link 
+                href="/sponsors" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                onClick={closeMenu}
+              >
+                <Handshake className="w-4 h-4" />
+                Sponsors
               </Link>
               <button 
                 onClick={() => {
