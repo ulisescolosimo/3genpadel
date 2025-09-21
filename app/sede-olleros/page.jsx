@@ -157,12 +157,12 @@ export default function SedeOllerosPage() {
                     </div>
                     <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Stefano Lorenzo</CardTitle>
                     <CardDescription className="text-white font-medium mb-3">Head Coach</CardDescription>
-                    <div className="px-3 py-1 bg-[#E2FF1B]/20 text-[#E2FF1B] text-xs font-medium rounded-full inline-block mb-4 w-fit">
+                    <div className="px-3 py-1 bg-[#E2FF1B]/20 text-[#E2FF1B] text-xs font-medium rounded-full inline-block mb-4 w-fit mx-auto">
                       Técnica Avanzada
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-gray-300 text-center leading-relaxed text-sm">
+                    <p className="text-gray-300 text-center leading-relaxed text-base">
                       Profesor de pádel con más de 10 años de experiencia. Jugador AJPP desde 2012.
                     </p>
                     <div className="space-y-2">
@@ -212,12 +212,12 @@ export default function SedeOllerosPage() {
                     </div>
                     <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Ignacio Begher</CardTitle>
                     <CardDescription className="text-white font-medium mb-3">Head Coach</CardDescription>
-                    <div className="px-3 py-1 bg-[#E2FF1B]/20 text-[#E2FF1B] text-xs font-medium rounded-full inline-block mb-4 w-fit">
+                    <div className="px-3 py-1 bg-[#E2FF1B]/20 text-[#E2FF1B] text-xs font-medium rounded-full inline-block mb-4 w-fit mx-auto">
                       Táctica Profesional
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-gray-300 text-center leading-relaxed text-sm">
+                    <p className="text-gray-300 text-center leading-relaxed text-base">
                       Profesor de pádel con más de 15 años de experiencia. Jugador AJPP desde 2007.
                     </p>
                     <div className="space-y-2">
@@ -259,7 +259,7 @@ export default function SedeOllerosPage() {
                 </h3>
                 <p className="text-sm md:text-lg text-gray-300 leading-relaxed">
                   Nuestras clases personalizadas están dirigidas por jugadores profesionales de primera división, 
-                  incluyendo Nacho y Stefano que comparten su experiencia y técnicas de alto nivel. 
+                  incluyendo Nacho y Stefano que comparten su experiencia y técnicas de alto nivel. <br></br>
                   Aprovechá la oportunidad de entrenar con los mejores.
                 </p>
               </div>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake, Gamepad2, Building2, Store } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -196,42 +196,70 @@ export default function Header() {
             </div>
             
             {/* Navigation Section */}
-            <div className="flex items-center gap-8">
-              <Link 
-                href="/inscripciones" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <Trophy className="w-4 h-4" />
-                Ligas
-              </Link>
-              <Link 
-                href="/academia" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <BookOpen className="w-4 h-4" />
-                Academia
-              </Link>
-              <Link 
-                href="/sede-olleros" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <Trophy className="w-4 h-4" />
-                Clases
-              </Link>
-              <Link 
-                href="/rankings" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <Medal className="w-4 h-4" />
-                Rankings
-              </Link>
-              <Link 
-                href="/merchandising" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/merchandising') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Merchandising
-              </Link>
+            <div className="flex items-center gap-6">
+              {/* Torneos Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') || isActive('/rankings') || isActive('/partidos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Torneos
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="start">
+                  <DropdownMenuItem asChild>
+                    <Link href="/inscripciones" className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      Ligas
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/rankings" className="flex items-center gap-2">
+                      <Medal className="w-4 h-4" />
+                      Rankings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/partidos" className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      Partidos
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Actividades Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') || isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Actividades
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="start">
+                  <DropdownMenuItem asChild>
+                    <Link href="/academia" className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      Academia
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/sede-olleros" className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      Clases
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Quiénes somos */}
               <Link 
                 href="/quienes-somos" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/quienes-somos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
@@ -239,13 +267,8 @@ export default function Header() {
                 <Users className="w-4 h-4" />
                 Quiénes somos
               </Link>
-              <Link 
-                href="/contacto" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/contacto') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <Mail className="w-4 h-4" />
-                Contacto
-              </Link>
+
+              {/* Sponsors */}
               <Link 
                 href="/sponsors" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
@@ -253,6 +276,17 @@ export default function Header() {
                 <Handshake className="w-4 h-4" />
                 Sponsors
               </Link>
+
+              {/* Merchandising */}
+              <Link 
+                href="/merchandising" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/merchandising') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Merchandising
+              </Link>
+
+              {/* Sedes */}
               <button 
                 onClick={() => setIsVenuesModalOpen(true)}
                 className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors"
@@ -260,6 +294,15 @@ export default function Header() {
                 <MapPin className="w-4 h-4" />
                 Sedes
               </button>
+
+              {/* Contacto */}
+              <Link 
+                href="/contacto" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/contacto') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+              >
+                <Mail className="w-4 h-4" />
+                Contacto
+              </Link>
             </div>
 
             {/* User Section */}
@@ -378,46 +421,67 @@ export default function Header() {
         <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-white/10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col gap-4">
-              <Link 
-                href="/inscripciones" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <Trophy className="w-4 h-4" />
-                Ligas
-              </Link>
-              <Link 
-                href="/academia" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <BookOpen className="w-4 h-4" />
-                Academia
-              </Link>
-              <Link 
-                href="/sede-olleros" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <Trophy className="w-4 h-4" />
-                Clases
-              </Link>
-              <Link 
-                href="/rankings" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <Medal className="w-4 h-4" />
-                Rankings
-              </Link>
-              <Link 
-                href="/merchandising" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/merchandising') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Merchandising
-              </Link>
+              {/* Torneos Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#E2FF1B] uppercase tracking-wider">
+                  <Trophy className="w-3 h-3" />
+                  Torneos
+                </div>
+                <div className="ml-4 space-y-1">
+                  <Link 
+                    href="/inscripciones" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Ligas
+                  </Link>
+                  <Link 
+                    href="/rankings" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <Medal className="w-4 h-4" />
+                    Rankings
+                  </Link>
+                  <Link 
+                    href="/partidos" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/partidos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Partidos
+                  </Link>
+                </div>
+              </div>
+
+              {/* Actividades Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#E2FF1B] uppercase tracking-wider">
+                  <BookOpen className="w-3 h-3" />
+                  Actividades
+                </div>
+                <div className="ml-4 space-y-1">
+                  <Link 
+                    href="/academia" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/academia') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Academia
+                  </Link>
+                  <Link 
+                    href="/sede-olleros" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Clases
+                  </Link>
+                </div>
+              </div>
+
+              {/* Quiénes somos */}
               <Link 
                 href="/quienes-somos" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/quienes-somos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
@@ -426,14 +490,8 @@ export default function Header() {
                 <Users className="w-4 h-4" />
                 Quiénes somos
               </Link>
-              <Link 
-                href="/contacto" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/contacto') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <Mail className="w-4 h-4" />
-                Contacto
-              </Link>
+
+              {/* Sponsors */}
               <Link 
                 href="/sponsors" 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
@@ -442,6 +500,18 @@ export default function Header() {
                 <Handshake className="w-4 h-4" />
                 Sponsors
               </Link>
+
+              {/* Merchandising */}
+              <Link 
+                href="/merchandising" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/merchandising') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                onClick={closeMenu}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Merchandising
+              </Link>
+
+              {/* Sedes */}
               <button 
                 onClick={() => {
                   setIsVenuesModalOpen(true)
@@ -452,6 +522,16 @@ export default function Header() {
                 <MapPin className="w-4 h-4" />
                 Sedes
               </button>
+
+              {/* Contacto */}
+              <Link 
+                href="/contacto" 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/contacto') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                onClick={closeMenu}
+              >
+                <Mail className="w-4 h-4" />
+                Contacto
+              </Link>
               
               {/* User Section - Mobile */}
               {user ? (
