@@ -41,8 +41,8 @@ export default function SponsorsPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mb-8"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {['/images/sponsors/1.jpg', '/images/sponsors/2.jpg', '/images/sponsors/3.jpg'].map((sponsor, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {['/images/sponsors/1.jpg', '/images/sponsors/2.jpg', '/images/sponsors/3.jpg', '/images/sponsors/4.jpg', '/images/sponsors/5.jpg', '/images/sponsors/6.jpg'].map((sponsor, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}

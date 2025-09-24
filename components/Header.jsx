@@ -2,13 +2,12 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake, Gamepad2, Building2, Store } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake, Gamepad2, Building2, Store, ExternalLink } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import LiveMatchTicker from './LiveMatchTicker'
 import NotificationDropdown from './NotificationDropdown'
-import VenuesModal from './VenuesModal'
 import { useToast } from '@/hooks/use-toast'
 import {
   DropdownMenu,
@@ -25,7 +24,6 @@ export default function Header() {
   const { user, loading } = useAuth()
   const [userData, setUserData] = useState(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isVenuesModalOpen, setIsVenuesModalOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const { toast } = useToast()
@@ -243,7 +241,7 @@ export default function Header() {
                     <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48" align="start">
+                <DropdownMenuContent className="w-60" align="start">
                   <DropdownMenuItem asChild>
                     <Link href="/academia" className="flex items-center gap-2">
                       <BookOpen className="w-4 h-4" />
@@ -251,9 +249,15 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/sede-olleros" className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4" />
-                      Clases
+                    <Link href="/sede-olleros/entrenamientos-grupales" className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Entrenamientos Grupales
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/sede-olleros/clases-privadas" className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Clases Privadas
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -286,14 +290,39 @@ export default function Header() {
                 Merchandising
               </Link>
 
-              {/* Sedes */}
-              <button 
-                onClick={() => setIsVenuesModalOpen(true)}
-                className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors"
-              >
-                <MapPin className="w-4 h-4" />
-                Sedes
-              </button>
+              {/* Sedes Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] text-white/70"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Sedes
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="start">
+                  <DropdownMenuItem asChild>
+                    <Link href="/sede-olleros" className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>Sede Olleros</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a 
+                      href="https://atcsports.io/venues/normanda-caba" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      <span>La Normanda</span>
+                      <ExternalLink className="w-3 h-3 ml-auto" />
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Contacto */}
               <Link 
@@ -471,12 +500,20 @@ export default function Header() {
                     Academia
                   </Link>
                   <Link 
-                    href="/sede-olleros" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/sede-olleros/entrenamientos-grupales" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/entrenamientos-grupales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
-                    <Trophy className="w-4 h-4" />
-                    Clases
+                    <Users className="w-4 h-4" />
+                    Entrenamientos Grupales
+                  </Link>
+                  <Link 
+                    href="/sede-olleros/clases-privadas" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-privadas') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <User className="w-4 h-4" />
+                    Clases Privadas
                   </Link>
                 </div>
               </div>
@@ -511,17 +548,34 @@ export default function Header() {
                 Merchandising
               </Link>
 
-              {/* Sedes */}
-              <button 
-                onClick={() => {
-                  setIsVenuesModalOpen(true)
-                  closeMenu()
-                }}
-                className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors"
-              >
-                <MapPin className="w-4 h-4" />
-                Sedes
-              </button>
+              {/* Sedes Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#E2FF1B] uppercase tracking-wider">
+                  <MapPin className="w-3 h-3" />
+                  Sedes
+                </div>
+                <div className="ml-4 space-y-1">
+                  <Link 
+                    href="/sede-olleros" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Sede Olleros
+                  </Link>
+                  <a 
+                    href="https://atcsports.io/venues/normanda-caba" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#E2FF1B] transition-colors"
+                    onClick={closeMenu}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    La Normanda
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
 
               {/* Contacto */}
               <Link 
@@ -624,11 +678,6 @@ export default function Header() {
           </div>
         </div>
       )}
-      
-      <VenuesModal 
-        isOpen={isVenuesModalOpen} 
-        onClose={() => setIsVenuesModalOpen(false)} 
-      />
     </header>
   )
 } 

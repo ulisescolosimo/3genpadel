@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2, BookOpen } from "lucide-react"
+import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2, BookOpen, MapPin } from "lucide-react"
 import { motion } from "framer-motion"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
@@ -301,7 +301,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900 via-gray-800/80 to-transparent"></div>
       </section>
 
-      {/* Stats Section */}
+      {/* Reserva de Clases Section */}
       <section className="w-full py-16 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
         {/* Efecto de partículas sutil */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center opacity-10" />
@@ -310,102 +310,216 @@ export default function Home() {
           {/* Section Header */}
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Números que hablan
+              Reservá tu clase
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              Mirá los logros que hacen de 3gen Padel Academy la mejor opción para tu desarrollo
+              Elegí la modalidad que mejor se adapte a tus necesidades y empezá a mejorar tu juego
             </p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {/* Jugadores Activos */}
+          {/* Clases Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            {/* Clases Grupales */}
             <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      500+
+              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden">
+                {/* Efecto de brillo animado */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#E2FF1B]/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative flex flex-col h-full">
+                  {/* Header con icono mejorado */}
+                  <div className="flex items-start gap-4 mb-8">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Users className="w-10 h-10 text-[#E2FF1B]" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#E2FF1B] rounded-full flex items-center justify-center">
+                        <span className="text-black text-xs font-bold">G</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Grupales</h3>
+                      <p className="text-slate-400 text-sm font-medium">Aprendé en equipo</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex -space-x-2">
+                          <div className="w-6 h-6 bg-gradient-to-br from-[#E2FF1B] to-[#E2FF1B]/80 rounded-full border-2 border-slate-800"></div>
+                          <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full border-2 border-slate-800"></div>
+                          <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-slate-800"></div>
+                          <div className="w-6 h-6 bg-slate-600 rounded-full border-2 border-slate-800 flex items-center justify-center">
+                            <span className="text-xs text-white font-bold">+</span>
+                          </div>
+                        </div>
+                        <span className="text-xs text-slate-500">Hasta 8 jugadores</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Jugadores Activos
+                  
+                  {/* Contenido principal */}
+                  <div className="flex-grow space-y-6 mb-8">
+                    <p className="text-slate-300 leading-relaxed text-base">
+                      Mejorá tu técnica y juego en compañía de otros jugadores. 
+                      Perfecto para aprender, practicar y divertirte.
+                    </p>
+                    
+                    {/* Información destacada */}
+                    <div className="space-y-4">
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <span className="font-semibold text-white">Horarios</span>
+                        </div>
+                        <div className="space-y-2 ml-11">
+                          <p className="text-sm text-slate-300 font-medium">Martes, Miércoles y Viernes</p>
+                          <p className="text-sm text-[#E2FF1B] font-bold">12:00 a 16:00 hs</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <div>
+                            <span className="font-semibold text-white block">Ubicación</span>
+                            <span className="text-sm text-slate-300">Sede Olleros 1515, Palermo</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    Comunidad creciente
+                  
+                  {/* Botones mejorados */}
+                  <div className="space-y-3">
+                    <a 
+                      href="https://calendly.com/3gen/1hora"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/btn w-full bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] py-4 px-6 rounded-2xl font-bold text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#E2FF1B]/25 flex items-center justify-center gap-2"
+                    >
+                      <span>Reservá Clase Grupal</span>
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                    </a>
+                    <Link 
+                      href="/sede-olleros/entrenamientos-grupales"
+                      className="w-full bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B]/30 hover:border-[#E2FF1B] hover:bg-[#E2FF1B]/5 py-3 px-6 rounded-2xl font-medium text-center transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <span>Conocé más</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Clases Organizadas */}
+            {/* Clases Privadas */}
             <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      50+
+              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden">
+                {/* Efecto de brillo animado */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#E2FF1B]/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative flex flex-col h-full">
+                  {/* Header con icono mejorado */}
+                  <div className="flex items-start gap-4 mb-8">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Trophy className="w-10 h-10 text-[#E2FF1B]" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#E2FF1B] rounded-full flex items-center justify-center">
+                        <span className="text-black text-xs font-bold">P</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Privadas</h3>
+                      <p className="text-slate-400 text-sm font-medium">Entrená con los mejores</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                        </div>
+                        <span className="text-xs text-slate-500">Profesionales Top 100</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Clases Organizadas
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Experiencia garantizada
-                  </div>
-                </div>
-              </div>
-            </div>
+                  
+                  {/* Contenido principal */}
+                  <div className="flex-grow space-y-6 mb-8">
+                    <p className="text-slate-300 leading-relaxed text-base">
+                      Entrená con nuestros Head Coaches profesionales de primera división. 
+                      Stefano Lorenzo e Ignacio Begher te van a ayudar a mejorar tu juego.
+                    </p>
+                    
+                    {/* Información destacada */}
+                    <div className="space-y-4">
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <Star className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <span className="font-semibold text-white">Entrenadores</span>
+                        </div>
+                        <div className="space-y-2 ml-11">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                            <p className="text-sm text-slate-300">Stefano Lorenzo - Ranking Nº 99 Argentina</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                            <p className="text-sm text-slate-300">Ignacio Begher - Ranking Nº 97 Argentina</p>
+                          </div>
+                        </div>
+                      </div>
 
-            {/* Partidos Jugados */}
-            <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      1000+
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <div>
+                            <span className="font-semibold text-white block">Flexibilidad</span>
+                            <span className="text-sm text-slate-300">Horarios adaptados a tu agenda</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Partidos Jugados
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Diversión asegurada
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Valoración Media */}
-            <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      4.8/5
-                    </div>
-                  </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Valoración Media
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Excelencia comprobada
+                  
+                  {/* Botones mejorados */}
+                  <div className="flex gap-3">
+                    <Link 
+                      href="/sede-olleros/clases-privadas"
+                      className="group/btn flex-1 bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] py-4 px-4 rounded-2xl font-bold text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#E2FF1B]/25 flex items-center justify-center gap-2"
+                    >
+                      <span>Reservá Clase Privada</span>
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                    </Link>
+                    <Link 
+                      href="/sede-olleros/clases-privadas"
+                      className="flex-1 bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B]/30 hover:border-[#E2FF1B] hover:bg-[#E2FF1B]/5 py-4 px-4 rounded-2xl font-medium text-center transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <span>Conocé más</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Call to Action */}
-          <div className="text-center mt-12">
+          {/* Información adicional */}
+          <div className="text-center">
             <a 
-              href="https://wa.me/5491167617557?text=Hola! Me interesa unirme a la comunidad de 3gen Padel Academy"
+              href="https://wa.me/5491167617557?text=Hola! Tengo dudas sobre las clases en 3gen Padel Academy"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-full px-6 py-3 border border-[#E2FF1B]/30 hover:from-[#E2FF1B]/30 hover:to-[#E2FF1B]/20 transition-all duration-300 cursor-pointer"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#E2FF1B]/10 to-[#E2FF1B]/5 rounded-full px-6 py-3 border border-[#E2FF1B]/20 hover:from-[#E2FF1B]/20 hover:to-[#E2FF1B]/10 hover:border-[#E2FF1B]/30 transition-all duration-300 cursor-pointer"
             >
+              <MessageCircle className="w-5 h-5 text-[#E2FF1B]" />
               <span className="text-[#E2FF1B] text-sm font-medium">
-                ¡Únete a nuestra comunidad!
+                ¿Tenés dudas? Contactanos por WhatsApp
               </span>
             </a>
           </div>
@@ -738,6 +852,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
-  )
-} 
+      </div>
+    )
+}

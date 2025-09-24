@@ -91,6 +91,19 @@ export default function Nosotros() {
       ],
       category: "coach",
       specialty: "Estrategia Competitiva"
+    },
+    {
+      name: "Fernando Mazzoletti",
+      role: "Coach",
+      image: "/images/profesores/fer.png",
+      bio: "Más de 3 años de experiencia como entrenador de pádel en distintas sedes y clubes sociales deportivos.",
+      achievements: [
+        "Enfoque en el desarrollo práctico y táctico de los jugadores",
+        "Jugador AJPP (Asociación de Jugadores de Pádel Profesional)",
+        "Especialista en desarrollo de principiantes, intermedios y avanzados enfocado en la parte práctica de juego"
+      ],
+      category: "coach",
+      specialty: "Desarrollo Práctico"
     }
   ]
 
