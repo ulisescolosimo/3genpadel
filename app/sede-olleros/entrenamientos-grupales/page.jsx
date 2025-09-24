@@ -94,7 +94,7 @@ export default function EntrenamientosGrupalesPage() {
                 <h3 className="text-lg font-bold text-white">Ubicación</h3>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed">
-                Av. Libertador y Olleros<br />
+                Av. Olleros 1515<br />
                 Palermo, CABA
               </p>
             </div>

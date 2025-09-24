@@ -338,17 +338,16 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Grupales</h3>
-                      <p className="text-slate-400 text-sm font-medium">Aprendé en equipo</p>
+                      <p className="text-slate-400 text-sm font-medium">Aprendé en grupo</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <div className="flex -space-x-2">
-                          <div className="w-6 h-6 bg-gradient-to-br from-[#E2FF1B] to-[#E2FF1B]/80 rounded-full border-2 border-slate-800"></div>
-                          <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full border-2 border-slate-800"></div>
-                          <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-slate-800"></div>
-                          <div className="w-6 h-6 bg-slate-600 rounded-full border-2 border-slate-800 flex items-center justify-center">
-                            <span className="text-xs text-white font-bold">+</span>
-                          </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
                         </div>
-                        <span className="text-xs text-slate-500">Hasta 8 jugadores</span>
+                        <span className="text-xs text-slate-500">Metodología estructurada</span>
                       </div>
                     </div>
                   </div>
@@ -390,19 +389,19 @@ export default function Home() {
                   </div>
                   
                   {/* Botones mejorados */}
-                  <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <a 
                       href="https://calendly.com/3gen/1hora"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group/btn w-full bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] py-4 px-6 rounded-2xl font-bold text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#E2FF1B]/25 flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
-                      <span>Reservá Clase Grupal</span>
-                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                      <span>Reservar Clase Grupal</span>
+                      <ArrowRight className="w-4 h-4" />
                     </a>
                     <Link 
                       href="/sede-olleros/entrenamientos-grupales"
-                      className="w-full bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B]/30 hover:border-[#E2FF1B] hover:bg-[#E2FF1B]/5 py-3 px-6 rounded-2xl font-medium text-center transition-all duration-300 flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Conocé más</span>
                       <ArrowRight className="w-4 h-4" />
@@ -488,17 +487,17 @@ export default function Home() {
                   </div>
                   
                   {/* Botones mejorados */}
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Link 
                       href="/sede-olleros/clases-privadas"
-                      className="group/btn flex-1 bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/90 text-black hover:from-[#E2FF1B]/90 hover:to-[#E2FF1B] py-4 px-4 rounded-2xl font-bold text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#E2FF1B]/25 flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
-                      <span>Reservá Clase Privada</span>
-                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                      <span>Reservar Clase Privada</span>
+                      <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link 
                       href="/sede-olleros/clases-privadas"
-                      className="flex-1 bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B]/30 hover:border-[#E2FF1B] hover:bg-[#E2FF1B]/5 py-4 px-4 rounded-2xl font-medium text-center transition-all duration-300 flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Conocé más</span>
                       <ArrowRight className="w-4 h-4" />

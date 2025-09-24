@@ -124,72 +124,113 @@ export default function Contacto() {
       <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {/* Información de Contacto */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Información de contacto</h3>
-            <div className="space-y-4 sm:space-y-6">
-              {/* Horario de Atención */}
-              <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4">
-                <h4 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                  Horario de Atención
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm sm:text-base">Lunes a Viernes</span>
-                    <span className="text-white font-medium text-sm sm:text-base">8:00 - 10:00</span>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Sede La Normanda */}
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-[#E2FF1B]" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">La Normanda</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#E2FF1B]" />
+                  <a 
+                    href="https://maps.app.goo.gl/MYzTca8WNtTzGYv68" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm"
+                  >
+                    Delgado 864, Colegiales, CABA
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                  <span className="text-gray-400 text-sm">Lunes a Viernes: 8:00 - 10:00</span>
                 </div>
               </div>
+            </div>
 
-              {/* Información de contacto */}
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
-                  <div>
-                    <p className="text-white font-medium text-sm sm:text-base">Dirección</p>
-                    <a 
-                      href="https://maps.app.goo.gl/MYzTca8WNtTzGYv68" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
-                    >
-                      Delgado 864, Colegiales, CABA
-                    </a>
-                  </div>
+            {/* Sede Olleros */}
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-[#E2FF1B]" />
                 </div>
-                <div className="flex items-start gap-3">
-                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B] mt-1" />
-                  <div>
-                    <p className="text-white font-medium text-sm sm:text-base">Teléfono</p>
-                    <div className="space-y-1">
-                      <a 
-                        href="https://wa.me/5491135921988" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
-                      >
-                        +54 9 11 3592-1988
-                      </a>
-                      <a 
-                        href="https://wa.me/5491149285316" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
-                      >
-                        +54 9 11 4928-5316
-                      </a>
-                      <a 
-                        href="https://wa.me/5491132673029" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm sm:text-base"
-                      >
-                        +54 9 11 3267-3029
-                      </a>
-                    </div>
-                  </div>
+                <h3 className="text-lg font-semibold text-white">Sede Olleros</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#E2FF1B]" />
+                  <a 
+                    href="https://maps.app.goo.gl/mPNFhNtvzvppkdCh6" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-[#E2FF1B] transition-colors text-sm"
+                  >
+                    Olleros 1515, Buenos Aires
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                  <span className="text-gray-400 text-sm">Martes, Miércoles, Viernes: 12:00 - 16:00</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Teléfonos */}
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                <Phone className="w-4 h-4 text-[#E2FF1B]" />
+              </div>
+              <h3 className="text-lg font-semibold text-white">Contacto</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <a 
+                href="https://wa.me/5491135921988" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                    <Phone className="w-4 h-4 text-green-400" />
+                  </div>
+                  <span className="text-white font-medium text-sm">WhatsApp</span>
+                </div>
+                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">+54 9 11 3592-1988</p>
+              </a>
+              <a 
+                href="https://wa.me/5491149285316" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                    <Phone className="w-4 h-4 text-green-400" />
+                  </div>
+                  <span className="text-white font-medium text-sm">WhatsApp</span>
+                </div>
+                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">+54 9 11 4928-5316</p>
+              </a>
+              <a 
+                href="https://wa.me/5491132673029" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                    <Phone className="w-4 h-4 text-green-400" />
+                  </div>
+                  <span className="text-white font-medium text-sm">WhatsApp</span>
+                </div>
+                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">+54 9 11 3267-3029</p>
+              </a>
             </div>
           </div>
 

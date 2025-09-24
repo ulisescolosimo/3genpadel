@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function ClasesPrivadasPage() {
-  const openWhatsApp = (mensaje) => {
+  const openWhatsApp = (mensaje, telefono) => {
     const message = encodeURIComponent(mensaje)
-    const whatsappUrl = `https://wa.me/5491167617557?text=${message}`
+    const whatsappUrl = `https://wa.me/${telefono}?text=${message}`
     window.open(whatsappUrl, '_blank')
   }
 
@@ -97,7 +97,7 @@ export default function ClasesPrivadasPage() {
                   </div>
                   <div className="pt-2">
                     <Button
-                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Stefano Lorenzo. ¿Podrían darme más información sobre disponibilidad y precios?')}
+                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Stefano Lorenzo. ¿Podrían darme más información sobre disponibilidad y precios?', '5491135921988')}
                       className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105"
                     >
                       Reservar con Stefano
@@ -152,7 +152,7 @@ export default function ClasesPrivadasPage() {
                   </div>
                   <div className="pt-2">
                     <Button
-                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Ignacio Begher. ¿Podrían darme más información sobre disponibilidad y precios?')}
+                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Ignacio Begher. ¿Podrían darme más información sobre disponibilidad y precios?', '5491132673029')}
                       className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105"
                     >
                       Reservar con Nacho

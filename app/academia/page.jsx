@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Users, Target, Award, Calendar, Star, BookOpen, Dumbbell, Zap } from 'lucide-react'
+import { Clock, Users, Target, Award, Calendar, Star, BookOpen, Dumbbell, Zap, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -9,7 +9,7 @@ export default function AcademiaPage() {
   const [activeTab, setActiveTab] = useState('formato')
 
   const openWhatsApp = (turno) => {
-    const message = encodeURIComponent(`Hola! Me gustaría inscribirme en la Academia 3gen Padel para el turno de ${turno.horario}. ¿Podrían darme más información sobre disponibilidad y precios?`)
+    const message = encodeURIComponent(`Hola! Me gustaría inscribirme en la Academia 3gen Padel para el turno de ${turno.horario}. La ubicación es La Normanda en Delgado 864, Colegiales, CABA. ¿Podrían darme más información sobre disponibilidad y precios?`)
     const whatsappUrl = `https://wa.me/5491135921988?text=${message}`
     window.open(whatsappUrl, '_blank')
   }
@@ -77,6 +77,13 @@ export default function AcademiaPage() {
       <section className="relative py-12 md:py-20 px-4 lg:px-8">
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2FF1B]/20 to-transparent"></div>
         <div className="container mx-auto relative z-10">
+                      {/* Ubicación */}
+                      <div className="flex justify-center mb-6 md:mb-8 px-4">
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30">
+                <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+                <span className="text-[#E2FF1B] font-semibold text-sm tracking-wider">Delgado 864, Colegiales</span>
+              </div>
+            </div>
           <div className="text-center max-w-6xl mx-auto">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
               <span className="text-[#E2FF1B]">Academia</span> 3gen Padel
@@ -95,10 +102,12 @@ export default function AcademiaPage() {
                 <span>Metodología probada</span>
               </div>
             </div>
+            
+
             <div className="flex justify-center px-4">
               <Button 
                 onClick={() => {
-                  const message = encodeURIComponent('Hola! Me gustaría obtener más información sobre la Academia 3gen Padel. ¿Podrían contarme sobre los turnos disponibles y precios?')
+                  const message = encodeURIComponent('Hola! Me gustaría obtener más información sobre la Academia 3gen Padel. La ubicación es La Normanda en Delgado 864, Colegiales, CABA. ¿Podrían contarme sobre los turnos disponibles y precios?')
                   const whatsappUrl = `https://wa.me/5491135921988?text=${message}`
                   window.open(whatsappUrl, '_blank')
                 }}
