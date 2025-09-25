@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Star, Trophy } from 'lucide-react'
+import { ArrowLeft, Star, Trophy, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -17,7 +17,7 @@ export default function ClasesPrivadasPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="bg-black/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 md:py-6">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
           <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-start gap-3 sm:gap-6 lg:gap-4">
             <Link href="/sede-olleros">
               <Button variant="ghost" size="sm" className="text-white hover:text-[#E2FF1B] hover:bg-white/10">
@@ -29,7 +29,7 @@ export default function ClasesPrivadasPage() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
                 <span className="text-[#E2FF1B]">Clases</span> Privadas
               </h1>
-              <p className="text-gray-300 text-base sm:text-lg md:text-xl font-medium">Entrenamiento personalizado con profesionales</p>
+              <p className="text-gray-300 text-base sm:text-lg md:text-xl font-medium">Entrenamiento personalizado con profesores</p>
             </div>
           </div>
         </div>
@@ -37,7 +37,13 @@ export default function ClasesPrivadasPage() {
 
       <div className="container mx-auto px-4 py-6 md:py-8">
         {/* Clases Personalizadas Section */}
-        <div className="max-w-6xl mx-auto mb-16">
+        <div className="max-w-6xl mx-auto mb-16 flex flex-col items-center">
+          
+          {/* Ubicación */}
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30 mb-6">
+            <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+            <span className="text-[#E2FF1B] font-semibold text-sm tracking-wider">Olleros 1515</span>
+          </div>
 
           {/* Head Coaches Section */}
           <div className="mb-12">

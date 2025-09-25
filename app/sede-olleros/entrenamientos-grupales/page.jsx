@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy } from 'lucide-react'
+import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -61,7 +61,7 @@ export default function EntrenamientosGrupalesPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="bg-black/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 md:py-6">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
           <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-start gap-3 sm:gap-6 lg:gap-4">
             <Link href="/sede-olleros">
               <Button variant="ghost" size="sm" className="text-white hover:text-[#E2FF1B] hover:bg-white/10">
@@ -73,7 +73,7 @@ export default function EntrenamientosGrupalesPage() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
                 <span className="text-[#E2FF1B]">Entrenamientos</span> Grupales
               </h1>
-              <p className="text-gray-300 text-base sm:text-lg md:text-xl font-medium">Entrenamiento en grupo con guía profesional</p>
+              <p className="text-gray-300 text-base sm:text-lg md:text-xl font-medium">Entrenamiento en grupo con profesores</p>
             </div>
           </div>
         </div>
@@ -83,51 +83,58 @@ export default function EntrenamientosGrupalesPage() {
         {/* Horarios Section */}
         <div className="max-w-6xl mx-auto mb-16">
           
-          {/* Información de Horarios - Rediseñada */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-            {/* Ubicación */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+          {/* Información de Horarios - Tarjetas flotantes */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              {/* Ubicación */}
+              <div className="group flex">
+                <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-[#E2FF1B]/50 transition-all duration-300 hover:bg-black/60 flex flex-col w-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-[#E2FF1B]/20 rounded-full mx-auto mb-4 group-hover:bg-[#E2FF1B]/30 transition-colors">
+                    <MapPin className="w-6 h-6 text-[#E2FF1B]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white text-center mb-2">Ubicación</h3>
+                  <p className="text-gray-300 text-center text-sm leading-relaxed flex-grow">
+                    Av. Olleros 1515<br />
+                    Palermo, CABA
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold text-white">Ubicación</h3>
               </div>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                Av. Olleros 1515<br />
-                Palermo, CABA
-              </p>
-            </div>
-            
-            {/* Días */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-[#E2FF1B]" />
+              
+              {/* Días */}
+              <div className="group flex">
+                <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-[#E2FF1B]/50 transition-all duration-300 hover:bg-black/60 flex flex-col w-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-[#E2FF1B]/20 rounded-full mx-auto mb-4 group-hover:bg-[#E2FF1B]/30 transition-colors">
+                    <Calendar className="w-6 h-6 text-[#E2FF1B]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white text-center">Días</h3>
+                  <div className="flex-grow flex flex-col justify-center">
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <span className="bg-[#E2FF1B]/20 text-[#E2FF1B] px-3 py-1 rounded-full text-xs font-medium">Martes</span>
+                      <span className="bg-[#E2FF1B]/20 text-[#E2FF1B] px-3 py-1 rounded-full text-xs font-medium">Miércoles</span>
+                      <span className="bg-[#E2FF1B]/20 text-[#E2FF1B] px-3 py-1 rounded-full text-xs font-medium">Viernes</span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-white">Días</h3>
               </div>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                Martes<br />
-                Miércoles<br />
-                Viernes
-              </p>
-            </div>
-            
-            {/* Horarios */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-[#E2FF1B]/30 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-[#E2FF1B]" />
+              
+              {/* Horarios */}
+              <div className="group flex">
+                <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-[#E2FF1B]/50 transition-all duration-300 hover:bg-black/60 flex flex-col w-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-[#E2FF1B]/20 rounded-full mx-auto mb-4 group-hover:bg-[#E2FF1B]/30 transition-colors">
+                    <Clock className="w-6 h-6 text-[#E2FF1B]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white text-center mb-2">Horarios</h3>
+                  <div className="flex-grow flex flex-col justify-center">
+                    <div className="text-center">
+                      <p className="text-white text-lg font-bold mb-2">12:00 - 16:00 hs</p>
+                      <span className="inline-flex items-center gap-1 bg-[#E2FF1B]/20 text-[#E2FF1B] px-3 py-1 rounded-full text-xs font-medium">
+                        <Zap className="w-3 h-3" />
+                        Turnos disponibles
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-white">Horarios</h3>
               </div>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                12:00 a 16:00 hs<br />
-                <span className="text-[#E2FF1B] font-medium">Turnos disponibles</span>
-              </p>
             </div>
-          </div>
           
           <div className="calendly-inline-widget" data-url="https://calendly.com/3gen?hide_landing_page_details=1&hide_gdpr_banner=1" style={{minWidth: '320px', height: '700px'}}></div>
         </div>
