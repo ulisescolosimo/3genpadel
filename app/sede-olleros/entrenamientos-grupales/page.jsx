@@ -58,7 +58,7 @@ export default function EntrenamientosGrupalesPage() {
       setShowPasswordForm(false)
       toast({
         title: "¡Acceso concedido!",
-        description: "Bienvenido al sistema de inscripciones de entrenamientos grupales.",
+        description: "Bienvenido al sistema de reservas de entrenamientos grupales.",
         variant: "default",
       })
     } else {
@@ -176,9 +176,9 @@ export default function EntrenamientosGrupalesPage() {
                 <div className="flex items-center justify-center w-16 h-16 bg-[#E2FF1B]/20 rounded-full mx-auto mb-6">
                   <Lock className="w-8 h-8 text-[#E2FF1B]" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">Acceso a Inscripciones</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">Acceso a Reservas</h3>
                 <p className="text-gray-300 mb-6">
-                  Para acceder al sistema de inscripciones, necesitas una contraseña de acceso.
+                  Para acceder al sistema de reservas, necesitas una contraseña de acceso.
                 </p>
                 
                 <form onSubmit={handlePasswordSubmit} className="max-w-md mx-auto">
@@ -221,7 +221,7 @@ export default function EntrenamientosGrupalesPage() {
           {isAuthenticated && (
             <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-[#E2FF1B]/20">
               <div className="text-center mb-4">
-                <h3 className="text-lg font-bold text-[#E2FF1B] mb-2">Sistema de Inscripciones</h3>
+                <h3 className="text-lg font-bold text-[#E2FF1B] mb-2">Sistema de Reservas</h3>
                 <p className="text-gray-300 text-sm">Selecciona tu horario preferido para entrenamientos grupales</p>
               </div>
               <div 
