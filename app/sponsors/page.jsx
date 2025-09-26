@@ -42,7 +42,14 @@ export default function SponsorsPage() {
             className="mb-8"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {['/images/sponsors/1.jpg', '/images/sponsors/2.jpg', '/images/sponsors/3.jpg', '/images/sponsors/4.jpg', '/images/sponsors/5.jpg', '/images/sponsors/6.jpg'].map((sponsor, index) => (
+              {[
+                { image: '/images/sponsors/1.jpg', url: 'https://www.instagram.com/odpropadel?igsh=ejNkdm0yZjlxcjZk' },
+                { image: '/images/sponsors/2.jpg', url: 'https://www.instagram.com/3genpadel/' },
+                { image: '/images/sponsors/3.jpg', url: 'https://www.instagram.com/dosparedes?igsh=MWNpbnJxMjE5NGc3Yw==' },
+                { image: '/images/sponsors/4.jpg', url: 'https://www.gamepropadel.com.ar/' },
+                { image: '/images/sponsors/5.jpg', url: 'https://www.instagram.com/lanormandapadel?igsh=MW4yYjh4b2V6ZG8zZQ==' },
+                { image: '/images/sponsors/6.jpg', url: 'https://backtopadel.com.ar/' }
+              ].map((sponsor, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
@@ -51,14 +58,21 @@ export default function SponsorsPage() {
                   transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
                   className="group"
                 >
-                  <div className="sponsor-card relative w-full h-48 md:h-56 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10 overflow-hidden">
-                    <img
-                      src={sponsor}
-                      alt={`Sponsor ${index + 1}`}
-                      className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500 rounded-lg"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
+                  <a 
+                    href={sponsor.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <div className="sponsor-card relative w-full h-48 md:h-56 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10 overflow-hidden">
+                      <img
+                        src={sponsor.image}
+                        alt={`Sponsor ${index + 1}`}
+                        className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500 rounded-lg"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  </a>
                 </motion.div>
               ))}
             </div>
