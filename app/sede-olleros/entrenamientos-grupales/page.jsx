@@ -3,12 +3,21 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy, Clock } from 'lucide-react'
+import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy, Clock, Lock, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { useToast } from '@/hooks/use-toast'
 
 export default function EntrenamientosGrupalesPage() {
   const [selectedImage, setSelectedImage] = useState(0)
+  const [password, setPassword] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [showPasswordForm, setShowPasswordForm] = useState(true)
+  const { toast } = useToast()
+  
+  // Contraseña aleatoria generada
+  const correctPassword = 'PADEL2025'
   
   const images = [
     '305a8f1b-2a44-4ca8-a685-cbb3b8d2f8c0.JPG',
@@ -42,20 +51,44 @@ export default function EntrenamientosGrupalesPage() {
     window.open(whatsappUrl, '_blank')
   }
 
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://assets.calendly.com/assets/external/widget.js'
-    script.async = true
-    document.head.appendChild(script)
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault()
+    if (password === correctPassword) {
+      setIsAuthenticated(true)
+      setShowPasswordForm(false)
+      toast({
+        title: "¡Acceso concedido!",
+        description: "Bienvenido al sistema de inscripciones de entrenamientos grupales.",
+        variant: "default",
+      })
+    } else {
+      toast({
+        title: "Contraseña incorrecta",
+        description: "Por favor, contacta con nosotros para obtener acceso.",
+        variant: "destructive",
+      })
+    }
+  }
 
-    return () => {
-      // Cleanup script when component unmounts
+  const requestAccess = () => {
+    const message = 'Hola! Me interesa inscribirme en los entrenamientos grupales. ¿Podrían proporcionarme la contraseña de acceso?'
+    const whatsappUrl = `https://wa.me/5491135921988?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Solo cargar el script cuando el usuario esté autenticado
       const existingScript = document.querySelector('script[src="https://assets.calendly.com/assets/external/widget.js"]')
-      if (existingScript) {
-        document.head.removeChild(existingScript)
+      
+      if (!existingScript) {
+        const script = document.createElement('script')
+        script.src = 'https://assets.calendly.com/assets/external/widget.js'
+        script.async = true
+        document.head.appendChild(script)
       }
     }
-  }, [])
+  }, [isAuthenticated])
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -136,7 +169,69 @@ export default function EntrenamientosGrupalesPage() {
               </div>
             </div>
           
-          <div className="calendly-inline-widget" data-url="https://calendly.com/3gen?hide_landing_page_details=1&hide_gdpr_banner=1" style={{minWidth: '320px', height: '700px'}}></div>
+          {/* Formulario de contraseña */}
+          {showPasswordForm && (
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-8 border border-white/10 mb-8">
+              <div className="text-center">
+                <div className="flex items-center justify-center w-16 h-16 bg-[#E2FF1B]/20 rounded-full mx-auto mb-6">
+                  <Lock className="w-8 h-8 text-[#E2FF1B]" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">Acceso a Inscripciones</h3>
+                <p className="text-gray-300 mb-6">
+                  Para acceder al sistema de inscripciones, necesitas una contraseña de acceso.
+                </p>
+                
+                <form onSubmit={handlePasswordSubmit} className="max-w-md mx-auto">
+                  <div className="mb-6">
+                    <Input
+                      type="password"
+                      placeholder="Ingresa la contraseña"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#E2FF1B] focus:ring-[#E2FF1B]/20"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button 
+                      type="submit"
+                      className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 font-bold"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Acceder
+                    </Button>
+                    
+                    <Button 
+                      type="button"
+                      onClick={requestAccess}
+                      variant="outline"
+                      className="border-[#E2FF1B]/50 text-[#E2FF1B] hover:bg-[#E2FF1B]/10 font-bold"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Solicitar Acceso
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Widget de Calendly - Solo visible después de autenticación */}
+          {isAuthenticated && (
+            <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-[#E2FF1B]/20">
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-bold text-[#E2FF1B] mb-2">Sistema de Inscripciones</h3>
+                <p className="text-gray-300 text-sm">Selecciona tu horario preferido para entrenamientos grupales</p>
+              </div>
+              <div 
+                id="calendly-widget"
+                className="calendly-inline-widget" 
+                data-url="https://calendly.com/3gen?hide_landing_page_details=1&hide_gdpr_banner=1" 
+                style={{minWidth: '320px', height: '700px'}}
+              ></div>
+            </div>
+          )}
         </div>
 
         {/* Información adicional sobre entrenamientos grupales */}
