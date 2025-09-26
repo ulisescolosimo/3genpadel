@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2 } from "lucide-react"
+import { Trophy, Calendar, Users, ArrowRight, Star, Award, Clock, ShoppingBag, ChevronLeft, ChevronRight, MessageCircle, Loader2, BookOpen, MapPin } from "lucide-react"
 import { motion } from "framer-motion"
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
@@ -247,6 +247,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <Link href="/academia">
                 <Button
@@ -254,8 +255,22 @@ export default function Home() {
                   className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
+                    Academia
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                </Button>
+              </Link>
+              <Link href="/sede-olleros">
+                <Button
+                  size="lg"
+                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Conocé nuestra academia
+                    Clases
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -286,7 +301,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900 via-gray-800/80 to-transparent"></div>
       </section>
 
-      {/* Stats Section */}
+      {/* Reserva de Clases Section */}
       <section className="w-full py-16 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
         {/* Efecto de partículas sutil */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center opacity-10" />
@@ -295,102 +310,215 @@ export default function Home() {
           {/* Section Header */}
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Números que hablan
+              Reservá tu clase
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              Mirá los logros que hacen de 3gen Padel Academy la mejor opción para tu desarrollo
+              Elegí la modalidad que mejor se adapte a tus necesidades y empezá a mejorar tu juego
             </p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {/* Jugadores Activos */}
+          {/* Clases Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            {/* Clases Grupales */}
             <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      500+
+              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden">
+                {/* Efecto de brillo animado */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#E2FF1B]/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative flex flex-col h-full">
+                  {/* Header con icono mejorado */}
+                  <div className="flex items-start gap-4 mb-8">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Users className="w-10 h-10 text-[#E2FF1B]" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#E2FF1B] rounded-full flex items-center justify-center">
+                        <span className="text-black text-xs font-bold">G</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Grupales</h3>
+                      <p className="text-slate-400 text-sm font-medium">Aprendé en grupo</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                        </div>
+                        <span className="text-xs text-slate-500">Metodología estructurada</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Jugadores Activos
+                  
+                  {/* Contenido principal */}
+                  <div className="flex-grow space-y-6 mb-8">
+                    <p className="text-slate-300 leading-relaxed text-base">
+                      Mejorá tu técnica y juego en compañía de otros jugadores. 
+                      Perfecto para aprender, practicar y divertirte.
+                    </p>
+                    
+                    {/* Información destacada */}
+                    <div className="space-y-4">
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <span className="font-semibold text-white">Horarios</span>
+                        </div>
+                        <div className="space-y-2 ml-11">
+                          <p className="text-sm text-slate-300 font-medium">Martes, Miércoles y Viernes</p>
+                          <p className="text-sm text-[#E2FF1B] font-bold">12:00 a 16:00 hs</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <div>
+                            <span className="font-semibold text-white block">Ubicación</span>
+                            <span className="text-sm text-slate-300">Sede Olleros 1515, Palermo</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    Comunidad creciente
+                  
+                  {/* Botones mejorados */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <a 
+                      href="https://calendly.com/3gen/1hora"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                    >
+                      <span>Reservar Clase Grupal</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </a>
+                    <Link 
+                      href="/sede-olleros/entrenamientos-grupales"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                    >
+                      <span>Conocé más</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Clases Organizadas */}
+            {/* Clases Privadas */}
             <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      50+
+              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden">
+                {/* Efecto de brillo animado */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#E2FF1B]/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative flex flex-col h-full">
+                  {/* Header con icono mejorado */}
+                  <div className="flex items-start gap-4 mb-8">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Trophy className="w-10 h-10 text-[#E2FF1B]" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#E2FF1B] rounded-full flex items-center justify-center">
+                        <span className="text-black text-xs font-bold">P</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Privadas</h3>
+                      <p className="text-slate-400 text-sm font-medium">Entrená con los mejores</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
+                        </div>
+                        <span className="text-xs text-slate-500">Profesionales Top 100</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Clases Organizadas
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Experiencia garantizada
-                  </div>
-                </div>
-              </div>
-            </div>
+                  
+                  {/* Contenido principal */}
+                  <div className="flex-grow space-y-6 mb-8">
+                    <p className="text-slate-300 leading-relaxed text-base">
+                      Entrená con nuestros Head Coaches profesionales de primera división. 
+                      Stefano Lorenzo e Ignacio Begher te van a ayudar a mejorar tu juego.
+                    </p>
+                    
+                    {/* Información destacada */}
+                    <div className="space-y-4">
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <Star className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <span className="font-semibold text-white">Entrenadores</span>
+                        </div>
+                        <div className="space-y-2 ml-11">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                            <p className="text-sm text-slate-300">Stefano Lorenzo - Ranking Nº 99 Argentina</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                            <p className="text-sm text-slate-300">Ignacio Begher - Ranking Nº 97 Argentina</p>
+                          </div>
+                        </div>
+                      </div>
 
-            {/* Partidos Jugados */}
-            <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      1000+
+                      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                          </div>
+                          <div>
+                            <span className="font-semibold text-white block">Flexibilidad</span>
+                            <span className="text-sm text-slate-300">Horarios adaptados a tu agenda</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Partidos Jugados
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Diversión asegurada
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Valoración Media */}
-            <div className="group relative">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-[#E2FF1B]/30 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-[#E2FF1B]/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="relative">
-                    <div className="text-4xl md:text-4xl font-bold text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300">
-                      4.8/5
-                    </div>
-                  </div>
-                  <div className="text-sm md:text-base text-white font-semibold">
-                    Valoración Media
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Excelencia comprobada
+                  
+                  {/* Botones mejorados */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Link 
+                      href="/sede-olleros/clases-privadas"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                    >
+                      <span>Reservar Clase Privada</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link 
+                      href="/sede-olleros/clases-privadas"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                    >
+                      <span>Conocé más</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Call to Action */}
-          <div className="text-center mt-12">
+          {/* Información adicional */}
+          <div className="text-center">
             <a 
-              href="https://wa.me/5491167617557?text=Hola! Me interesa unirme a la comunidad de 3gen Padel Academy"
+              href="https://wa.me/5491167617557?text=Hola! Tengo dudas sobre las clases en 3gen Padel Academy"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-full px-6 py-3 border border-[#E2FF1B]/30 hover:from-[#E2FF1B]/30 hover:to-[#E2FF1B]/20 transition-all duration-300 cursor-pointer"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#E2FF1B]/10 to-[#E2FF1B]/5 rounded-full px-6 py-3 border border-[#E2FF1B]/20 hover:from-[#E2FF1B]/20 hover:to-[#E2FF1B]/10 hover:border-[#E2FF1B]/30 transition-all duration-300 cursor-pointer"
             >
+              <MessageCircle className="w-5 h-5 text-[#E2FF1B]" />
               <span className="text-[#E2FF1B] text-sm font-medium">
-                ¡Únete a nuestra comunidad!
+                ¿Tenés dudas? Contactanos por WhatsApp
               </span>
             </a>
           </div>
@@ -412,7 +540,20 @@ export default function Home() {
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
+            <Link href="/academia" className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20 cursor-pointer block">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
+                  <BookOpen className="h-6 w-6 text-[#E2FF1B]" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">
+                  Academia
+                </h3>
+              </div>
+              <p className="text-gray-400">
+                Formación completa con metodología estructurada y grupos organizados por niveles.
+              </p>
+            </Link>
+            <Link href="/sede-olleros" className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20 cursor-pointer block">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
                   <Trophy className="h-6 w-6 text-[#E2FF1B]" />
@@ -422,10 +563,9 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-gray-400">
-                Participá en clases organizadas por 3gen Padel Academy con
-                diferentes niveles de dificultad.
+                Clases personalizadas y grupales con horarios flexibles en nuestra sede Olleros.
               </p>
-            </div>
+            </Link>
             <a 
               href="https://wa.me/5491167617557?text=Hola! Me interesa reservar en 3gen Padel Academy"
               target="_blank"
@@ -659,6 +799,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <Link href="/academia">
                 <Button
@@ -666,8 +807,22 @@ export default function Home() {
                   className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
+                    Academia
+                    <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-[#E2FF1B] rounded-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                </Button>
+              </Link>
+              <Link href="/sede-olleros">
+                <Button
+                  size="lg"
+                  className="group relative px-6 py-4 text-base font-medium bg-transparent text-[#E2FF1B] border-2 border-[#E2FF1B] rounded-xl transition-all duration-300 hover:text-black overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-[#E2FF1B] group-hover:text-black transition-colors duration-300" />
-                    Conocé nuestra academia
+                    Clases
                     <ArrowRight className="h-4 w-4 text-[#E2FF1B] group-hover:text-black group-hover:translate-x-1 transition-all duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-[#E2FF1B]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -696,6 +851,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
-  )
-} 
+      </div>
+    )
+}

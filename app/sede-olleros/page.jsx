@@ -3,23 +3,21 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy, Users, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function SedeOllerosPage() {
   const [selectedImage, setSelectedImage] = useState(0)
   
   const images = [
-    '1f23bb38-696d-4a93-88f5-b15a870d9463.JPG',
     '305a8f1b-2a44-4ca8-a685-cbb3b8d2f8c0.JPG',
-    '313f2b1d-55ca-4c7d-ab14-f0fb8c209f97.JPG',
     '5b30f465-a449-4849-8f01-2edc6f680395.JPG',
     '5d681fda-92a2-4e30-aeb2-5d218dda6b0a.JPG',
     '605d63a1-554b-4e2b-8d00-31c945dda5a9.JPG',
     '67bf875f-af56-4279-a994-61a2fa6fb3e9.JPG',
     '6a1e4c11-ef21-4f12-b2f1-f53aa1105848.JPG',
     '88bc2c70-c85c-48aa-8813-19c289146082.JPG',
-    '8aedb0a6-9742-4135-a0cb-fe3f8f640217.jpg',
     '8ff124ca-dadc-4de3-95fb-3c1f6aedcca6.JPG',
     'a2bc5341-2e6e-4345-82be-ef6bb48936b0.JPG',
     'b75656ae-ba9d-4839-8be3-cdfec7684fd7.JPG',
@@ -28,8 +26,6 @@ export default function SedeOllerosPage() {
     'ebef0cdf-cfee-49af-bc78-d7a2f5078534.JPG',
     'f18dfe07-fc7f-4d38-bed4-a508b7c92b2b.JPG',
     'IMG_8842.jpg',
-    'IMG_8843.jpg',
-    'IMG_8844.jpg'
   ]
 
   const nextImage = () => {
@@ -40,31 +36,136 @@ export default function SedeOllerosPage() {
     setSelectedImage((prev) => (prev - 1 + images.length) % images.length)
   }
 
+  const openWhatsApp = (mensaje) => {
+    const message = encodeURIComponent(mensaje)
+    const whatsappUrl = `https://wa.me/5491167617557?text=${message}`
+    window.open(whatsappUrl, '_blank')
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="bg-black/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 md:py-6">
-          <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-start gap-3 sm:gap-6 lg:gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="text-white hover:text-[#E2FF1B] hover:bg-white/10">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Volver
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
-                <span className="text-[#E2FF1B]">Sede</span> Olleros
-              </h1>
-              <p className="text-gray-300 text-base sm:text-lg md:text-xl font-medium">Olleros 1515, Palermo, CABA</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 py-6 md:py-8">
-        {/* Main Content Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        {/* Introducción Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30 mb-6">
+              <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+              <span className="text-[#E2FF1B] font-semibold text-sm tracking-wider">Olleros 1515</span>
+            </div>
+            
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white">
+              <span className="text-[#E2FF1B]">Sede</span> Olleros
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Nuestra sede principal ubicada en Palermo, donde podés disfrutar de entrenamientos grupales y clases privadas con profesionales de primera división
+            </p>
+          </div>
+        </div>
+
+        {/* Servicios Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 text-white">
+              <span className="text-[#E2FF1B]">Nuestros</span> Servicios
+            </h3>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              Ofrecemos diferentes modalidades de entrenamiento para adaptarnos a tus necesidades
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            {/* Entrenamientos Grupales */}
+            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+              <CardHeader className="text-center pb-4">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-[#E2FF1B]/20 rounded-2xl flex items-center justify-center">
+                    <Users className="w-8 h-8 text-[#E2FF1B]" />
+                  </div>
+                </div>
+                <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Entrenamientos Grupales</CardTitle>
+                <CardDescription className="text-white font-medium mb-3">Aprende en equipo</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-300 text-center leading-relaxed text-base">
+                  Entrenamientos diseñados para mejorar tu técnica y juego en compañía de otros jugadores. 
+                  Perfectos para aprender, practicar y divertirte.
+                </p>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-white text-sm">Horarios:</h4>
+                  <ul className="space-y-1">
+                    <li className="flex items-start text-gray-300 text-xs">
+                      <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                      Martes, Miércoles y Viernes
+                    </li>
+                    <li className="flex items-start text-gray-300 text-xs">
+                      <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                      12:00 a 16:00 hs
+                    </li>
+                  </ul>
+                </div>
+                <div className="pt-2">
+                  <Link href="/sede-olleros/entrenamientos-grupales">
+                    <Button className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105">
+                      Ver Entrenamientos Grupales
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Clases Privadas */}
+            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+              <CardHeader className="text-center pb-4">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-[#E2FF1B]/20 rounded-2xl flex items-center justify-center">
+                    <Trophy className="w-8 h-8 text-[#E2FF1B]" />
+                  </div>
+                </div>
+                <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Clases Privadas</CardTitle>
+                <CardDescription className="text-white font-medium mb-3">Entrenamiento personalizado</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-300 text-center leading-relaxed text-base">
+                  Clases personalizadas con nuestros Head Coaches profesionales de primera división. 
+                  Stefano Lorenzo e Ignacio Begher te ayudarán a mejorar tu juego.
+                </p>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-white text-sm">Entrenadores:</h4>
+                  <ul className="space-y-1">
+                    <li className="flex items-start text-gray-300 text-xs">
+                      <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                      Stefano Lorenzo - Ranking Nº 99 Argentina
+                    </li>
+                    <li className="flex items-start text-gray-300 text-xs">
+                      <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
+                      Ignacio Begher - Ranking Nº 97 Argentina
+                    </li>
+                  </ul>
+                </div>
+                <div className="pt-2">
+                  <Link href="/sede-olleros/clases-privadas">
+                    <Button className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105">
+                      Ver Clases Privadas
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Contacto Section */}
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-white">
+              <MapPin className="w-6 h-6 md:w-8 md:h-8 inline mr-2 text-[#E2FF1B]" />
+              Contacto y Ubicación
+            </h2>
+          </div>
+
+        {/* Map and Gallery Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8">
           {/* Image Gallery */}
           <div>
             <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6">Galería de Imágenes</h3>
@@ -100,28 +201,6 @@ export default function SedeOllerosPage() {
                 {selectedImage + 1} / {images.length}
               </div>
             </div>
-
-            {/* Thumbnail Grid - Hidden */}
-            <div className="hidden">
-              {images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImage === index 
-                      ? 'border-[#E2FF1B]' 
-                      : 'border-gray-700 hover:border-gray-500'
-                  }`}
-                >
-                  <Image
-                    src={`/images/olleros/${image}`}
-                    alt={`Thumbnail ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Map Section */}
@@ -138,6 +217,56 @@ export default function SedeOllerosPage() {
                 referrerPolicy="no-referrer-when-downgrade"
                 className="w-full h-full"
               />
+            </div>
+          </div>
+        </div>
+
+          {/* Contact Information - Full Width */}
+          <div className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Dirección - Click para abrir Google Maps */}
+              <a 
+                href="https://www.google.com/maps?q=Av.+Olleros+1515,+Palermo,+CABA"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full hover:bg-white/10 hover:border-[#E2FF1B]/30 border border-transparent transition-all duration-300 group cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center group-hover:bg-[#E2FF1B]/30 transition-colors">
+                  <MapPin className="w-6 h-6 text-[#E2FF1B] flex-shrink-0" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white text-lg mb-1 group-hover:text-[#E2FF1B] transition-colors">Dirección</h4>
+                  <p className="text-gray-300 text-base group-hover:text-white transition-colors">Av. Olleros 1515, Palermo, CABA</p>
+                </div>
+              </a>
+              
+              {/* Teléfono - Click para llamar */}
+              <a 
+                href="tel:+5491167617557"
+                className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full hover:bg-white/10 hover:border-[#E2FF1B]/30 border border-transparent transition-all duration-300 group cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center group-hover:bg-[#E2FF1B]/30 transition-colors">
+                  <Phone className="w-6 h-6 text-[#E2FF1B] flex-shrink-0" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white text-lg mb-1 group-hover:text-[#E2FF1B] transition-colors">Teléfono</h4>
+                  <p className="text-gray-300 text-base group-hover:text-white transition-colors">+54 9 11 6761-7557</p>
+                </div>
+              </a>
+              
+              {/* Email - Click para enviar email */}
+              <a 
+                href="mailto:tresgenpadel@hotmail.com"
+                className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full hover:bg-white/10 hover:border-[#E2FF1B]/30 border border-transparent transition-all duration-300 group cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center group-hover:bg-[#E2FF1B]/30 transition-colors">
+                  <Mail className="w-6 h-6 text-[#E2FF1B] flex-shrink-0" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white text-lg mb-1 group-hover:text-[#E2FF1B] transition-colors">Email</h4>
+                  <p className="text-gray-300 text-base group-hover:text-white transition-colors">tresgenpadel@hotmail.com</p>
+                </div>
+              </a>
             </div>
           </div>
         </div>
