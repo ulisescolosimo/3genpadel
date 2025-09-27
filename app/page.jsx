@@ -339,14 +339,7 @@ export default function Home() {
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Grupales</h3>
                       <p className="text-slate-400 text-sm font-medium">Aprendé en grupo</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                        </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
                         <span className="text-xs text-slate-500">Metodología estructurada</span>
                       </div>
                     </div>
@@ -368,7 +361,7 @@ export default function Home() {
                           </div>
                           <span className="font-semibold text-white">Horarios</span>
                         </div>
-                        <div className="space-y-2 ml-11">
+                        <div className="space-y-2 md:ml-11">
                           <p className="text-sm text-slate-300 font-medium">Martes, Miércoles y Viernes</p>
                           <p className="text-sm text-[#E2FF1B] font-bold">12:00 a 16:00 hs</p>
                         </div>
@@ -390,15 +383,13 @@ export default function Home() {
                   
                   {/* Botones mejorados */}
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <a 
-                      href="https://calendly.com/3gen/1hora"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  <Link 
+                      href="/sede-olleros/entrenamientos-grupales"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Reservar Clase Grupal</span>
                       <ArrowRight className="w-4 h-4" />
-                    </a>
+                    </Link>
                     <Link 
                       href="/sede-olleros/entrenamientos-grupales"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
@@ -431,14 +422,7 @@ export default function Home() {
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Privadas</h3>
                       <p className="text-slate-400 text-sm font-medium">Entrená con los mejores</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                          <Star className="w-4 h-4 text-[#E2FF1B] fill-current" />
-                        </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
                         <span className="text-xs text-slate-500">Profesionales Top 100</span>
                       </div>
                     </div>
@@ -460,13 +444,13 @@ export default function Home() {
                           </div>
                           <span className="font-semibold text-white">Entrenadores</span>
                         </div>
-                        <div className="space-y-2 ml-11">
+                        <div className="space-y-2 md:ml-11">
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full hidden md:block"></div>
                             <p className="text-sm text-slate-300">Stefano Lorenzo - Ranking Nº 99 Argentina</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full"></div>
+                            <div className="w-2 h-2 bg-[#E2FF1B] rounded-full hidden md:block"></div>
                             <p className="text-sm text-slate-300">Ignacio Begher - Ranking Nº 97 Argentina</p>
                           </div>
                         </div>
