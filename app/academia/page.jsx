@@ -76,7 +76,7 @@ export default function AcademiaPage() {
       {/* Hero Section */}
       <section className="relative py-12 md:py-20 px-4 lg:px-8">
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2FF1B]/20 to-transparent"></div>
-        <div className="container mx-auto relative z-10">
+        <div className="w-full md:container mx-auto relative z-10">
                       {/* Ubicación */}
                       <div className="flex justify-center items-center gap-3 mb-6 md:mb-8 px-4">
               <div className="inline-flex items-center gap-3 px-4 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30">
@@ -98,7 +98,7 @@ export default function AcademiaPage() {
               </div>
             </div>
           <div className="text-center max-w-6xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
               <span className="text-[#E2FF1B]">Academia</span> 3gen Padel
             </h1>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-6 md:mb-8 px-2">
@@ -169,8 +169,8 @@ export default function AcademiaPage() {
           {activeTab === 'formato' && (
             <div className="max-w-full mx-auto">
               <div className="text-center mb-8 md:mb-12 px-4">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">Nuestro Formato de Entrenamiento</h2>
-                <p className="text-base sm:text-lg md:text-xl text-gray-300">
+                <h2 className="text-xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">Nuestro Formato de Entrenamiento</h2>
+                <p className="text-sm sm:text-lg md:text-xl text-gray-300">
                   Cada clase de 2 horas está diseñada para desarrollar jugadores completos
                 </p>
               </div>
@@ -184,8 +184,8 @@ export default function AcademiaPage() {
                           <fase.icon className="w-6 h-6 md:w-8 md:h-8" />
                         </div>
                       </div>
-                      <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#E2FF1B]">{fase.fase}</CardTitle>
-                      <CardDescription className="text-base md:text-lg font-semibold text-white">
+                      <CardTitle className="text-base sm:text-xl md:text-2xl font-bold text-[#E2FF1B]">{fase.fase}</CardTitle>
+                      <CardDescription className="text-sm md:text-lg font-semibold text-white">
                         {fase.duracion}
                       </CardDescription>
                     </CardHeader>
@@ -200,11 +200,11 @@ export default function AcademiaPage() {
 
               <div className="bg-gradient-to-r from-[#E2FF1B]/10 to-transparent p-6 md:p-8 rounded-2xl border border-[#E2FF1B]/20">
                 <div className="text-center">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-3 md:mb-4 text-[#E2FF1B]">
+                  <h3 className="text-lg sm:text-2xl font-bold mb-3 md:mb-4 text-[#E2FF1B]">
                     <Zap className="w-5 h-5 md:w-6 md:h-6 inline mr-2" />
                     Supervisión Profesional
                   </h3>
-                  <p className="text-sm md:text-lg text-gray-300 leading-relaxed">
+                  <p className="text-xs md:text-lg text-gray-300 leading-relaxed">
                     Todo el entrenamiento se desarrolla bajo la mirada experta de nuestros profesores certificados, 
                     quienes garantizan que cada movimiento, técnica y estrategia sea ejecutada correctamente. 
                     Nuestros instructores no solo enseñan, sino que también motivan y guían a cada jugador 
@@ -218,56 +218,54 @@ export default function AcademiaPage() {
           {activeTab === 'turnos' && (
             <div className="max-w-full mx-auto">
               <div className="text-center mb-8 md:mb-12 px-4">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">Turnos Disponibles</h2>
-                <p className="text-base sm:text-lg md:text-xl text-gray-300">
+                <h2 className="text-xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">Turnos Disponibles</h2>
+                <p className="text-sm sm:text-lg md:text-xl text-gray-300">
                   Horarios flexibles para adaptarse a tu rutina
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {turnos.map((turno) => (
-                  <Card key={turno.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full flex flex-col">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-xl md:text-2xl font-bold text-[#E2FF1B] flex items-center gap-3">
-                        <Calendar className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                  <Card key={turno.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
+                    <CardHeader className="text-center pb-3">
+                      <div className="flex justify-center mb-3">
+                        <div className="p-3 rounded-full bg-[#E2FF1B]/20 border border-[#E2FF1B]/30">
+                          <Calendar className="w-6 h-6 text-[#E2FF1B]" />
+                        </div>
+                      </div>
+                      <CardTitle className="text-lg md:text-xl font-bold text-[#E2FF1B]">
                         {turno.horario}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col space-y-4">
+                    <CardContent className="text-center space-y-4">
                       <div className="space-y-2">
-                        <div className="flex items-start gap-3">
-                          <Clock className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-white mb-1">Horarios:</h4>
-                            <div className="space-y-1">
-                              {turno.horarios.map((horario, index) => (
-                                <p key={index} className="text-gray-300 text-sm md:text-base">
-                                  {horario}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
+                        <div className="flex items-center justify-center gap-2">
+                          <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                          <span className="text-white font-medium text-sm md:text-base">Horario</span>
                         </div>
+                        <p className="text-gray-300 text-sm md:text-base font-medium">
+                          {turno.horarios[0]}
+                        </p>
                       </div>
 
                       <div className="space-y-2">
-                        <div className="flex items-start gap-3">
-                          <Target className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-white mb-1">
-                              {turno.nivel === 'Iniciantes' ? '' : 'Nivel:'}
-                            </h4>
-                            <p className="text-gray-300 text-sm md:text-base">{turno.nivel}</p>
-                          </div>
+                        <div className="flex items-center justify-center gap-2">
+                          <Target className="w-4 h-4 text-[#E2FF1B]" />
+                          <span className="text-white font-medium text-sm md:text-base">Nivel</span>
+                        </div>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#E2FF1B]/20 border border-[#E2FF1B]/30">
+                          <span className="text-[#E2FF1B] text-xs md:text-sm font-semibold">
+                            {turno.nivel}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="mt-auto pt-2">
+                      <div className="pt-2">
                         <Button
                           onClick={() => openWhatsApp(turno)}
-                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm md:text-base py-3 font-bold transition-all duration-300 hover:scale-105"
+                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-xs md:text-sm py-2.5 font-bold transition-all duration-300 hover:scale-105"
                         >
-                          Inscribirse en este turno
+                          Inscribirse
                         </Button>
                       </div>
                     </CardContent>
@@ -277,11 +275,11 @@ export default function AcademiaPage() {
 
               <div className="mt-8 md:mt-12 bg-gradient-to-r from-[#E2FF1B]/10 to-transparent p-6 md:p-8 rounded-2xl border border-[#E2FF1B]/20">
                 <div className="text-center">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-3 md:mb-4 text-[#E2FF1B]">
+                  <h3 className="text-lg sm:text-2xl font-bold mb-3 md:mb-4 text-[#E2FF1B]">
                     <Users className="w-5 h-5 md:w-6 md:h-6 inline mr-2" />
                     Grupos Reducidos
                   </h3>
-                  <p className="text-sm md:text-lg text-gray-300 leading-relaxed">
+                  <p className="text-xs md:text-lg text-gray-300 leading-relaxed">
                     Mantenemos grupos pequeños para garantizar atención personalizada. 
                     Cada profesor puede dedicar tiempo individual a cada jugador, 
                     asegurando que todos progresen a su ritmo y alcancen sus objetivos.
