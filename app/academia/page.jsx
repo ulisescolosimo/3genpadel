@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Users, Target, Award, Calendar, Star, BookOpen, Dumbbell, Zap, MapPin } from 'lucide-react'
+import { Clock, Users, Target, Award, Calendar, Star, BookOpen, Dumbbell, Zap, MapPin, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -78,10 +78,23 @@ export default function AcademiaPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2FF1B]/20 to-transparent"></div>
         <div className="container mx-auto relative z-10">
                       {/* Ubicación */}
-                      <div className="flex justify-center mb-6 md:mb-8 px-4">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30">
+                      <div className="flex justify-center items-center gap-3 mb-6 md:mb-8 px-4">
+              <div className="inline-flex items-center gap-3 px-4 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30">
                 <MapPin className="w-5 h-5 text-[#E2FF1B]" />
                 <span className="text-[#E2FF1B] font-semibold text-sm tracking-wider">Delgado 864, Colegiales</span>
+              </div>
+              {/* Botón info con tooltip */}
+              <div className="group relative hidden md:block">
+                <button className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-full p-2 transition-all duration-300 hover:scale-110">
+                  <Info className="w-4 h-4 text-blue-400" />
+                </button>
+                {/* Tooltip */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none z-50">
+                  <div className="bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg whitespace-nowrap text-sm font-medium border border-blue-400/30">
+                    Próximamente: Academia turno tarde - Sede Olleros
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-500 rotate-45 border-l border-t border-blue-400/30"></div>
+                  </div>
+                </div>
               </div>
             </div>
           <div className="text-center max-w-6xl mx-auto">

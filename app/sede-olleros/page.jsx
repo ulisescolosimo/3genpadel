@@ -58,7 +58,7 @@ export default function SedeOllerosPage() {
               <span className="text-[#E2FF1B]">Sede</span> Olleros
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Nuestra sede principal ubicada en Palermo, donde podés disfrutar de entrenamientos grupales y clases privadas con profesionales de primera división
+              Nuestra sede principal ubicada en Palermo, donde podés disfrutar de clases grupales y clases privadas con profesionales de primera división
             </p>
           </div>
         </div>
@@ -75,7 +75,6 @@ export default function SedeOllerosPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {/* Entrenamientos Grupales */}
             <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-4">
@@ -83,7 +82,7 @@ export default function SedeOllerosPage() {
                     <Users className="w-8 h-8 text-[#E2FF1B]" />
                   </div>
                 </div>
-                <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Entrenamientos Grupales</CardTitle>
+                <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Clases Grupales</CardTitle>
                 <CardDescription className="text-white font-medium mb-3">Aprende en equipo</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -105,9 +104,9 @@ export default function SedeOllerosPage() {
                   </ul>
                 </div>
                 <div className="pt-2">
-                  <Link href="/sede-olleros/entrenamientos-grupales">
+                  <Link href="/sede-olleros/clases-grupales">
                     <Button className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105">
-                      Ver Entrenamientos Grupales
+                      Ver Clases Grupales
                     </Button>
                   </Link>
                 </div>
@@ -122,7 +121,7 @@ export default function SedeOllerosPage() {
                     <Trophy className="w-8 h-8 text-[#E2FF1B]" />
                   </div>
                 </div>
-                <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Clases Privadas</CardTitle>
+                <CardTitle className="text-xl font-bold text-[#E2FF1B] mb-2">Clases Profesionales</CardTitle>
                 <CardDescription className="text-white font-medium mb-3">Entrenamiento personalizado</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -144,9 +143,9 @@ export default function SedeOllerosPage() {
                   </ul>
                 </div>
                 <div className="pt-2">
-                  <Link href="/sede-olleros/clases-privadas">
+                  <Link href="/sede-olleros/clases-profesionales">
                     <Button className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105">
-                      Ver Clases Privadas
+                      Ver Clases Profesionales
                     </Button>
                   </Link>
                 </div>

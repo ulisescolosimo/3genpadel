@@ -247,7 +247,7 @@ export default function EntrenamientosGrupalesPage() {
                 Perfectos para aprender, practicar y divertirte mientras mejorás tu nivel de pádel.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/sede-olleros/clases-privadas">
+                <Link href="/sede-olleros/clases-profesionales">
                   <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 px-6 font-bold transition-all duration-300 hover:scale-105">
                     <Trophy className="w-4 h-4 mr-2" />
                     Clases Privadas

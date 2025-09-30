@@ -27,7 +27,7 @@ export default function ClasesPrivadasPage() {
             </Link>
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
-                <span className="text-[#E2FF1B]">Clases</span> Privadas
+                <span className="text-[#E2FF1B]">Clases</span> Profesionales
               </h1>
               <p className="text-gray-300 text-base sm:text-lg md:text-xl font-medium">Entrenamiento personalizado con profesores</p>
             </div>

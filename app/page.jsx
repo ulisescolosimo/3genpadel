@@ -384,14 +384,14 @@ export default function Home() {
                   {/* Botones mejorados */}
                   <div className="flex flex-col sm:flex-row gap-3">
                   <Link 
-                      href="/sede-olleros/entrenamientos-grupales"
+                      href="/sede-olleros/clases-grupales"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Reservar Clase Grupal</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link 
-                      href="/sede-olleros/entrenamientos-grupales"
+                      href="/sede-olleros/clases-grupales"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Conocé más</span>
@@ -420,7 +420,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Privadas</h3>
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#E2FF1B] transition-colors duration-300">Clases Profesionales</h3>
                       <p className="text-slate-400 text-sm font-medium">Entrená con los mejores</p>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
                         <span className="text-xs text-slate-500">Profesionales Top 100</span>
@@ -473,14 +473,14 @@ export default function Home() {
                   {/* Botones mejorados */}
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link 
-                      href="/sede-olleros/clases-privadas"
+                      href="/sede-olleros/clases-profesionales"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Reservar Clase Privada</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link 
-                      href="/sede-olleros/clases-privadas"
+                      href="/sede-olleros/clases-profesionales"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
                     >
                       <span>Conocé más</span>

@@ -249,15 +249,15 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/sede-olleros/entrenamientos-grupales" className="flex items-center gap-2">
+                    <Link href="/sede-olleros/clases-grupales" className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      Entrenamientos Grupales
+                      Clases Grupales
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/sede-olleros/clases-privadas" className="flex items-center gap-2">
+                    <Link href="/sede-olleros/clases-profesionales" className="flex items-center gap-2">
                       <User className="w-4 h-4" />
-                      Clases Privadas
+                      Clases Profesionales
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -500,20 +500,20 @@ export default function Header() {
                     Academia
                   </Link>
                   <Link 
-                    href="/sede-olleros/entrenamientos-grupales" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/entrenamientos-grupales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/sede-olleros/clases-grupales" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-grupales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <Users className="w-4 h-4" />
-                    Entrenamientos Grupales
+                    Clases Grupales
                   </Link>
                   <Link 
-                    href="/sede-olleros/clases-privadas" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-privadas') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/sede-olleros/clases-profesionales" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-profesionales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <User className="w-4 h-4" />
-                    Clases Privadas
+                    Clases Profesionales
                   </Link>
                 </div>
               </div>
