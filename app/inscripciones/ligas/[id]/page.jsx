@@ -2292,7 +2292,6 @@ export default function LigaInscripcionPage() {
                       </div>
                     </div>
 
-                    {/* Comprobante de Pago */}
                     <div className="space-y-2">
                       <Label htmlFor="comprobante" className="text-white text-sm sm:text-base">Comprobante de Inscripción (Transferencia) *</Label>
                       <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-3 sm:p-4">
@@ -2300,7 +2299,7 @@ export default function LigaInscripcionPage() {
                           <strong>Alias:</strong> stefanolorenzo
                         </p>
                         <p className="text-xs sm:text-sm text-[#E2FF1B] mb-2">
-                          <strong>Inscripción:</strong> $20.000 por equipo
+                          <strong>Inscripción:</strong> $25.000 por equipo
                         </p>
                         <p className="text-xs text-gray-400 mb-4">
                           Arrastra un archivo o haz clic para seleccionar. Tamaño máximo: 10MB.
