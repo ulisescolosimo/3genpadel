@@ -304,7 +304,6 @@ export default function LigaInscripcionPage() {
                 nombre: user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || "",
                 apellido: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || "",
                 dni: null, // DNI como null inicialmente
-                ranking_puntos: 0,
                 cuenta_activada: true,
                 rol: 'user'
               })
@@ -805,16 +804,19 @@ export default function LigaInscripcionPage() {
       }
 
       // Mostrar mensaje informativo sobre la contraseña temporal
+      const esActualizacion = result.updated
+      const titulo = esActualizacion ? "Usuario actualizado exitosamente" : "Usuario creado exitosamente"
+      
       if (result.tempPassword) {
         toast({
-          title: "Usuario creado exitosamente",
-          description: `Se ha creado una cuenta para ${result.user.nombre} ${result.user.apellido}. La contraseña temporal es: ${result.tempPassword}. Deberá cambiarla al iniciar sesión.`,
+          title: titulo,
+          description: `${esActualizacion ? 'Se ha actualizado' : 'Se ha creado'} una cuenta para ${result.user.nombre} ${result.user.apellido}. La contraseña temporal es: ${result.tempPassword}. Deberá cambiarla al iniciar sesión.`,
           variant: "default"
         })
       } else {
         toast({
-          title: "Usuario creado exitosamente",
-          description: `Se ha creado una cuenta para ${result.user.nombre} ${result.user.apellido}. El usuario estará disponible para búsqueda en unos segundos.`,
+          title: titulo,
+          description: `${esActualizacion ? 'Se ha actualizado' : 'Se ha creado'} una cuenta para ${result.user.nombre} ${result.user.apellido}. El usuario estará disponible para búsqueda en unos segundos.`,
           variant: "default"
         })
       }
