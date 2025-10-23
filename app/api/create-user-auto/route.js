@@ -104,7 +104,6 @@ export async function POST(request) {
           nombre: nombre,
           apellido: apellido,
           dni: null, // DNI como null inicialmente
-          ranking_puntos: 0,
           cuenta_activada: true, // Cuenta activada para usuarios de Google
           rol: 'user',
           avatar_url: avatarUrl,

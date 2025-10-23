@@ -230,7 +230,7 @@ export default function LigaInscripcionPage() {
           }
 
           if (data) {
-            // Buscar inscripciones por email o DNI
+            // Buscar inscripciones por email o DNI SOLO en la liga actual
             let filtros = []
             if (data.id) filtros.push(`titular_1_id.eq.${data.id},titular_2_id.eq.${data.id},suplente_1_id.eq.${data.id},suplente_2_id.eq.${data.id}`)
             if (data.dni) filtros.push(`titular_1_dni.eq.${data.dni},titular_2_dni.eq.${data.dni},suplente_1_dni.eq.${data.dni},suplente_2_dni.eq.${data.dni}`)
@@ -238,23 +238,27 @@ export default function LigaInscripcionPage() {
             let inscripcionesExistentes = []
             let errorInscripciones = null
 
-            // Buscar por ID usuario
+            // Buscar por ID usuario en la liga actual
             if (filtros.length > 0) {
               const { data: insc1, error: err1 } = await supabase
                 .from('ligainscripciones')
                 .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
                 .or(filtros[0])
                 .in('estado', ['pendiente', 'aprobada'])
+          .eq('liga_categorias.ligas.id', id)
+                .eq('liga_categorias.ligas.id', id)
               if (err1) errorInscripciones = err1
               if (insc1) inscripcionesExistentes = inscripcionesExistentes.concat(insc1)
             }
-            // Buscar por DNI si existe y es distinto del ID
+            // Buscar por DNI si existe y es distinto del ID en la liga actual
             if (filtros.length > 1) {
               const { data: insc2, error: err2 } = await supabase
                 .from('ligainscripciones')
                 .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
                 .or(filtros[1])
                 .in('estado', ['pendiente', 'aprobada'])
+          .eq('liga_categorias.ligas.id', id)
+                .eq('liga_categorias.ligas.id', id)
               if (err2) errorInscripciones = err2
               if (insc2) inscripcionesExistentes = inscripcionesExistentes.concat(insc2)
             }
@@ -300,7 +304,6 @@ export default function LigaInscripcionPage() {
                 nombre: user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || "",
                 apellido: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || "",
                 dni: null, // DNI como null inicialmente
-                ranking_puntos: 0,
                 cuenta_activada: true,
                 rol: 'user'
               })
@@ -457,6 +460,7 @@ export default function LigaInscripcionPage() {
           .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
           .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
           .in('estado', ['pendiente', 'aprobada'])
+          .eq('liga_categorias.ligas.id', id)
 
         const tieneInscripcionPendiente = inscripcionesExistentes && inscripcionesExistentes.length > 0
         const inscripcionInfo = tieneInscripcionPendiente ? inscripcionesExistentes[0] : null
@@ -567,6 +571,7 @@ export default function LigaInscripcionPage() {
           .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
           .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
           .in('estado', ['pendiente', 'aprobada'])
+          .eq('liga_categorias.ligas.id', id)
 
         const tieneInscripcionPendiente = inscripcionesExistentes && inscripcionesExistentes.length > 0
         const inscripcionInfo = tieneInscripcionPendiente ? inscripcionesExistentes[0] : null
@@ -657,6 +662,7 @@ export default function LigaInscripcionPage() {
           .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
           .or(`titular_1_id.eq.${data.id},titular_2_id.eq.${data.id},suplente_1_id.eq.${data.id},suplente_2_id.eq.${data.id}`)
           .in('estado', ['pendiente', 'aprobada'])
+          .eq('liga_categorias.ligas.id', id)
 
         if (errorInscripciones) {
           console.error('Error verificando inscripciones existentes:', errorInscripciones)
@@ -798,16 +804,19 @@ export default function LigaInscripcionPage() {
       }
 
       // Mostrar mensaje informativo sobre la contraseña temporal
+      const esActualizacion = result.updated
+      const titulo = esActualizacion ? "Usuario actualizado exitosamente" : "Usuario creado exitosamente"
+      
       if (result.tempPassword) {
         toast({
-          title: "Usuario creado exitosamente",
-          description: `Se ha creado una cuenta para ${result.user.nombre} ${result.user.apellido}. La contraseña temporal es: ${result.tempPassword}. Deberá cambiarla al iniciar sesión.`,
+          title: titulo,
+          description: `${esActualizacion ? 'Se ha actualizado' : 'Se ha creado'} una cuenta para ${result.user.nombre} ${result.user.apellido}. La contraseña temporal es: ${result.tempPassword}. Deberá cambiarla al iniciar sesión.`,
           variant: "default"
         })
       } else {
         toast({
-          title: "Usuario creado exitosamente",
-          description: `Se ha creado una cuenta para ${result.user.nombre} ${result.user.apellido}. El usuario estará disponible para búsqueda en unos segundos.`,
+          title: titulo,
+          description: `${esActualizacion ? 'Se ha actualizado' : 'Se ha creado'} una cuenta para ${result.user.nombre} ${result.user.apellido}. El usuario estará disponible para búsqueda en unos segundos.`,
           variant: "default"
         })
       }
@@ -1125,6 +1134,7 @@ export default function LigaInscripcionPage() {
           .select('id, estado, liga_categorias!inner(ligas!inner(id, nombre))')
           .or(`titular_1_id.eq.${jugador.id},titular_2_id.eq.${jugador.id},suplente_1_id.eq.${jugador.id},suplente_2_id.eq.${jugador.id}`)
           .in('estado', ['pendiente', 'aprobada'])
+          .eq('liga_categorias.ligas.id', id)
 
         if (errorInscripciones) {
           console.error('Error verificando inscripciones existentes:', errorInscripciones)
@@ -2292,7 +2302,6 @@ export default function LigaInscripcionPage() {
                       </div>
                     </div>
 
-                    {/* Comprobante de Pago */}
                     <div className="space-y-2">
                       <Label htmlFor="comprobante" className="text-white text-sm sm:text-base">Comprobante de Inscripción (Transferencia) *</Label>
                       <div className="bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg p-3 sm:p-4">
@@ -2300,7 +2309,7 @@ export default function LigaInscripcionPage() {
                           <strong>Alias:</strong> stefanolorenzo
                         </p>
                         <p className="text-xs sm:text-sm text-[#E2FF1B] mb-2">
-                          <strong>Inscripción:</strong> $20.000 por equipo
+                          <strong>Inscripción:</strong> $25.000 por equipo
                         </p>
                         <p className="text-xs text-gray-400 mb-4">
                           Arrastra un archivo o haz clic para seleccionar. Tamaño máximo: 10MB.

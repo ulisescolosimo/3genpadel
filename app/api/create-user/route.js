@@ -73,10 +73,10 @@ export async function POST(request) {
       )
     }
 
-    // Verificar si ya existe un usuario con ese email
+    // Verificar si ya existe un usuario con ese email en la tabla usuarios
     const { data: usuarioExistenteEmail, error: checkEmailError } = await supabase
       .from('usuarios')
-      .select('id, email, nombre, apellido, dni')
+      .select('id, email, nombre, apellido, dni, cuenta_activada')
       .eq('email', email.toLowerCase())
       .single()
 
@@ -88,11 +88,17 @@ export async function POST(request) {
       )
     }
 
-    if (usuarioExistenteEmail) {
+    // Si existe un usuario con perfil completo y cuenta activada, no permitir crear otro
+    if (usuarioExistenteEmail && usuarioExistenteEmail.cuenta_activada) {
       return NextResponse.json(
-        { error: 'Ya existe un usuario con ese email' },
+        { error: 'Ya existe un usuario activado con ese email' },
         { status: 400 }
       )
+    }
+
+    // Si existe un usuario con perfil pero cuenta no activada, permitir actualizar
+    if (usuarioExistenteEmail && !usuarioExistenteEmail.cuenta_activada) {
+      console.log('Usuario existe pero no está activado, se actualizará el perfil')
     }
 
     // Generar una contraseña temporal (el usuario deberá cambiarla después)
@@ -103,50 +109,66 @@ export async function POST(request) {
     
     let authData = null
     let authError = null
+    let usuarioExistenteEnAuth = false
 
-    const createResult = await supabase.auth.admin.createUser({
-      email: email.toLowerCase(),
-      password: tempPassword,
-      email_confirm: true, // Confirmar email automáticamente
-      user_metadata: {
-        full_name: `${nombre} ${apellido}`.trim()
-      }
-    })
+    // Si ya existe un usuario con perfil pero no activado, intentar obtener su ID de Auth
+    if (usuarioExistenteEmail && !usuarioExistenteEmail.cuenta_activada) {
+      console.log('Usuario existe en tabla usuarios pero no activado, usando ID existente')
+      authData = { user: { id: usuarioExistenteEmail.id } }
+      usuarioExistenteEnAuth = true
+    } else {
+      // Intentar crear nuevo usuario en Auth
+      const createResult = await supabase.auth.admin.createUser({
+        email: email.toLowerCase(),
+        password: tempPassword,
+        email_confirm: true, // Confirmar email automáticamente
+        user_metadata: {
+          full_name: `${nombre} ${apellido}`.trim()
+        }
+      })
 
-    authData = createResult.data
-    authError = createResult.error
+      authData = createResult.data
+      authError = createResult.error
 
-    if (authError) {
-      console.error('Error creando usuario en Auth:', authError)
-      
-      // Si el usuario ya existe, intentar obtenerlo
-      if (authError.code === 'email_exists' || authError.status === 422 || 
-          authError.message.includes('already registered') || 
-          authError.message.includes('already exists')) {
+      if (authError) {
+        console.error('Error creando usuario en Auth:', authError)
         
-        console.log('Usuario ya existe en Auth, verificando...')
-        
-        // Intentar hacer login para obtener el usuario existente
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.toLowerCase(),
-          password: tempPassword
-        })
-        
-        if (signInError) {
-          // Si no puede hacer login, el usuario existe pero con otra contraseña
+        // Si el usuario ya existe, intentar obtenerlo
+        if (authError.code === 'email_exists' || authError.status === 422 || 
+            authError.message.includes('already registered') || 
+            authError.message.includes('already exists')) {
+          
+          console.log('Usuario ya existe en Auth, obteniendo usuario existente...')
+          
+          // Obtener usuario existente por email usando Admin API
+          const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers()
+          
+          if (listError) {
+            console.error('Error listando usuarios:', listError)
+            return NextResponse.json(
+              { error: 'Error verificando usuario existente: ' + listError.message },
+              { status: 500 }
+            )
+          }
+          
+          const existingUser = existingUsers.users.find(u => u.email === email.toLowerCase())
+          
+          if (existingUser) {
+            authData = { user: existingUser }
+            usuarioExistenteEnAuth = true
+            console.log('Usuario existente encontrado en Auth:', existingUser.id)
+          } else {
+            return NextResponse.json(
+              { error: 'Usuario existe en Auth pero no se pudo obtener información' },
+              { status: 500 }
+            )
+          }
+        } else {
           return NextResponse.json(
-            { error: 'Ya existe un usuario con este email. Debe usar la opción de activación de cuenta.' },
-            { status: 400 }
+            { error: 'Error al crear la cuenta de usuario: ' + authError.message },
+            { status: 500 }
           )
         }
-        
-        // Usar el usuario existente
-        authData = { user: signInData.user }
-      } else {
-        return NextResponse.json(
-          { error: 'Error al crear la cuenta de usuario: ' + authError.message },
-          { status: 500 }
-        )
       }
     }
 
@@ -179,9 +201,8 @@ export async function POST(request) {
           nombre: nombre,
           apellido: apellido,
           dni: dniNumber,
-          ranking_puntos: 0,
-          cuenta_activada: false, // Cuenta no activada hasta que configure contraseña
-          rol: 'user',
+          cuenta_activada: usuarioExistenteEnAuth ? false : true, // Solo marcar como no activada si es usuario existente
+          rol: existingProfile.rol || 'user',
           updated_at: new Date().toISOString()
         })
         .eq('id', authData.user.id)
@@ -198,8 +219,7 @@ export async function POST(request) {
           nombre: nombre,
           apellido: apellido,
           dni: dniNumber,
-          ranking_puntos: 0,
-          cuenta_activada: false, // Cuenta no activada hasta que configure contraseña
+          cuenta_activada: usuarioExistenteEnAuth ? false : true, // Solo marcar como no activada si es usuario existente
           rol: 'user',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -248,11 +268,15 @@ export async function POST(request) {
       )
     }
 
-    console.log('Usuario creado exitosamente:', usuarioFinal)
+    console.log('Usuario creado/actualizado exitosamente:', usuarioFinal)
+
+    const mensaje = usuarioExistenteEnAuth || existingProfile 
+      ? 'Usuario actualizado exitosamente' 
+      : 'Usuario creado exitosamente'
 
     return NextResponse.json({
       success: true,
-      message: 'Usuario creado exitosamente',
+      message: mensaje,
       user: {
         id: usuarioFinal.id,
         email: usuarioFinal.email,
@@ -261,7 +285,8 @@ export async function POST(request) {
         dni: usuarioFinal.dni,
         cuenta_activada: usuarioFinal.cuenta_activada
       },
-      tempPassword: process.env.NODE_ENV === 'development' ? tempPassword : undefined // Solo en desarrollo
+      tempPassword: process.env.NODE_ENV === 'development' ? tempPassword : undefined, // Solo en desarrollo
+      updated: usuarioExistenteEnAuth || existingProfile // Indicar si fue una actualización
     })
 
   } catch (error) {
