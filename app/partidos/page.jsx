@@ -17,11 +17,6 @@ import {
 } from "@/components/ui/select"
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { cn } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
 import MatchDetailModal from '@/components/MatchDetailModal'
 import Link from 'next/link'
 
@@ -31,10 +26,8 @@ export default function PartidosPage() {
   const [categorias, setCategorias] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterCategoria, setFilterCategoria] = useState('all')
-  const [filterEstado, setFilterEstado] = useState('all')
   const [filterInstancia, setFilterInstancia] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedDate, setSelectedDate] = useState(null)
   const [selectedPartido, setSelectedPartido] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [user, setUser] = useState(null)
@@ -125,7 +118,7 @@ export default function PartidosPage() {
             )
           )
         `)
-        .order('fecha', { ascending: true })
+        .order('fecha', { ascending: false })
 
       if (partidosError) throw partidosError
       setPartidos(partidosData || [])
@@ -261,17 +254,6 @@ export default function PartidosPage() {
     )
   }
 
-  // Función para verificar si el partido coincide con la fecha seleccionada
-  const matchesSelectedDate = (partido) => {
-    if (!selectedDate) return true
-    
-    const partidoDate = new Date(partido.fecha)
-    const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
-    const partidoDateOnly = new Date(partidoDate.getFullYear(), partidoDate.getMonth(), partidoDate.getDate())
-    
-    return partidoDateOnly.getTime() === selectedDateOnly.getTime()
-  }
-
   const getEstadoBadge = (estado) => {
     const variants = {
       pendiente: 'default',
@@ -325,12 +307,10 @@ export default function PartidosPage() {
   const filteredPartidos = partidos.filter(partido => {
     const categoriaMatch = filterCategoria === 'all' || 
       partido.liga_categorias?.id === parseInt(filterCategoria)
-    const estadoMatch = filterEstado === 'all' || partido.estado === filterEstado
     const instanciaMatch = filterInstancia === 'all' || partido.ronda === filterInstancia
     const searchMatch = searchInPartido(partido, searchTerm)
-    const dateMatch = matchesSelectedDate(partido)
     
-    return categoriaMatch && estadoMatch && instanciaMatch && searchMatch && dateMatch
+    return categoriaMatch && instanciaMatch && searchMatch
   })
 
   // Agrupar partidos por fecha y luego por categoría
@@ -362,10 +342,8 @@ export default function PartidosPage() {
 
   const limpiarFiltros = () => {
     setFilterCategoria('all')
-    setFilterEstado('all')
     setFilterInstancia('all')
     setSearchTerm('')
-    setSelectedDate(null)
   }
 
   if (loading) {
@@ -423,50 +401,8 @@ export default function PartidosPage() {
                 />
               </div>
               
-              {/* Date Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full sm:w-[200px] justify-start text-left font-normal bg-black/20 border border-white/10 text-white h-10 sm:h-9 rounded-md",
-                      !selectedDate && "text-gray-400"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-800 border-white/20" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                    locale={es}
-                    className="bg-gray-800 text-white"
-                    formatters={{
-                      formatMonthDropdown: (date) =>
-                        date.toLocaleString("es", { month: "long" }),
-                      formatYearDropdown: (date) =>
-                        date.toLocaleString("es", { year: "numeric" }),
-                    }}
-                    classNames={{
-                      caption_label: "text-white font-medium",
-                      nav_button: "text-white hover:bg-white/10 border-white/20",
-                      day: "text-white hover:bg-white/10 rounded-md",
-                      day_selected: "!bg-[#E2FC1D] !text-black hover:!bg-[#E2FC1D] hover:!text-black focus:!bg-[#E2FC1D] focus:!text-black font-semibold",
-                      today: "bg-white/20 text-white border border-white/40",
-                      day_outside: "text-gray-500 opacity-50",
-                      weekday: "text-gray-400",
-                      weekdays: "hidden",
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-              
               <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-                <SelectTrigger className="w-full sm:w-[200px] bg-black/20 border-white/20 text-white h-10 sm:h-9">
+                <SelectTrigger className="w-full sm:w-[280px] bg-black/20 border-white/20 text-white h-10 sm:h-9">
                   <SelectValue placeholder="Todas las categorías" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-white/20">
@@ -479,20 +415,8 @@ export default function PartidosPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={filterEstado} onValueChange={setFilterEstado}>
-                <SelectTrigger className="w-full sm:w-[200px] bg-black/20 border-white/20 text-white h-10 sm:h-9">
-                  <SelectValue placeholder="Todos los estados" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-white/20">
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="pendiente">Programados</SelectItem>
-                  <SelectItem value="jugado">Finalizados</SelectItem>
-                  <SelectItem value="cancelado">Cancelados</SelectItem>
-                </SelectContent>
-              </Select>
-
               <Select value={filterInstancia} onValueChange={setFilterInstancia}>
-                <SelectTrigger className="w-full sm:w-[200px] bg-black/20 border-white/20 text-white h-10 sm:h-9">
+                <SelectTrigger className="w-full sm:w-[220px] bg-black/20 border-white/20 text-white h-10 sm:h-9">
                   <SelectValue placeholder="Todas las instancias" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-white/20">
@@ -516,7 +440,7 @@ export default function PartidosPage() {
               No hay partidos programados
             </h3>
             <p className="text-gray-500 text-sm sm:text-base mb-6">
-              {searchTerm || selectedDate ? 'No se encontraron partidos con los filtros y búsqueda seleccionados' : 'No se encontraron partidos con los filtros seleccionados'}
+              {searchTerm ? 'No se encontraron partidos con los filtros y búsqueda seleccionados' : 'No se encontraron partidos con los filtros seleccionados'}
             </p>
             <Button 
               onClick={limpiarFiltros} 

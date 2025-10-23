@@ -294,7 +294,7 @@ export default function Merchandising() {
     let message = `Hola! Me interesa el producto: ${product.name}. ¿Podrían ayudarme con más información?`
     
     // Número de WhatsApp de 3gen
-    const whatsappNumber = "5491135921988" // +54 9 11 3592-1988
+    const whatsappNumber = "5491157516215" // +54 9 11 5751-6215
     const encodedMessage = encodeURIComponent(message)
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
     

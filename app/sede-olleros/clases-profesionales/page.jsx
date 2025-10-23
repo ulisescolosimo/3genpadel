@@ -103,7 +103,7 @@ export default function ClasesPrivadasPage() {
                   </div>
                   <div className="pt-2">
                     <Button
-                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Stefano Lorenzo. ¿Podrían darme más información sobre disponibilidad y precios?', '5491135921988')}
+                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Stefano Lorenzo. ¿Podrían darme más información sobre disponibilidad y precios?', '5491157516215')}
                       className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105"
                     >
                       Reservar con Stefano
@@ -158,7 +158,7 @@ export default function ClasesPrivadasPage() {
                   </div>
                   <div className="pt-2">
                     <Button
-                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Ignacio Begher. ¿Podrían darme más información sobre disponibilidad y precios?', '5491132673029')}
+                      onClick={() => openWhatsApp('Hola! Me interesa reservar una clase privada con Ignacio Begher. ¿Podrían darme más información sobre disponibilidad y precios?', '5491157516215')}
                       className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105"
                     >
                       Reservar con Nacho

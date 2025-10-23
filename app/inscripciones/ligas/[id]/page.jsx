@@ -2287,7 +2287,7 @@ export default function LigaInscripcionPage() {
                           value={formData.contacto_celular}
                           onChange={(e) => handleInputChange('contacto_celular', e.target.value)}
                           className="bg-white/10 border-white/20 text-white"
-                          placeholder="+54 9 11 1234-5678"
+                          placeholder="+54 9 11 5751-6215"
                         />
                       </div>
                     </div>

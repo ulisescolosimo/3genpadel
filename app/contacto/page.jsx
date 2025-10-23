@@ -180,7 +180,7 @@ export default function Contacto() {
             </div>
           </div>
 
-          {/* Teléfonos */}
+          {/* Teléfono */}
           <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
@@ -188,48 +188,20 @@ export default function Contacto() {
               </div>
               <h3 className="text-lg font-semibold text-white">Contacto</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="max-w-md mx-auto">
               <a 
-                href="https://wa.me/5491135921988" 
+                href="https://wa.me/5491157516215" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
+                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-6 transition-all duration-300 hover:scale-[1.02] flex items-center gap-4"
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
-                    <Phone className="w-4 h-4 text-green-400" />
-                  </div>
-                  <span className="text-white font-medium text-sm">WhatsApp</span>
+                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors flex-shrink-0">
+                  <Phone className="w-6 h-6 text-green-400" />
                 </div>
-                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">+54 9 11 3592-1988</p>
-              </a>
-              <a 
-                href="https://wa.me/5491149285316" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
-                    <Phone className="w-4 h-4 text-green-400" />
-                  </div>
-                  <span className="text-white font-medium text-sm">WhatsApp</span>
+                <div className="flex-1">
+                  <span className="text-white font-medium text-base block mb-1">WhatsApp</span>
+                  <p className="text-gray-400 text-lg group-hover:text-white transition-colors">+54 9 11 5751-6215</p>
                 </div>
-                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">+54 9 11 4928-5316</p>
-              </a>
-              <a 
-                href="https://wa.me/5491132673029" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="group bg-gray-800/30 hover:bg-gray-800/50 rounded-lg p-4 transition-all duration-300 hover:scale-[1.02]"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
-                    <Phone className="w-4 h-4 text-green-400" />
-                  </div>
-                  <span className="text-white font-medium text-sm">WhatsApp</span>
-                </div>
-                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">+54 9 11 3267-3029</p>
               </a>
             </div>
           </div>

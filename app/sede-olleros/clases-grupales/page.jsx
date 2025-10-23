@@ -47,7 +47,7 @@ export default function EntrenamientosGrupalesPage() {
 
   const openWhatsApp = (mensaje) => {
     const message = encodeURIComponent(mensaje)
-    const whatsappUrl = `https://wa.me/5491167617557?text=${message}`
+    const whatsappUrl = `https://wa.me/5491157516215?text=${message}`
     window.open(whatsappUrl, '_blank')
   }
 
@@ -72,7 +72,7 @@ export default function EntrenamientosGrupalesPage() {
 
   const requestAccess = () => {
     const message = 'Hola! Me interesa inscribirme en los entrenamientos grupales. ¿Podrían proporcionarme la contraseña de acceso?'
-    const whatsappUrl = `https://wa.me/5491135921988?text=${encodeURIComponent(message)}`
+    const whatsappUrl = `https://wa.me/5491157516215?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
   }
 
@@ -352,7 +352,7 @@ export default function EntrenamientosGrupalesPage() {
               
               {/* Teléfono - Click para llamar */}
               <a 
-                href="tel:+5491167617557"
+                href="tel:+5491157516215"
                 className="flex items-center gap-3 p-6 bg-white/5 rounded-lg w-full hover:bg-white/10 hover:border-[#E2FF1B]/30 border border-transparent transition-all duration-300 group cursor-pointer"
               >
                 <div className="w-12 h-12 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center group-hover:bg-[#E2FF1B]/30 transition-colors">
@@ -360,7 +360,7 @@ export default function EntrenamientosGrupalesPage() {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-semibold text-white text-lg mb-1 group-hover:text-[#E2FF1B] transition-colors">Teléfono</h4>
-                  <p className="text-gray-300 text-base group-hover:text-white transition-colors">+54 9 11 6761-7557</p>
+                  <p className="text-gray-300 text-base group-hover:text-white transition-colors">+54 9 11 5751-6215</p>
                 </div>
               </a>
               

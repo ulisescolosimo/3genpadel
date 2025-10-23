@@ -96,7 +96,7 @@ export default function SponsorsPage() {
               </p>
               <div className="flex justify-center">
                 <a 
-                  href="https://wa.me/5491167617557?text=Hola! Me interesa ser sponsor de 3gen Padel Academy"
+                  href="https://wa.me/5491157516215?text=Hola! Me interesa ser sponsor de 3gen Padel Academy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-full px-6 py-3 border border-[#E2FF1B]/30 hover:from-[#E2FF1B]/30 hover:to-[#E2FF1B]/20 transition-all duration-300 cursor-pointer group"

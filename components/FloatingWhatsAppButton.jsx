@@ -9,9 +9,7 @@ export default function FloatingWhatsAppButton() {
   const { isWhatsAppVisible } = useWhatsAppVisibility()
   
   const phoneNumbers = [
-    { number: '+5491135921988', label: '+54 9 11 3592-1988' },
-    { number: '+5491149285316', label: '+54 9 11 4928-5316' },
-    { number: '+5491132673029', label: '+54 9 11 3267-3029' }
+    { number: '+5491157516215', label: '+54 9 11 5751-6215' }
   ]
 
   const openWhatsApp = (phoneNumber) => {

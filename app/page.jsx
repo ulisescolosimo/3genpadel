@@ -495,7 +495,7 @@ export default function Home() {
           {/* Información adicional */}
           <div className="text-center">
             <a 
-              href="https://wa.me/5491167617557?text=Hola! Tengo dudas sobre las clases en 3gen Padel Academy"
+              href="https://wa.me/5491157516215?text=Hola! Tengo dudas sobre las clases en 3gen Padel Academy"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-[#E2FF1B]/10 to-[#E2FF1B]/5 rounded-full px-6 py-3 border border-[#E2FF1B]/20 hover:from-[#E2FF1B]/20 hover:to-[#E2FF1B]/10 hover:border-[#E2FF1B]/30 transition-all duration-300 cursor-pointer"
@@ -551,7 +551,7 @@ export default function Home() {
               </p>
             </Link>
             <a 
-              href="https://wa.me/5491167617557?text=Hola! Me interesa reservar en 3gen Padel Academy"
+              href="https://wa.me/5491157516215?text=Hola! Me interesa reservar en 3gen Padel Academy"
               target="_blank"
               rel="noopener noreferrer"
               className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20 cursor-pointer block"

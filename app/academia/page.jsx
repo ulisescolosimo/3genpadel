@@ -10,7 +10,7 @@ export default function AcademiaPage() {
 
   const openWhatsApp = (turno) => {
     const message = encodeURIComponent(`Hola! Me gustaría inscribirme en la Academia 3gen Padel para el turno de ${turno.horario}. La ubicación es La Normanda en Delgado 864, Colegiales, CABA. ¿Podrían darme más información sobre disponibilidad y precios?`)
-    const whatsappUrl = `https://wa.me/5491135921988?text=${message}`
+    const whatsappUrl = `https://wa.me/5491157516215?text=${message}`
     window.open(whatsappUrl, '_blank')
   }
 
@@ -121,7 +121,7 @@ export default function AcademiaPage() {
               <Button 
                 onClick={() => {
                   const message = encodeURIComponent('Hola! Me gustaría obtener más información sobre la Academia 3gen Padel. La ubicación es La Normanda en Delgado 864, Colegiales, CABA. ¿Podrían contarme sobre los turnos disponibles y precios?')
-                  const whatsappUrl = `https://wa.me/5491135921988?text=${message}`
+                  const whatsappUrl = `https://wa.me/5491157516215?text=${message}`
                   window.open(whatsappUrl, '_blank')
                 }}
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 md:px-8 md:py-3 rounded-full font-semibold text-base md:text-lg flex items-center gap-2 md:gap-3 transition-all duration-300 hover:scale-105 w-full max-w-sm"

@@ -92,34 +92,12 @@ export default function Footer() {
               <li className="flex items-center space-x-2">
                 <Phone className="h-5 w-5 text-[#E2FF1B]" />
                 <a 
-                  href="https://wa.me/5491135921988" 
+                  href="https://wa.me/5491157516215" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
                 >
-                  +54 9 11 3592-1988
-                </a>
-              </li>
-              <li className="flex items-center space-x-2">
-                <Phone className="h-5 w-5 text-[#E2FF1B]" />
-                <a 
-                  href="https://wa.me/5491149285316" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
-                >
-                  +54 9 11 4928-5316
-                </a>
-              </li>
-              <li className="flex items-center space-x-2">
-                <Phone className="h-5 w-5 text-[#E2FF1B]" />
-                <a 
-                  href="https://wa.me/5491132673029" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-[#E2FF1B] transition-colors"
-                >
-                  +54 9 11 3267-3029
+                  +54 9 11 5751-6215
                 </a>
               </li>
               <li className="flex items-center space-x-2">
