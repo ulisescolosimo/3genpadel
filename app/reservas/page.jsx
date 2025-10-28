@@ -147,9 +147,20 @@ export default function ReservasPage() {
     }
   }
 
+  const parseFecha = (fechaStr) => {
+    if (!fechaStr) return new Date()
+    // Si la fecha ya incluye hora, usarla directamente
+    if (fechaStr.includes('T') || fechaStr.includes(' ')) {
+      return new Date(fechaStr)
+    }
+    // Si solo es fecha (YYYY-MM-DD), parsear manualmente para evitar problemas de zona horaria
+    const [year, month, day] = fechaStr.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+
   const getDiaNombre = (fecha) => {
     const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-    const fechaObj = new Date(fecha)
+    const fechaObj = parseFecha(fecha)
     return dias[fechaObj.getDay()]
   }
 
@@ -157,6 +168,17 @@ export default function ReservasPage() {
     if (!timeStr) return ''
     const parts = String(timeStr).split(':')
     return parts.slice(0, 2).join(':')
+  }
+
+  const getCategoriaNombre = (categoria) => {
+    const categorias = {
+      'C4': 'Principiantes',
+      'C5': 'Principiantes Avanzados',
+      'C6': 'Intermedio',
+      'C7': 'Avanzado',
+      'C8': 'Profesional'
+    }
+    return categorias[categoria] || categoria
   }
 
   return (
@@ -200,10 +222,11 @@ export default function ReservasPage() {
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="C4" className="text-white hover:bg-gray-700">C4 - Principiantes</SelectItem>
-                  <SelectItem value="C6" className="text-white hover:bg-gray-700">C6 - Intermedio</SelectItem>
-                  <SelectItem value="C7" className="text-white hover:bg-gray-700">C7 - Avanzado</SelectItem>
-                  <SelectItem value="C8" className="text-white hover:bg-gray-700">C8 - Profesional</SelectItem>
+                  <SelectItem value="C4" className="text-white hover:bg-gray-700">Principiantes</SelectItem>
+                  <SelectItem value="C5" className="text-white hover:bg-gray-700">Principiantes Avanzados</SelectItem>
+                  <SelectItem value="C6" className="text-white hover:bg-gray-700">Intermedio</SelectItem>
+                  <SelectItem value="C7" className="text-white hover:bg-gray-700">Avanzado</SelectItem>
+                  <SelectItem value="C8" className="text-white hover:bg-gray-700">Profesional</SelectItem>
                 </SelectContent>
               </Select>
             </CardContent>
@@ -232,7 +255,7 @@ export default function ReservasPage() {
                         {/* Header: Categoría y Capacidad */}
                         <div className="flex items-center justify-between mb-3">
                           <Badge className="bg-[#E2FF1B]/10 text-[#E2FF1B] border-[#E2FF1B]/30 font-semibold">
-                            {turno.categoria}
+                            {getCategoriaNombre(turno.categoria)}
                           </Badge>
                           <div className="flex items-center gap-1.5 text-xs text-gray-400">
                             <Users className="w-3.5 h-3.5" />
@@ -244,7 +267,7 @@ export default function ReservasPage() {
                         <div className="mb-3 pb-3 border-b border-white/5">
                           <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{getDiaNombre(turno.fecha)}</div>
                           <div className="text-base font-semibold text-white">
-                            {new Date(turno.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                            {parseFecha(turno.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
                           </div>
                         </div>
 
