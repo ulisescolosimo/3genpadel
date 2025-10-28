@@ -12,7 +12,8 @@ import {
   Gamepad2,
   Award,
   Crown,
-  Bell
+  Bell,
+  Calendar
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import { useState } from 'react'
@@ -59,6 +60,11 @@ export default function AdminHeader() {
       icon: Bell
     },
     {
+      title: 'Reservas',
+      href: '/admin/reservas',
+      icon: Calendar
+    },
+    {
       title: 'Configuración',
       href: '/admin/configuracion',
       icon: Settings
@@ -67,8 +73,8 @@ export default function AdminHeader() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
-      <div className="mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="mx-auto px-2 py-2">
+        <div className="flex items-center justify-between h-12">
           {/* Logo y título - solo visible en mobile */}
           <Link href="/admin/dashboard" className="flex items-center gap-3 md:hidden">
             <img src="/images/logo/logo.png" alt="3gen Padel" className="h-8" />
@@ -84,13 +90,13 @@ export default function AdminHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm ${
                     isActive 
                       ? 'bg-[#E2FF1B] text-black' 
                       : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5" />
                   <span>{item.title}</span>
                 </Link>
               )
@@ -101,10 +107,10 @@ export default function AdminHeader() {
           <div className="flex items-center gap-2 md:flex-shrink-0">
             <button
               onClick={signOut}
-              className="hidden md:flex items-center gap-2 px-4 py-2 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-lg transition-colors"
+              className="hidden md:flex items-center justify-center px-2 py-1 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-lg transition-colors"
+              aria-label="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />
-              <span>Cerrar sesión</span>
             </button>
 
             {/* Botón móvil */}
@@ -131,13 +137,13 @@ export default function AdminHeader() {
                       <Link
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm ${
                           isActive 
                             ? 'bg-[#E2FF1B] text-black' 
                             : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
                         }`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-4 h-4" />
                         <span>{item.title}</span>
                       </Link>
                     </li>
@@ -149,10 +155,9 @@ export default function AdminHeader() {
                       signOut()
                       setIsMenuOpen(false)
                     }}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-lg transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span>Cerrar sesión</span>
                   </button>
                 </li>
               </ul>
