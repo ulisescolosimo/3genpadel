@@ -88,23 +88,6 @@ export async function PATCH(request, { params }) {
       )
     }
 
-    // Si se confirmó, enviar notificación al usuario
-    if (estado === 'confirmada') {
-      await supabase.rpc('crear_notificacion', {
-        p_usuario_id: inscripcion.usuario_id,
-        p_titulo: 'Reserva Confirmada',
-        p_mensaje: `Tu reserva para el turno de ${inscripcion.turno.categoria} del ${new Date(inscripcion.turno.fecha).toLocaleDateString('es-AR')} de ${inscripcion.turno.hora_inicio} a ${inscripcion.turno.hora_fin} ha sido confirmada. ¡Nos vemos!`,
-        p_tipo: 'academia'
-      })
-    } else if (estado === 'cancelada') {
-      await supabase.rpc('crear_notificacion', {
-        p_usuario_id: inscripcion.usuario_id,
-        p_titulo: 'Reserva Cancelada',
-        p_mensaje: `Tu solicitud de reserva para el turno de ${inscripcion.turno.categoria} del ${new Date(inscripcion.turno.fecha).toLocaleDateString('es-AR')} de ${inscripcion.turno.hora_inicio} a ${inscripcion.turno.hora_fin} ha sido cancelada por el administrador.`,
-        p_tipo: 'academia'
-      })
-    }
-
     return NextResponse.json({
       success: true,
       message: `Inscripción ${estado} exitosamente`,
