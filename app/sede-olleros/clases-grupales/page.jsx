@@ -148,7 +148,7 @@ export default function EntrenamientosGrupalesPage() {
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">Reserva tu Turno</h3>
               <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                Accede al sistema de reservas para seleccionar tu categoría (C4, C6, C7, C8) 
+                Accede al sistema de reservas para seleccionar tu nivel 
                 y elegir el día y horario que mejor se adapte a tus necesidades.
               </p>
               

@@ -172,8 +172,8 @@ export default function ReservasPage() {
 
   const getCategoriaNombre = (categoria) => {
     const categorias = {
-      'C4': 'Principiantes',
-      'C5': 'Principiantes Avanzados',
+      'C4': 'Iniciante de cero',
+      'C5': 'Principiante',
       'C6': 'Intermedio',
       'C7': 'Avanzado',
       'C8': 'Profesional'
@@ -222,8 +222,8 @@ export default function ReservasPage() {
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="C4" className="text-white hover:bg-gray-700">Principiantes</SelectItem>
-                  <SelectItem value="C5" className="text-white hover:bg-gray-700">Principiantes Avanzados</SelectItem>
+                  <SelectItem value="C4" className="text-white hover:bg-gray-700">Iniciante de cero</SelectItem>
+                  <SelectItem value="C5" className="text-white hover:bg-gray-700">Principiante</SelectItem>
                   <SelectItem value="C6" className="text-white hover:bg-gray-700">Intermedio</SelectItem>
                   <SelectItem value="C7" className="text-white hover:bg-gray-700">Avanzado</SelectItem>
                   <SelectItem value="C8" className="text-white hover:bg-gray-700">Profesional</SelectItem>

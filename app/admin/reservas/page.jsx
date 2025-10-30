@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ArrowLeft, Plus, Calendar, Clock, Users, X, Check, Loader2, Eye } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { ArrowLeft, Plus, Calendar, Clock, Users, X, Check, Loader2, Eye, ChevronDown, ChevronUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,6 +20,9 @@ export default function AdminReservasPage() {
   const [crearTurno, setCrearTurno] = useState(false)
   const [filtroCategoria, setFiltroCategoria] = useState('all')
   const [filtroEstado, setFiltroEstado] = useState('all')
+  const [showPendientes, setShowPendientes] = useState(true)
+  const [showConfirmadas, setShowConfirmadas] = useState(false)
+  const [showCanceladas, setShowCanceladas] = useState(false)
   const [formData, setFormData] = useState({
     fecha: '',
     hora_inicio: '',
@@ -261,14 +264,25 @@ export default function AdminReservasPage() {
   const getEstadoBadge = (estado) => {
     switch (estado) {
       case 'disponible':
-        return <Badge className="bg-green-600">Disponible</Badge>
+        return <Badge className="bg-green-600 ml-2">Disponible</Badge>
       case 'completo':
-        return <Badge variant="secondary">Completo</Badge>
+        return <Badge variant="secondary" className="ml-2">Completo</Badge>
       case 'cancelado':
-        return <Badge variant="destructive">Cancelado</Badge>
+        return <Badge variant="destructive" className="ml-2">Cancelado</Badge>
       default:
-        return <Badge>{estado}</Badge>
+        return <Badge className="ml-2">{estado}</Badge>
     }
+  }
+
+  const getCategoriaNombre = (categoria) => {
+    const categorias = {
+      'C4': 'Iniciante de cero',
+      'C5': 'Principiante',
+      'C6': 'Intermedio',
+      'C7': 'Avanzado',
+      'C8': 'Profesional'
+    }
+    return categorias[categoria] || categoria
   }
 
   const getDiaNombre = (fecha) => {
@@ -290,11 +304,53 @@ export default function AdminReservasPage() {
     })
   }
 
+  const formatTime = (timeStr) => {
+    if (!timeStr) return ''
+    const parts = String(timeStr).split(':')
+    return parts.slice(0, 2).join(':')
+  }
+
   const turnosFiltrados = turnos.filter(turno => {
     if (filtroCategoria !== 'all' && turno.categoria !== filtroCategoria) return false
     if (filtroEstado !== 'all' && turno.estado !== filtroEstado) return false
     return true
   })
+
+  // Aplanar inscripciones para panel por estado
+  const inscripciones = useMemo(() => {
+    const all = []
+    for (const turno of turnos) {
+      const lista = turno.inscripciones || []
+      for (const ins of lista) {
+        all.push({
+          ...ins,
+          _turno: turno
+        })
+      }
+    }
+    // Ordenar por fecha y hora del turno ascendente
+    return all.sort((a, b) => {
+      const fa = new Date((a._turno.fecha || '').split('T')[0] + 'T' + (a._turno.hora_inicio || '00:00'))
+      const fb = new Date((b._turno.fecha || '').split('T')[0] + 'T' + (b._turno.hora_inicio || '00:00'))
+      return fa - fb
+    })
+  }, [turnos])
+
+  const pendientes = inscripciones.filter(i => i.estado === 'pendiente')
+  const confirmadas = inscripciones.filter(i => i.estado === 'confirmada')
+  const canceladas = inscripciones.filter(i => i.estado === 'cancelada')
+
+  const categoriaOrder = ['C4', 'C5', 'C6', 'C7', 'C8']
+  const groupByCategoria = (lista) => {
+    const map = new Map()
+    for (const cat of categoriaOrder) map.set(cat, [])
+    for (const ins of lista) {
+      const key = ins._turno?.categoria || 'otros'
+      if (!map.has(key)) map.set(key, [])
+      map.get(key).push(ins)
+    }
+    return Array.from(map.entries()).filter(([, arr]) => arr.length > 0)
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -362,10 +418,11 @@ export default function AdminReservasPage() {
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="C4" className="text-white hover:bg-gray-700">C4 - Principiantes</SelectItem>
-                    <SelectItem value="C6" className="text-white hover:bg-gray-700">C6 - Intermedio</SelectItem>
-                    <SelectItem value="C7" className="text-white hover:bg-gray-700">C7 - Avanzado</SelectItem>
-                    <SelectItem value="C8" className="text-white hover:bg-gray-700">C8 - Profesional</SelectItem>
+                    <SelectItem value="C4" className="text-white hover:bg-gray-700">Iniciante de cero</SelectItem>
+                    <SelectItem value="C5" className="text-white hover:bg-gray-700">Principiante</SelectItem>
+                    <SelectItem value="C6" className="text-white hover:bg-gray-700">Intermedio</SelectItem>
+                    <SelectItem value="C7" className="text-white hover:bg-gray-700">Avanzado</SelectItem>
+                    <SelectItem value="C8" className="text-white hover:bg-gray-700">Profesional</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -409,10 +466,11 @@ export default function AdminReservasPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
                   <SelectItem value="all" className="text-white hover:bg-gray-700">Todas</SelectItem>
-                  <SelectItem value="C4" className="text-white hover:bg-gray-700">C4</SelectItem>
-                  <SelectItem value="C6" className="text-white hover:bg-gray-700">C6</SelectItem>
-                  <SelectItem value="C7" className="text-white hover:bg-gray-700">C7</SelectItem>
-                  <SelectItem value="C8" className="text-white hover:bg-gray-700">C8</SelectItem>
+                  <SelectItem value="C4" className="text-white hover:bg-gray-700">Iniciante de cero</SelectItem>
+                  <SelectItem value="C5" className="text-white hover:bg-gray-700">Principiante</SelectItem>
+                  <SelectItem value="C6" className="text-white hover:bg-gray-700">Intermedio</SelectItem>
+                  <SelectItem value="C7" className="text-white hover:bg-gray-700">Avanzado</SelectItem>
+                  <SelectItem value="C8" className="text-white hover:bg-gray-700">Profesional</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -434,6 +492,196 @@ export default function AdminReservasPage() {
         </CardContent>
       </Card>
 
+      {/* Secciones por estado de inscripción */}
+      <div className="space-y-4 mb-8">
+        {/* Pendientes */}
+        <Card className="bg-black/40 border-white/10">
+          <CardHeader onClick={() => setShowPendientes(v => !v)} className="cursor-pointer select-none">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-white">Reservas Pendientes</CardTitle>
+                <Badge className="bg-yellow-600 text-white">{pendientes.length}</Badge>
+              </div>
+              {showPendientes ? <ChevronUp className="w-4 h-4 text-gray-300" /> : <ChevronDown className="w-4 h-4 text-gray-300" />}
+            </div>
+            <CardDescription className="text-gray-300">Reservas a aprobar o rechazar</CardDescription>
+          </CardHeader>
+          {showPendientes && (
+            <CardContent>
+              {pendientes.length === 0 ? (
+                <div className="text-gray-400">No hay reservas pendientes</div>
+              ) : (
+                <div className="space-y-4">
+                  {groupByCategoria(pendientes).map(([cat, items]) => (
+                    <div key={cat}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-white font-semibold">{getCategoriaNombre(cat)}</h4>
+                        <Badge className="bg-white/10 text-white border-white/20">{items.length}</Badge>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {items.map((ins) => (
+                          <div key={ins.id} className="bg-gray-800 p-2 rounded-lg border border-white/10">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="text-white text-sm font-semibold truncate">
+                                {ins.usuarios?.nombre} {ins.usuarios?.apellido}
+                              </div>
+                              <Badge className="bg-yellow-600 text-white">pendiente</Badge>
+                            </div>
+                            <div className="text-xs text-gray-300 flex flex-wrap items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5 text-[#E2FF1B]" />
+                              <span>{getDiaNombre(ins._turno.fecha)} {formatFecha(ins._turno.fecha)}</span>
+                              <Clock className="w-3.5 h-3.5 text-[#E2FF1B]" />
+                              <span>{formatTime(ins._turno.hora_inicio)}-{formatTime(ins._turno.hora_fin)}</span>
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleAprobarInscripcion(ins.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white h-7 px-2"
+                                aria-label="Aprobar"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRechazarInscripcion(ins.id)}
+                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white h-7 px-2"
+                                aria-label="Rechazar"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                            <div className="mt-2 text-[11px] text-gray-400">
+                              {getCategoriaNombre(ins._turno.categoria)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+
+        {/* Confirmadas */}
+        <Card className="bg-black/40 border-white/10">
+          <CardHeader onClick={() => setShowConfirmadas(v => !v)} className="cursor-pointer select-none">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-white">Reservas Confirmadas</CardTitle>
+                <Badge className="bg-green-600 text-white">{confirmadas.length}</Badge>
+              </div>
+              {showConfirmadas ? <ChevronUp className="w-4 h-4 text-gray-300" /> : <ChevronDown className="w-4 h-4 text-gray-300" />}
+            </div>
+            <CardDescription className="text-gray-300">Reservas aprobadas</CardDescription>
+          </CardHeader>
+          {showConfirmadas && (
+            <CardContent>
+              {confirmadas.length === 0 ? (
+                <div className="text-gray-400">No hay reservas confirmadas</div>
+              ) : (
+                <div className="space-y-4">
+                  {groupByCategoria(confirmadas).map(([cat, items]) => (
+                    <div key={cat}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-white font-semibold">{getCategoriaNombre(cat)}</h4>
+                        <Badge className="bg-white/10 text-white border-white/20">{items.length}</Badge>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {items.map((ins) => (
+                          <div key={ins.id} className="bg-gray-800 p-2 rounded-lg border border-white/10">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="text-white text-sm font-semibold truncate">
+                                {ins.usuarios?.nombre} {ins.usuarios?.apellido}
+                              </div>
+                              <Badge className="bg-green-600 text-white">confirmada</Badge>
+                            </div>
+                            <div className="text-xs text-gray-300 flex flex-wrap items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5 text-[#E2FF1B]" />
+                              <span>{getDiaNombre(ins._turno.fecha)} {formatFecha(ins._turno.fecha)}</span>
+                              <Clock className="w-3.5 h-3.5 text-[#E2FF1B]" />
+                              <span>{formatTime(ins._turno.hora_inicio)}-{formatTime(ins._turno.hora_fin)}</span>
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRechazarInscripcion(ins.id)}
+                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white h-7 px-2"
+                                aria-label="Cancelar"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                            <div className="mt-2 text-[11px] text-gray-400">
+                              {getCategoriaNombre(ins._turno.categoria)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+
+        {/* Canceladas */}
+        <Card className="bg-black/40 border-white/10">
+          <CardHeader onClick={() => setShowCanceladas(v => !v)} className="cursor-pointer select-none">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-white">Reservas Canceladas</CardTitle>
+                <Badge className="bg-red-600 text-white">{canceladas.length}</Badge>
+              </div>
+              {showCanceladas ? <ChevronUp className="w-4 h-4 text-gray-300" /> : <ChevronDown className="w-4 h-4 text-gray-300" />}
+            </div>
+            <CardDescription className="text-gray-300">Reservas rechazadas o canceladas</CardDescription>
+          </CardHeader>
+          {showCanceladas && (
+            <CardContent>
+              {canceladas.length === 0 ? (
+                <div className="text-gray-400">No hay reservas canceladas</div>
+              ) : (
+                <div className="space-y-4">
+                  {groupByCategoria(canceladas).map(([cat, items]) => (
+                    <div key={cat}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-white font-semibold">{getCategoriaNombre(cat)}</h4>
+                        <Badge className="bg-white/10 text-white border-white/20">{items.length}</Badge>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {items.map((ins) => (
+                          <div key={ins.id} className="bg-gray-800 p-2 rounded-lg border border-white/10">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="text-white text-sm font-semibold truncate">
+                                {ins.usuarios?.nombre} {ins.usuarios?.apellido}
+                              </div>
+                              <Badge className="bg-red-600 text-white mb-2">cancelada</Badge>
+                            </div>
+                            <div className="text-xs text-gray-300 flex flex-wrap items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5 text-[#E2FF1B]" />
+                              <span>{getDiaNombre(ins._turno.fecha)} {formatFecha(ins._turno.fecha)}</span>
+                              <Clock className="w-3.5 h-3.5 text-[#E2FF1B]" />
+                              <span>{formatTime(ins._turno.hora_inicio)}-{formatTime(ins._turno.hora_fin)}</span>
+                              <span>{getCategoriaNombre(ins._turno.categoria)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      </div>
+
       {/* Lista de Turnos */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
@@ -448,101 +696,34 @@ export default function AdminReservasPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
           {turnosFiltrados.map((turno) => (
             <Card key={turno.id} className="bg-black/40 border-white/10 h-full">
-              <CardHeader>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-[#E2FF1B]" />
-                    <span className="font-bold text-white">
-                      {getDiaNombre(turno.fecha)} {formatFecha(turno.fecha)}
-                    </span>
-                    <span className="text-gray-400">•</span>
-                    <Clock className="w-5 h-5 text-[#E2FF1B]" />
-                    <span className="text-white font-medium">{turno.hora_inicio} - {turno.hora_fin}</span>
-                    <span className="text-gray-400">•</span>
-                    <span className="text-white font-medium">Categoría {turno.categoria}</span>
-                    {getEstadoBadge(turno.estado)}
-                  </div>
+              <CardHeader className="py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <Badge className="bg-white/10 text-white border-white/20">{getCategoriaNombre(turno.categoria)}</Badge>
+                  {getEstadoBadge(turno.estado)}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-                  <Users className="w-4 h-4" />
-                  <span>{turno.inscripciones?.length || 0} / {turno.capacidad} inscritos</span>
-                </div>
-                
-                {turno.inscripciones && turno.inscripciones.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-white font-semibold">Inscritos:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {turno.inscripciones.map((inscripcion) => (
-                        <div key={inscripcion.id} className="bg-gray-800 p-3 rounded-lg">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <div className="text-white text-sm font-semibold">
-                                {inscripcion.usuarios?.nombre} {inscripcion.usuarios?.apellido}
-                              </div>
-                              <div className="text-gray-400 text-xs">
-                                {inscripcion.usuarios?.email}
-                              </div>
-                            </div>
-                            <Badge className={
-                              inscripcion.estado === 'confirmada' 
-                                ? 'bg-green-600' 
-                                : inscripcion.estado === 'pendiente'
-                                ? 'bg-yellow-600'
-                                : 'bg-red-600'
-                            }>
-                              {inscripcion.estado}
-                            </Badge>
-                          </div>
-                          {inscripcion.estado === 'pendiente' && (
-                            <div className="flex gap-2 mt-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleAprobarInscripcion(inscripcion.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white h-7 text-xs"
-                              >
-                                <Check className="w-3 h-3 mr-1" />
-                                Aprobar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleRechazarInscripcion(inscripcion.id)}
-                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white h-7 text-xs"
-                              >
-                                <X className="w-3 h-3 mr-1" />
-                                Rechazar
-                              </Button>
-                            </div>
-                          )}
-                          {inscripcion.estado === 'confirmada' && (
-                            <div className="flex gap-2 mt-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleRechazarInscripcion(inscripcion.id)}
-                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white h-7 text-xs"
-                              >
-                                <X className="w-3 h-3 mr-1" />
-                                Cancelar
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+              <CardContent className="pt-0 pb-3">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-white">
+                    <Calendar className="w-4 h-4 text-[#E2FF1B]" />
+                    <span className="text-sm font-medium">{getDiaNombre(turno.fecha)} {formatFecha(turno.fecha)}</span>
                   </div>
-                )}
-
-                <div className="mt-4 flex gap-2">
+                  <div className="flex items-center gap-2 text-white">
+                    <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                    <span className="text-sm font-medium">{formatTime(turno.hora_inicio)} - {formatTime(turno.hora_fin)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <Users className="w-4 h-4" />
+                    <span className="text-sm">{turno.inscripciones?.length || 0}/{turno.capacidad}</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex gap-2">
                   {turno.estado === 'cancelado' ? (
                     <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Ver Detalles
+                      <Eye className="w-4 h-4" />
                     </Button>
                   ) : turno.estado === 'disponible' ? (
                     <Button 
@@ -551,8 +732,7 @@ export default function AdminReservasPage() {
                       onClick={() => handleCancelarTurno(turno.id)}
                       className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
                     >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancelar Turno
+                      <X className="w-4 h-4" />
                     </Button>
                   ) : null}
                 </div>
