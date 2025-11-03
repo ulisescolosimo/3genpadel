@@ -585,20 +585,6 @@ export default function Home() {
               </p>
             </div>
             <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
-                  <Award className="h-6 w-6 text-[#E2FF1B]" />
-                </div>
-                <h3 className="text-xl font-semibold text-white">
-                  Premios y Reconocimientos
-                </h3>
-              </div>
-              <p className="text-gray-400">
-                Participá en clases con premios y obtené reconocimientos por tu
-                desempeño.
-              </p>
-            </div>
-            <div className="group p-6 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-800 hover:border-[#E2FF1B]/20">
               <div className="flex items-center space-x-4 mb-3">
                 <div className="p-3 bg-[#E2FF1B]/10 rounded-lg">
                   <Clock className="h-6 w-6 text-[#E2FF1B]" />
@@ -618,10 +604,6 @@ export default function Home() {
                 <span className="flex items-center">
                   <span className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mr-2"></span>
                   Nivelación
-                </span>
-                <span className="flex items-center">
-                  <span className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mr-2"></span>
-                  Femenino
                 </span>
                 <span className="flex items-center">
                   <span className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mr-2"></span>

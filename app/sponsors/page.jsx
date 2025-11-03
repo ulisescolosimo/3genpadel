@@ -48,7 +48,8 @@ export default function SponsorsPage() {
                 { image: '/images/sponsors/3.jpg', url: 'https://www.instagram.com/dosparedes?igsh=MWNpbnJxMjE5NGc3Yw==' },
                 { image: '/images/sponsors/4.jpg', url: 'https://www.gamepropadel.com.ar/' },
                 { image: '/images/sponsors/5.jpg', url: 'https://www.instagram.com/lanormandapadel?igsh=MW4yYjh4b2V6ZG8zZQ==' },
-                { image: '/images/sponsors/6.jpg', url: 'https://backtopadel.com.ar/' }
+                { image: '/images/sponsors/6.jpg', url: 'https://backtopadel.com.ar/' },
+                { image: '/images/sponsors/7.png', url: 'https://www.instagram.com/somosgiba?igsh=MThwaHpia3JibncwbQ==' }
               ].map((sponsor, index) => (
                 <motion.div
                   key={index}
