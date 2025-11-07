@@ -58,7 +58,7 @@ export default function C8BracketPage() {
           return
         }
         
-        // Estructura para Bracketry - Liga C8 (Cuartos de Final)
+        // Estructura para Bracketry - Liga C8 Octubre/Noviembre
         const data = {
           rounds: [
             { name: "Cuartos de Final" },
@@ -66,142 +66,99 @@ export default function C8BracketPage() {
             { name: "Final" }
           ],
           matches: [
-            // Cuartos de Final (roundIndex: 0) - Partidos ya jugados
+            // Cuartos de Final (roundIndex: 0)
             {
               roundIndex: 0,
               order: 0,
               sides: [
-                {
-                  contestantId: "olivares_martia",
-                  score: "6-4 / 6-2"
-                },
-                {
-                  contestantId: "lifschitz_gutraich"
-                }
+                { contestantId: "kitagawa_sierra" }, // 1
+                { contestantId: "costa_costa" } // 8
               ]
             },
             {
               roundIndex: 0,
               order: 1,
               sides: [
-                {
-                  contestantId: "coligionis_buchovsky"
-                },
-                {
-                  contestantId: "delupi_salaya",
-                  score: "6-3 / 6-1"
-                }
+                { contestantId: "scarampi_delupi" }, // 4
+                { contestantId: "coligionis_muedra" } // 5
               ]
             },
             {
               roundIndex: 0,
               order: 2,
               sides: [
-                {
-                  contestantId: "hueso_gimenez",
-                  score: "6-2 / 6-4"
-                },
-                {
-                  contestantId: "agrawal_knyazev"
-                }
+                { contestantId: "degiorgi_schiavi" }, // 3
+                { contestantId: "prado_yapur" } // 6
               ]
             },
             {
               roundIndex: 0,
               order: 3,
               sides: [
-                {
-                  contestantId: "priegue_garcia",
-                  score: "6-1 / 6-3"
-                },
-                {
-                  contestantId: "kitagawa_kitagawa"
-                }
+                { contestantId: "jara_gonzalez" }, // 7
+                { contestantId: "levy_levy" } // 2
               ]
             },
-            // Semifinal (roundIndex: 1) - Partidos ya jugados
+            // Semifinal (roundIndex: 1)
             {
               roundIndex: 1,
               order: 0,
               sides: [
-                {
-                  contestantId: "olivares_martia"
-                },
-                {
-                  contestantId: "delupi_salaya",
-                  score: "6-4 / 6-2"
-                }
+                { contestantId: "winner_q1" },
+                { contestantId: "winner_q2" }
               ]
             },
             {
               roundIndex: 1,
               order: 1,
               sides: [
-                {
-                  contestantId: "hueso_gimenez",
-                  score: "6-3 / 6-1"
-                },
-                {
-                  contestantId: "priegue_garcia"
-                }
+                { contestantId: "winner_q3" },
+                { contestantId: "winner_q4" }
               ]
             },
-            // Final (roundIndex: 2) - Partido ya jugado
+            // Final (roundIndex: 2)
             {
               roundIndex: 2,
               order: 0,
               sides: [
-                {
-                  contestantId: "hueso_gimenez",
-                  score: "7-5 / 6-4"
-                },
-                {
-                  contestantId: "priegue_garcia"
-                }
+                { contestantId: "winner_s1" },
+                { contestantId: "winner_s2" }
               ]
             }
           ],
           contestants: {
-            olivares_martia: {
-              players: [
-                { title: "Olivares Prado - Martia" }
-              ]
+            // Equipos de Cuartos de Final
+            kitagawa_sierra: {
+              players: [{ title: "1 Kitagawa - Sierra" }]
             },
-            lifschitz_gutraich: {
-              players: [
-                { title: "Lifschitz - Gutraich" }
-              ]
+            costa_costa: {
+              players: [{ title: "8 Costa - Costa" }]
             },
-            coligionis_buchovsky: {
-              players: [
-                { title: "Coligionis - Buchovsky" }
-              ]
+            scarampi_delupi: {
+              players: [{ title: "4 Scarampi - Delupi" }]
             },
-            delupi_salaya: {
-              players: [
-                { title: "Delupi - Salaya" }
-              ]
+            coligionis_muedra: {
+              players: [{ title: "5 Coligionis - Muedra" }]
             },
-            hueso_gimenez: {
-              players: [
-                { title: "Hueso - Gimenez" }
-              ]
+            degiorgi_schiavi: {
+              players: [{ title: "3 De Giorgi - Schiavi" }]
             },
-            agrawal_knyazev: {
-              players: [
-                { title: "Agrawal - Knyazev" }
-              ]
+            prado_yapur: {
+              players: [{ title: "6 Prado - Yapur" }]
             },
-            priegue_garcia: {
-              players: [
-                { title: "Priegue - Garcia" }
-              ]
+            jara_gonzalez: {
+              players: [{ title: "7 Jara - Gonzalez" }]
             },
-            kitagawa_kitagawa: {
-              players: [
-                { title: "Kitagawa - Kitagawa" }
-              ]
-            }
+            levy_levy: {
+              players: [{ title: "2 Levy - Levy" }]
+            },
+            // Placeholders para ganadores
+            winner_q1: { players: [{ title: "" }] },
+            winner_q2: { players: [{ title: "" }] },
+            winner_q3: { players: [{ title: "" }] },
+            winner_q4: { players: [{ title: "" }] },
+            winner_s1: { players: [{ title: "" }] },
+            winner_s2: { players: [{ title: "" }] }
           }
         }
 
@@ -217,9 +174,7 @@ export default function C8BracketPage() {
           matchWidth: 200,
           matchHeight: 60,
           roundGap: 100,
-          matchGap: 20,
-          winnerBackgroundColor: "#E2FC1D",
-          winnerTextColor: "#000000"
+          matchGap: 20
         })
         
         setError(null)
@@ -243,10 +198,10 @@ export default function C8BracketPage() {
       <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Back Button */}
         <div className="mb-6">
-          <Link href="/partidos/brackets">
+          <Link href="/partidos/brackets/liga-octubre-noviembre">
             <Button variant="ghost" className="text-white hover:bg-white/10">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Brackets
+              Volver a Liga Octubre/Noviembre
             </Button>
           </Link>
         </div>
@@ -254,23 +209,8 @@ export default function C8BracketPage() {
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
-            <span className="text-[#E2FF1B]">Liga Agosto 2025 - C8</span>
+            <span className="text-[#E2FF1B]">Liga Octubre/Noviembre 2025 - C8</span>
           </h1>
-          
-          {/* Campeones Banner */}
-          <div className="bg-gradient-to-r from-[#E2FF1B]/15 to-[#E2FF1B]/5 backdrop-blur-sm rounded-lg border border-[#E2FF1B]/30 p-4 mx-auto max-w-xl">
-            <div className="text-center">
-              <div className="text-sm font-medium text-[#E2FF1B] mb-1">
-                CAMPEONES
-              </div>
-              <div className="text-lg font-bold text-white">
-                Hueso - Gimenez
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                Final: 7-5 / 6-4 vs Priegue - Garcia
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Bracket */}
@@ -298,3 +238,4 @@ export default function C8BracketPage() {
     </div>
   )
 }
+

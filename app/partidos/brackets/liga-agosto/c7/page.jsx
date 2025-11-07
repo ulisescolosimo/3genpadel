@@ -248,16 +248,17 @@ export default function C7BracketPage() {
                 }
               ]
             },
-            // Final (roundIndex: 3) - Partido programado
+            // Final (roundIndex: 3) - Partido finalizado
             {
               roundIndex: 3,
               order: 0,
               sides: [
                 {
-                  contestantId: "langer_len"
+                  contestantId: "cobreros_montero",
+                  score: "6-1 / 6-2"
                 },
                 {
-                  contestantId: "cobreros_montero"
+                  contestantId: "langer_len"
                 }
               ]
             }
@@ -402,7 +403,9 @@ export default function C7BracketPage() {
           matchWidth: 200,
           matchHeight: 60,
           roundGap: 100,
-          matchGap: 20
+          matchGap: 20,
+          winnerBackgroundColor: "#E2FC1D",
+          winnerTextColor: "#000000"
         })
         
         setError(null)
@@ -426,10 +429,10 @@ export default function C7BracketPage() {
       <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Back Button */}
         <div className="mb-6">
-          <Link href="/partidos/brackets">
+          <Link href="/partidos/brackets/liga-agosto">
             <Button variant="ghost" className="text-white hover:bg-white/10">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Brackets
+              Volver a Liga Agosto
             </Button>
           </Link>
         </div>
@@ -439,6 +442,24 @@ export default function C7BracketPage() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
             <span className="text-[#E2FF1B]">Liga Agosto 2025 - C7</span>
           </h1>
+          
+          {/* Campeones Banner */}
+          <div className="bg-gradient-to-r from-[#E2FF1B]/15 to-[#E2FF1B]/5 backdrop-blur-sm rounded-lg border border-[#E2FF1B]/30 p-4 mx-auto max-w-xl mt-4">
+            <div className="text-center">
+              <div className="text-sm font-medium text-[#E2FF1B] mb-1">
+                CAMPEONES
+              </div>
+              <div className="text-lg font-bold text-white">
+                Sebastián Cobreros - Alex Ezequiel Montero
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Final: 6-1 / 6-2 vs Roni Langer - Julián Len
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                14 de septiembre, 2025 • Cancha 3
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Bracket */}
