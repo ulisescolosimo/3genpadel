@@ -78,32 +78,18 @@ export default function Nosotros() {
       specialty: "Técnica y Táctica"
     },
     {
-      name: "Rodrigo Saran",
+      name: "Martín Barrena",
       role: "Coach",
-      image: "/images/profesores/rodri.jpg",
+      image: "/images/profesores/placeholder.png",
       bio: "Más de 10 años de experiencia como entrenador de pádel con enfoque en el desarrollo técnico y estratégico de los jugadores.",
       achievements: [
         "Más de 10 años de experiencia como entrenador de pádel",
         "Enfoque en el desarrollo técnico y estratégico de los jugadores",
         "Jugador AJPP (Asociación de Jugadores de Padel Profesional)",
-        "Reciente campeón AJPP 50pts",
         "Especialista en estrategias avanzadas y preparación competitiva"
       ],
       category: "coach",
-      specialty: "Estrategia Competitiva"
-    },
-    {
-      name: "Fernando Mazzoletti",
-      role: "Coach",
-      image: "/images/profesores/fer.png",
-      bio: "Más de 3 años de experiencia como entrenador de pádel en distintas sedes y clubes sociales deportivos.",
-      achievements: [
-        "Enfoque en el desarrollo práctico y táctico de los jugadores",
-        "Jugador AJPP (Asociación de Jugadores de Pádel Profesional)",
-        "Especialista en desarrollo de principiantes, intermedios y avanzados enfocado en la parte práctica de juego"
-      ],
-      category: "coach",
-      specialty: "Desarrollo Práctico"
+      specialty: "Desarrollo Técnico"
     }
   ]
 
