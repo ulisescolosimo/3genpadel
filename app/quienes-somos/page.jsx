@@ -81,9 +81,9 @@ export default function Nosotros() {
       name: "Martín Barrena",
       role: "Coach",
       image: "/images/profesores/placeholder.png",
-      bio: "Más de 10 años de experiencia como entrenador de pádel con enfoque en el desarrollo técnico y estratégico de los jugadores.",
+      bio: "Más de 1 año de experiencia como entrenador de pádel con enfoque en el desarrollo técnico y estratégico de los jugadores.",
       achievements: [
-        "Más de 10 años de experiencia como entrenador de pádel",
+        "Más de 1 año de experiencia como entrenador de pádel",
         "Enfoque en el desarrollo técnico y estratégico de los jugadores",
         "Jugador AJPP (Asociación de Jugadores de Padel Profesional)",
         "Especialista en estrategias avanzadas y preparación competitiva"
