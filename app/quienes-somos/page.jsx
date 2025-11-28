@@ -95,10 +95,15 @@ export default function Nosotros() {
       name: "Juan Gallego",
       role: "Coach",
       image: "/images/profesores/placeholder.png",
-      bio: "",
-      achievements: [],
+      bio: "Especialista en introducción al pádel y preparación para niveles medios. Enfoque en el desarrollo inicial y primeros pasos de los jugadores.",
+      achievements: [
+        "Más de 1 año de experiencia como entrenador de pádel",
+        "Enfoque en el desarrollo inicial y primeros pasos de los jugadores",
+        "Especialista en introducción al pádel y preparación para niveles medios",
+        "Título oficial de profesorado de APA (Asociación de Pádel Argentino)"
+      ],
       category: "coach",
-      specialty: "Pádel"
+      specialty: "Desarrollo Inicial/Medio"
     }
   ]
 
@@ -121,8 +126,12 @@ export default function Nosotros() {
       name: "Pablo Martín",
       role: "Entrenador de GYM",
       image: "/images/profesores/placeholder.png",
-      bio: "",
-      achievements: [],
+      bio: "Antropometrista y preparador físico con más de 5 años de experiencia diseñando entrenamientos físicos para distintas disciplinas.",
+      achievements: [
+        "Más de 5 años de experiencia diseñando entrenamientos físicos para distintas disciplinas",
+        "Antropometrista y preparador físico",
+        "Rutinas aplicadas al pádel enfocadas en fuerza y resistencia"
+      ],
       category: "physical-trainer",
       specialty: "Entrenamiento Físico"
     },
