@@ -100,7 +100,8 @@ export default function Nosotros() {
         "Más de 1 año de experiencia como entrenador de pádel",
         "Enfoque en el desarrollo inicial y primeros pasos de los jugadores",
         "Especialista en introducción al pádel y preparación para niveles medios",
-        "Título oficial de profesorado de APA (Asociación de Pádel Argentino)"
+        "Título oficial de profesorado de APA (Asociación de Pádel Argentino)",
+        "Clases en Inglés"
       ],
       category: "coach",
       specialty: "Desarrollo Inicial/Medio"
