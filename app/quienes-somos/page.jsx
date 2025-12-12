@@ -126,7 +126,7 @@ export default function Nosotros() {
     {
       name: "Pablo Martín",
       role: "Entrenador de GYM",
-      image: "/images/profesores/placeholder.png",
+      image: "/images/profesores/pablo.jpeg",
       bio: "Antropometrista y preparador físico con más de 5 años de experiencia diseñando entrenamientos físicos para distintas disciplinas.",
       achievements: [
         "Más de 5 años de experiencia diseñando entrenamientos físicos para distintas disciplinas",
