@@ -123,7 +123,7 @@ export default function Nosotros() {
       specialty: "Optimización Física"
     }
   ]
-
+  
   return (
     <div className="min-h-screen bg-black">
       {/* Hero Section */}
