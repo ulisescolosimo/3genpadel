@@ -47,10 +47,13 @@ export default function AdminLayout({ children }) {
     )
   }
 
+  // Si estamos en circuitooka, no mostramos el header viejo
+  const isCircuitookaRoute = pathname?.startsWith('/admin/circuitooka')
+
   return (
     <div className="min-h-screen bg-black">
-      <AdminHeader />
-      <main className="pt-16">
+      {!isCircuitookaRoute && <AdminHeader />}
+      <main className={!isCircuitookaRoute ? 'pt-16' : ''}>
         {children}
       </main>
     </div>

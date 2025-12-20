@@ -50,32 +50,20 @@
   - Relaciones: etapa_id → circuitooka_etapas, division_id → circuitooka_divisiones, usuario_id → usuarios
   - Índices: etapa_id, division_id, usuario_id, posicion_ranking, promedio_final
   
-- [ ] **1.1.7** Crear tabla `circuitooka_encuestas_disponibilidad`
-  - Campos: id, etapa_id, semana_numero, fecha_inicio_semana, fecha_fin_semana, 
-    fecha_envio, fecha_cierre, estado (abierta/cerrada/procesada), created_at, updated_at
-  - Relaciones: etapa_id → circuitooka_etapas
-  - Índices: etapa_id, semana_numero, estado
-  
-- [ ] **1.1.8** Crear tabla `circuitooka_respuestas_disponibilidad`
-  - Campos: id, encuesta_id, usuario_id, disponible (boolean), fecha_respuesta, created_at
-  - Relaciones: encuesta_id → circuitooka_encuestas_disponibilidad, usuario_id → usuarios
-  - Índices: encuesta_id, usuario_id
-  - Constraint: UNIQUE(encuesta_id, usuario_id)
-  
-- [ ] **1.1.9** Crear tabla `circuitooka_confirmaciones_partido`
+- [ ] **1.1.7** Crear tabla `circuitooka_confirmaciones_partido`
   - Campos: id, partido_id, usuario_id, confirmado (boolean), pareja_elegida_id (nullable),
     fecha_confirmacion, puede_reemplazar (boolean), created_at, updated_at
   - Relaciones: partido_id → circuitooka_partidos, usuario_id → usuarios, 
     pareja_elegida_id → usuarios
   - Índices: partido_id, usuario_id
   
-- [ ] **1.1.10** Crear tabla `circuitooka_reemplazos`
+- [ ] **1.1.8** Crear tabla `circuitooka_reemplazos`
   - Campos: id, partido_id, jugador_original_id, jugador_reemplazo_id, 
     tipo_reemplazo (inscripto_circuito/nuevo_inscripto), fecha_reemplazo, created_at
   - Relaciones: partido_id → circuitooka_partidos, jugador_*_id → usuarios
   - Índices: partido_id, jugador_original_id
   
-- [ ] **1.1.11** Crear tabla `circuitooka_ascensos_descensos`
+- [ ] **1.1.9** Crear tabla `circuitooka_ascensos_descensos`
   - Campos: id, etapa_id, usuario_id, division_origen_id, division_destino_id, 
     tipo_movimiento (ascenso/descenso), promedio_final, posicion_origen, posicion_destino,
     motivo (automatico/playoff), fecha_movimiento, created_at
@@ -83,7 +71,7 @@
     division_*_id → circuitooka_divisiones
   - Índices: etapa_id, usuario_id, tipo_movimiento
   
-- [ ] **1.1.12** Crear tabla `circuitooka_playoffs`
+- [ ] **1.1.10** Crear tabla `circuitooka_playoffs`
   - Campos: id, etapa_id, division_origen_id, division_destino_id, tipo_playoff (ascenso/descenso),
     jugador_1_superior_id, jugador_2_superior_id, jugador_1_inferior_id, jugador_2_inferior_id,
     partido_id, resultado, estado (pendiente/jugado), fecha_playoff, created_at, updated_at
@@ -91,7 +79,7 @@
     jugador_*_id → usuarios, partido_id → circuitooka_partidos
   - Índices: etapa_id, division_origen_id, estado
   
-- [ ] **1.1.13** Crear tabla `circuitooka_configuracion`
+- [ ] **1.1.11** Crear tabla `circuitooka_configuracion`
   - Campos: id, etapa_id, cupos_ascenso_porcentaje (default 20), cupos_ascenso_minimo (default 2),
     cupos_ascenso_maximo (default 10), jugadores_playoff_por_division (default 4),
     horario_turno_noche_inicio (default '20:00'), horario_turno_noche_fin (default '23:00'),
@@ -165,28 +153,22 @@
 ### 2.3 Sistema de Sorteos
 - [ ] **2.3.1** Crear `lib/circuitooka/sorteos.js`
   - Función `formarParejasDisponibles(etapaId, divisionId, fechaPartido)`
+    - Nota: La disponibilidad se gestiona externamente por WhatsApp, el admin ingresará manualmente los jugadores disponibles
   - Función `asignarParejasSinCompanero(etapaId, divisionId, fechaPartido)`
   - Función `sortearPartidos(etapaId, divisionId, fechaPartido, parejas)`
   - Función `manejarParejaImpar(parejas)`
   - Función `validarParejasRepetidas(partido1, partido2, historial)`
+  - Nota: Los sorteos son opcionales, el admin puede crear partidos manualmente
 
-### 2.4 Gestión de Encuestas
-- [ ] **2.4.1** Crear `lib/circuitooka/encuestas.js`
-  - Función `crearEncuestaSemanal(etapaId, semanaNumero, fechaInicio, fechaFin)`
-  - Función `enviarEncuestaUsuarios(encuestaId)`
-  - Función `procesarRespuestasEncuesta(encuestaId)`
-  - Función `obtenerJugadoresDisponibles(encuestaId)`
-  - Función `cerrarEncuesta(encuestaId)`
-
-### 2.5 Gestión de Reemplazos
-- [ ] **2.5.1** Crear `lib/circuitooka/reemplazos.js`
+### 2.4 Gestión de Reemplazos
+- [ ] **2.4.1** Crear `lib/circuitooka/reemplazos.js`
   - Función `solicitarReemplazo(partidoId, jugadorOriginalId, jugadorReemplazoId)`
   - Función `validarReemplazo(jugadorReemplazoId, divisionId)`
   - Función `procesarReemplazoNuevoJugador(jugadorReemplazoId, etapaId, divisionId)`
   - Función `actualizarPartidoConReemplazo(partidoId, reemplazo)`
 
-### 2.6 Sistema de Playoffs
-- [ ] **2.6.1** Crear `lib/circuitooka/playoffs.js`
+### 2.5 Sistema de Playoffs
+- [ ] **2.5.1** Crear `lib/circuitooka/playoffs.js`
   - Función `identificarZonasRepechaje(etapaId, divisionId)`
   - Función `formarParejasPlayoff(etapaId, divisionId, tipoPlayoff)`
   - Función `crearPartidosPlayoff(playoffs)`
@@ -213,9 +195,10 @@
   
 - [ ] **2.7.4** Crear `app/api/circuitooka/partidos/route.js`
   - GET: Listar partidos (con filtros)
-  - POST: Crear partido (solo admin o sistema)
+  - POST: Crear partido manualmente (solo admin) o automáticamente (sistema)
   - PUT: Actualizar resultado de partido
   - DELETE: Cancelar partido
+  - Nota: El admin debe poder crear partidos manualmente sin necesidad de sorteo
   
 - [ ] **2.7.5** Crear `app/api/circuitooka/parejas/route.js`
   - GET: Listar parejas formadas para una fecha
@@ -223,28 +206,23 @@
   - PUT: Actualizar pareja
   - DELETE: Cancelar pareja
   
-- [ ] **2.7.6** Crear `app/api/circuitooka/encuestas/route.js`
-  - GET: Obtener encuesta activa
-  - POST: Responder encuesta de disponibilidad
-  - PUT: Actualizar respuesta
-  - POST /procesar: Procesar encuesta y generar sorteos (solo admin)
-  
-- [ ] **2.7.7** Crear `app/api/circuitooka/sorteos/route.js`
-  - POST: Ejecutar sorteo de partidos para una fecha
+- [ ] **2.7.6** Crear `app/api/circuitooka/sorteos/route.js`
+  - POST: Ejecutar sorteo de partidos para una fecha (opcional, solo admin)
   - GET: Obtener resultados de sorteo
   - POST /manual: Sorteo manual (solo admin)
+  - Nota: Los sorteos son opcionales, el admin puede crear partidos manualmente sin sorteo
   
-- [ ] **2.7.8** Crear `app/api/circuitooka/ascensos-descensos/route.js`
+- [ ] **2.7.7** Crear `app/api/circuitooka/ascensos-descensos/route.js`
   - GET: Obtener ascensos/descensos de una etapa
   - POST: Procesar ascensos/descensos al finalizar etapa (solo admin)
   - GET /playoffs: Obtener partidos de playoff
   
-- [ ] **2.7.9** Crear `app/api/circuitooka/reemplazos/route.js`
+- [ ] **2.7.8** Crear `app/api/circuitooka/reemplazos/route.js`
   - POST: Solicitar reemplazo
   - PUT: Aprobar/rechazar reemplazo
   - GET: Listar reemplazos pendientes
   
-- [ ] **2.7.10** Crear `app/api/circuitooka/promedios/route.js`
+- [ ] **2.7.9** Crear `app/api/circuitooka/promedios/route.js`
   - GET: Obtener promedio de un jugador
   - POST: Recalcular promedios de una división (solo admin)
   - GET /minimo: Obtener mínimo requerido de una división
@@ -300,16 +278,18 @@
 - [ ] **3.5.1** Crear `app/admin/circuitooka/partidos/page.jsx`
   - Listado de partidos
   - Filtros: etapa, división, fecha, estado
-  - Crear partido manualmente
+  - Crear partido manualmente (función principal)
   - Editar resultado de partido
   - Marcar partido como WO
   - Cancelar partido
+  - Nota: Los partidos pueden crearse manualmente sin necesidad de sorteo
   
 - [ ] **3.5.2** Crear componente `PartidoForm.jsx`
   - Formulario para crear/editar partido
-  - Selección de jugadores
+  - Selección de jugadores (con búsqueda y filtros)
   - Ingreso de resultado detallado
   - Validaciones
+  - Asignación de cancha y horario
 
 ### 3.6 Gestión de Rankings
 - [ ] **3.6.1** Crear `app/admin/circuitooka/rankings/page.jsx`
@@ -334,34 +314,26 @@
   - Botón para procesar cambios
   - Confirmación antes de aplicar
 
-### 3.8 Gestión de Sorteos
+### 3.8 Gestión de Sorteos (Opcional)
 - [ ] **3.8.1** Crear `app/admin/circuitooka/sorteos/page.jsx`
   - Seleccionar etapa y fecha
-  - Ver jugadores disponibles (de encuesta)
+  - Ingresar jugadores disponibles manualmente (la disponibilidad se gestiona por WhatsApp externamente)
   - Ver parejas formadas
-  - Ejecutar sorteo automático
+  - Ejecutar sorteo automático (opcional)
   - Ajustar sorteo manualmente
   - Ver resultado del sorteo
-  - Confirmar y crear partidos
+  - Confirmar y crear partidos (o crear partidos manualmente sin sorteo)
+  - Nota: Los sorteos son opcionales, el admin puede crear partidos directamente sin sorteo
 
-### 3.9 Gestión de Encuestas
-- [ ] **3.9.1** Crear `app/admin/circuitooka/encuestas/page.jsx`
-  - Crear nueva encuesta semanal
-  - Ver encuestas anteriores
-  - Ver respuestas de encuesta activa
-  - Enviar recordatorios
-  - Cerrar encuesta
-  - Procesar encuesta (generar sorteos)
-
-### 3.10 Gestión de Playoffs
-- [ ] **3.10.1** Crear `app/admin/circuitooka/playoffs/page.jsx`
+### 3.9 Gestión de Playoffs
+- [ ] **3.9.1** Crear `app/admin/circuitooka/playoffs/page.jsx`
   - Ver partidos de playoff pendientes
   - Crear partidos de playoff
   - Registrar resultados
   - Aplicar ascensos/descensos de playoff
 
-### 3.11 Gestión de Reemplazos
-- [ ] **3.11.1** Crear `app/admin/circuitooka/reemplazos/page.jsx`
+### 3.10 Gestión de Reemplazos
+- [ ] **3.10.1** Crear `app/admin/circuitooka/reemplazos/page.jsx`
   - Ver solicitudes de reemplazo pendientes
   - Aprobar/rechazar reemplazos
   - Gestionar inscripciones de nuevos jugadores por reemplazo
@@ -386,24 +358,18 @@
   - Solicitud especial para División 2
   - Pago de inscripción (integración MercadoPago)
   - Confirmación de inscripción
+  - Nota: La disponibilidad para jugar se gestiona externamente por WhatsApp
 
-### 4.3 Disponibilidad
-- [ ] **4.3.1** Crear `app/circuitooka/disponibilidad/page.jsx`
-  - Ver encuesta activa
-  - Responder disponibilidad
-  - Ver historial de respuestas
-  - Recordatorios
-
-### 4.4 Selección de Pareja
-- [ ] **4.4.1** Crear `app/circuitooka/parejas/page.jsx`
+### 4.3 Selección de Pareja
+- [ ] **4.3.1** Crear `app/circuitooka/parejas/page.jsx`
   - Ver jugadores disponibles de mi división
   - Buscar jugador para formar pareja
   - Enviar solicitud de pareja
   - Ver parejas formadas
   - Cancelar pareja (si es posible)
 
-### 4.5 Mis Partidos
-- [ ] **4.5.1** Crear `app/circuitooka/partidos/page.jsx`
+### 4.4 Mis Partidos
+- [ ] **4.4.1** Crear `app/circuitooka/partidos/page.jsx`
   - Listado de mis partidos
   - Filtros: etapa, división, estado
   - Ver detalles de partido
@@ -411,52 +377,52 @@
   - Solicitar reemplazo
   - Ver resultados
 
-- [ ] **4.5.2** Crear componente `PartidoCard.jsx`
+- [ ] **4.4.2** Crear componente `PartidoCard.jsx`
   - Tarjeta con información del partido
   - Jugadores involucrados
   - Fecha, hora, cancha
   - Estado y acciones disponibles
 
-### 4.6 Mi Ranking
-- [ ] **4.6.1** Crear `app/circuitooka/ranking/page.jsx`
+### 4.5 Mi Ranking
+- [ ] **4.5.1** Crear `app/circuitooka/ranking/page.jsx`
   - Ver mi posición en el ranking
   - Ver mi promedio desglosado
   - Ver estadísticas personales
   - Ver historial de partidos
   - Comparar con otros jugadores
 
-- [ ] **4.6.2** Crear componente `MiRankingCard.jsx`
+- [ ] **4.5.2** Crear componente `MiRankingCard.jsx`
   - Tarjeta con ranking personal
   - Gráficos de evolución
   - Indicadores visuales
 
-### 4.7 Rankings Públicos
-- [ ] **4.7.1** Crear `app/circuitooka/rankings/page.jsx`
+### 4.6 Rankings Públicos
+- [ ] **4.6.1** Crear `app/circuitooka/rankings/page.jsx`
   - Rankings por división
   - Filtros: etapa, división
   - Búsqueda de jugadores
   - Ver perfil de jugador
 
-- [ ] **4.7.2** Crear `app/circuitooka/rankings/[division]/page.jsx`
+- [ ] **4.6.2** Crear `app/circuitooka/rankings/[division]/page.jsx`
   - Ranking completo de una división
   - Tabla ordenable
   - Paginación
 
-### 4.8 Divisiones
-- [ ] **4.8.1** Crear `app/circuitooka/divisiones/page.jsx`
+### 4.7 Divisiones
+- [ ] **4.7.1** Crear `app/circuitooka/divisiones/page.jsx`
   - Ver todas las divisiones
   - Información de cada división
   - Ver jugadores por división
   - Ver partidos por división
 
-- [ ] **4.8.2** Crear `app/circuitooka/divisiones/[division]/page.jsx`
+- [ ] **4.7.2** Crear `app/circuitooka/divisiones/[division]/page.jsx`
   - Detalle de división específica
   - Ranking de la división
   - Partidos recientes
   - Próximos partidos
 
-### 4.9 Perfil en Circuitooka
-- [ ] **4.9.1** Integrar sección Circuitooka en `app/perfil/page.jsx`
+### 4.8 Perfil en Circuitooka
+- [ ] **4.8.1** Integrar sección Circuitooka en `app/perfil/page.jsx`
   - Ver mis estadísticas de Circuitooka
   - Historial de etapas
   - Historial de divisiones
@@ -467,50 +433,38 @@
 ## 🤖 FASE 5: AUTOMATIZACIONES
 **Duración estimada: 1-2 semanas**
 
-### 5.1 Sistema de Encuestas Automáticas
-- [ ] **5.1.1** Crear función `crearEncuestaSemanalAutomatica()`
-  - Se ejecuta todos los lunes
-  - Crea encuesta para la semana siguiente
-  - Envía notificaciones a jugadores inscriptos
-  
-- [ ] **5.1.2** Crear cron job o función programada
-  - Configurar en Supabase Edge Functions o Vercel Cron
-  - Ejecutar cada lunes a las 9:00 AM
-
-### 5.2 Sistema de Sorteos Automáticos
-- [ ] **5.2.1** Crear función `procesarSorteoSemanal()`
-  - Se ejecuta después del cierre de encuesta
-  - Procesa respuestas
-  - Forma parejas
+### 5.1 Sistema de Sorteos Automáticos (Opcional)
+- [ ] **5.1.1** Crear función `procesarSorteoSemanal()`
+  - Función opcional para ejecutar sorteos automáticos
+  - El admin puede ejecutarla manualmente cuando lo desee
+  - Forma parejas basándose en jugadores disponibles (ingresados manualmente por admin)
   - Ejecuta sorteo
-  - Crea partidos
-  
-- [ ] **5.2.2** Integrar con sistema de encuestas
-  - Trigger automático al cerrar encuesta
+  - Crea partidos automáticamente
+  - Nota: Los sorteos son opcionales, el admin puede crear partidos manualmente sin sorteo
 
-### 5.3 Cálculo Automático de Rankings
-- [ ] **5.3.1** Crear función `recalcularRankingsAutomatico()`
+### 5.2 Cálculo Automático de Rankings
+- [ ] **5.2.1** Crear función `recalcularRankingsAutomatico()`
   - Se ejecuta después de cada partido
   - Actualiza rankings de jugadores involucrados
   - Recalcula posiciones
   
-- [ ] **5.3.2** Crear trigger en base de datos
+- [ ] **5.2.2** Crear trigger en base de datos
   - Se dispara al actualizar partido
 
-### 5.4 Notificaciones Automáticas
-- [ ] **5.4.1** Crear `lib/circuitooka/notificaciones.js`
-  - Función `enviarNotificacionEncuesta(encuestaId)`
-  - Función `enviarNotificacionSorteo(partidos)`
+### 5.3 Notificaciones Automáticas
+- [ ] **5.3.1** Crear `lib/circuitooka/notificaciones.js`
+  - Función `enviarNotificacionSorteo(partidos)` (opcional)
   - Función `enviarNotificacionPartido(partidoId)`
   - Función `enviarNotificacionAscensoDescenso(usuarioId, tipo)`
   - Función `enviarRecordatorioConfirmacion()`
+  - Nota: La disponibilidad se gestiona por WhatsApp externamente
 
-- [ ] **5.4.2** Integrar con sistema de notificaciones existente
+- [ ] **5.3.2** Integrar con sistema de notificaciones existente
   - Usar tabla `notificaciones` existente
   - Enviar emails si está configurado
 
-### 5.5 Procesamiento de Ascensos/Descensos
-- [ ] **5.5.1** Crear función `procesarFinEtapa()`
+### 5.4 Procesamiento de Ascensos/Descensos
+- [ ] **5.4.1** Crear función `procesarFinEtapa()`
   - Se ejecuta al finalizar etapa
   - Calcula ascensos/descensos
   - Identifica playoffs
@@ -546,12 +500,12 @@
   - Inscripción en medio de etapa
 
 - [ ] **6.2.2** Test flujo completo de partido
-  - Formar pareja
-  - Confirmar disponibilidad
-  - Sorteo
+  - Formar pareja (opcional)
+  - Crear partido manualmente o mediante sorteo (opcional)
   - Jugar partido
   - Registrar resultado
   - Actualizar rankings
+  - Nota: La disponibilidad se gestiona externamente por WhatsApp
 
 - [ ] **6.2.3** Test flujo de ascenso/descenso
   - Finalizar etapa
@@ -643,5 +597,13 @@ Si necesitas lanzar un MVP más rápido, prioriza:
 - Mantener separación clara entre módulos
 - Documentar decisiones importantes
 - Revisar con el equipo antes de implementar cambios grandes
+
+### ⚠️ DECISIONES DE DISEÑO
+
+- **Disponibilidad de jugadores**: Se gestiona externamente por WhatsApp. No se implementará sistema de encuestas web para disponibilidad.
+- **Creación de partidos**: Los partidos pueden crearse de dos formas:
+  1. **Manual**: El admin puede crear partidos directamente seleccionando jugadores, cancha y horario
+  2. **Sorteo**: Opcionalmente, el admin puede usar el sistema de sorteos para generar partidos automáticamente
+- **Sorteos**: Son completamente opcionales. El admin puede gestionar todos los partidos manualmente si lo prefiere.
 
 
