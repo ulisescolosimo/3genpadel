@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verificarAdmin } from '@/lib/circuitooka/auth'
-import { obtenerMinimoRequerido, calcularTodosLosPromedios } from '@/lib/circuitooka/promedios'
+import { obtenerMinimoRequerido, obtenerDatosDivision, calcularTodosLosPromedios } from '@/lib/circuitooka/promedios'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -28,9 +28,9 @@ export async function GET(request) {
     }
 
     if (tipo === 'minimo' || searchParams.get('minimo') === 'true') {
-      // Obtener mínimo requerido
-      const minimo = await obtenerMinimoRequerido(etapaId, divisionId)
-      return NextResponse.json({ success: true, data: { minimo_requerido: minimo } })
+      // Obtener datos completos de la división
+      const datosDivision = await obtenerDatosDivision(etapaId, divisionId)
+      return NextResponse.json({ success: true, data: datosDivision })
     }
 
     if (!usuarioId) {
@@ -173,6 +173,7 @@ export async function POST(request) {
     )
   }
 }
+
 
 
 

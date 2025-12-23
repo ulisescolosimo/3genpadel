@@ -4,6 +4,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { 
+  calcularRankingCompleto,
+  calcularCuposAscensoDescensoClient,
+  identificarJugadoresAscensoClient,
+  identificarJugadoresDescensoClient,
+  identificarJugadoresPlayoffClient
+} from '@/lib/circuitooka/rankings-client'
 import {
   BarChart3,
   Search,
@@ -16,7 +23,9 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
-  Award
+  Award,
+  Users,
+  Activity
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -54,6 +63,10 @@ export default function RankingsPublicosPage() {
   const [detalleRanking, setDetalleRanking] = useState(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [minimoRequeridoDivision, setMinimoRequeridoDivision] = useState(null)
+  const [datosDivision, setDatosDivision] = useState({
+    jugadores_inscriptos: 0,
+    partidos_jugados: 0
+  })
   const [zonasAscensoDescenso, setZonasAscensoDescenso] = useState({
     jugadoresAscenso: [],
     jugadoresDescenso: [],
@@ -137,77 +150,104 @@ export default function RankingsPublicosPage() {
     }
   }
 
-  const fetchZonasAscensoDescenso = async () => {
-    if (!filtros.etapa_id || filtros.division_id === 'all') {
-      setZonasAscensoDescenso({
+  const calcularZonasAscensoDescenso = (rankingsCalculados, configuracion) => {
+    if (!rankingsCalculados || rankingsCalculados.length === 0) {
+      return {
         jugadoresAscenso: [],
         jugadoresDescenso: [],
         jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
-      })
-      return
+      }
     }
 
-    try {
-      const params = new URLSearchParams()
-      params.append('etapa_id', filtros.etapa_id)
-      params.append('division_id', filtros.division_id)
+    const jugadoresInscriptos = rankingsCalculados.length
+    const jugadoresPlayoff = configuracion?.jugadores_playoff_por_division || 4
 
-      const response = await fetch(`/api/circuitooka/ascensos-descensos?${params.toString()}`)
-      const result = await response.json()
+    // Calcular cupos
+    const cupos = calcularCuposAscensoDescensoClient(configuracion, jugadoresInscriptos)
 
-      if (result.success && result.data) {
-        setZonasAscensoDescenso({
-          jugadoresAscenso: result.data.jugadores_ascenso || [],
-          jugadoresDescenso: result.data.jugadores_descenso || [],
-          jugadoresPlayoff: result.data.jugadores_playoff || { playoff_ascenso: [], playoff_descenso: [] }
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching zonas ascenso/descenso:', error)
+    // Identificar jugadores que ascienden (solo los que cumplen mínimo)
+    const jugadoresAscenso = identificarJugadoresAscensoClient(rankingsCalculados, cupos.cupos_ascenso)
+
+    // Identificar jugadores que descienden (incluye todos, incluso los que no cumplen mínimo)
+    const jugadoresDescenso = identificarJugadoresDescensoClient(
+      rankingsCalculados,
+      jugadoresAscenso,
+      cupos.cupos_descenso
+    )
+
+    // Identificar jugadores para playoff
+    const jugadoresPlayoffData = identificarJugadoresPlayoffClient(
+      rankingsCalculados,
+      jugadoresAscenso,
+      jugadoresDescenso,
+      cupos.cupos_ascenso,
+      jugadoresPlayoff
+    )
+
+    return {
+      jugadoresAscenso,
+      jugadoresDescenso,
+      jugadoresPlayoff: jugadoresPlayoffData
     }
   }
 
   const fetchRankings = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      params.append('etapa_id', filtros.etapa_id)
-      params.append('division_id', filtros.division_id)
 
-      const response = await fetch(`/api/circuitooka/rankings?${params.toString()}`)
-      const result = await response.json()
+      // Obtener inscripciones activas
+      const { data: inscripciones, error: errorInscripciones } = await supabase
+        .from('circuitooka_inscripciones')
+        .select(`
+          usuario_id,
+          usuario:usuarios (
+            id,
+            nombre,
+            apellido,
+            email
+          )
+        `)
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .eq('estado', 'activa')
 
-      if (!result.success) throw new Error(result.error)
+      if (errorInscripciones) throw errorInscripciones
 
-      let rankingsFiltrados = result.data || []
+      // Obtener todos los partidos jugados de la división
+      const { data: partidos, error: errorPartidos } = await supabase
+        .from('circuitooka_partidos')
+        .select('*')
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .eq('estado', 'jugado')
 
-      // Obtener mínimo requerido
-      let minimoRequerido = rankingsFiltrados.find(r => r.minimo_requerido != null && r.minimo_requerido > 0)?.minimo_requerido
-      
-      if (!minimoRequerido || minimoRequerido === 0) {
-        try {
-          const minimoParams = new URLSearchParams()
-          minimoParams.append('etapa_id', filtros.etapa_id)
-          minimoParams.append('division_id', filtros.division_id)
-          minimoParams.append('minimo', 'true')
-          
-          const minimoResponse = await fetch(`/api/circuitooka/promedios?${minimoParams.toString()}`)
-          const minimoResult = await minimoResponse.json()
-          
-          if (minimoResult.success && minimoResult.data?.minimo_requerido != null) {
-            minimoRequerido = minimoResult.data.minimo_requerido
-          }
-        } catch (error) {
-          console.error('Error obteniendo mínimo requerido:', error)
-        }
-      }
-      
-      setMinimoRequeridoDivision(minimoRequerido || 0)
+      if (errorPartidos) throw errorPartidos
+
+      const partidosJugados = partidos?.length || 0
+      const jugadoresInscriptos = inscripciones?.length || 0
+
+      // Calcular rankings en el frontend
+      const rankingsCalculados = calcularRankingCompleto(
+        inscripciones || [],
+        partidos || [],
+        partidosJugados,
+        jugadoresInscriptos
+      )
+
+      // Obtener mínimo requerido del primer ranking
+      const minimoRequerido = rankingsCalculados[0]?.minimo_requerido || 0
+
+      setMinimoRequeridoDivision(minimoRequerido)
+      setDatosDivision({
+        jugadores_inscriptos: jugadoresInscriptos,
+        partidos_jugados: partidosJugados
+      })
 
       // Filtro de búsqueda por nombre
+      let rankingsFiltrados = rankingsCalculados
       if (filtros.busqueda) {
         const busquedaLower = filtros.busqueda.toLowerCase()
-        rankingsFiltrados = rankingsFiltrados.filter(ranking => {
+        rankingsFiltrados = rankingsCalculados.filter(ranking => {
           const nombre = `${ranking.usuario?.nombre || ''} ${ranking.usuario?.apellido || ''}`.toLowerCase()
           return nombre.includes(busquedaLower)
         })
@@ -215,8 +255,29 @@ export default function RankingsPublicosPage() {
 
       setRankings(rankingsFiltrados)
 
-      // Obtener zonas de ascenso/descenso/playoff
-      await fetchZonasAscensoDescenso()
+      // Obtener configuración para calcular zonas
+      const { data: configuracion } = await supabase
+        .from('circuitooka_configuracion')
+        .select('*')
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .maybeSingle()
+
+      // Si no hay configuración específica, buscar configuración general de la etapa
+      let configFinal = configuracion
+      if (!configFinal) {
+        const { data: configEtapa } = await supabase
+          .from('circuitooka_configuracion')
+          .select('*')
+          .eq('etapa_id', filtros.etapa_id)
+          .is('division_id', null)
+          .maybeSingle()
+        configFinal = configEtapa
+      }
+
+      // Calcular zonas de ascenso/descenso/playoff en el frontend
+      const zonas = calcularZonasAscensoDescenso(rankingsCalculados, configFinal)
+      setZonasAscensoDescenso(zonas)
     } catch (error) {
       console.error('Error fetching rankings:', error)
     } finally {
@@ -366,7 +427,7 @@ export default function RankingsPublicosPage() {
                     <span className="text-gray-300">Ascenso ({zonasAscensoDescenso.jugadoresAscenso.length})</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-900/20 border-l-4 border-blue-500"></div>
+                    <div className="w-4 h-4 bg-red-900/20 border-l-4 border-red-500"></div>
                     <span className="text-gray-300">Playoff Ascenso ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.length || 0})</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -392,9 +453,19 @@ export default function RankingsPublicosPage() {
                     Rankings - {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
                   </CardTitle>
                   {minimoRequeridoDivision !== null && (
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <Target className="w-4 h-4" />
-                      <span>Mínimo: <span className="text-white font-semibold">{minimoRequeridoDivision}</span> partido{minimoRequeridoDivision !== 1 ? 's' : ''}</span>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4" />
+                        <span>Mínimo: <span className="text-white font-semibold">{minimoRequeridoDivision}</span> partido{minimoRequeridoDivision !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        <span>Jugadores: <span className="text-white font-semibold">{datosDivision.jugadores_inscriptos}</span></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4" />
+                        <span>Partidos: <span className="text-white font-semibold">{datosDivision.partidos_jugados}</span></span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -431,24 +502,25 @@ export default function RankingsPublicosPage() {
                         const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
                         
                         // Determinar clase CSS según la zona
+                        // IMPORTANTE: Los jugadores que no cumplen mínimo también participan en descensos y playoffs de descenso
                         let zonaClass = ''
                         let zonaTitle = ''
                         
-                        if (!cumpleMinimo) {
-                          zonaClass = 'hover:bg-gray-800/50'
-                          zonaTitle = 'No cumple mínimo. No participa en ascensos/descensos.'
-                        } else if (esAscenso) {
+                        if (esAscenso) {
                           zonaClass = 'bg-green-900/20 hover:bg-green-900/30 border-l-4 border-green-500'
                           zonaTitle = 'Zona de Ascenso'
                         } else if (esDescenso) {
                           zonaClass = 'bg-red-900/20 hover:bg-red-900/30 border-l-4 border-red-500'
-                          zonaTitle = 'Zona de Descenso'
+                          zonaTitle = 'Zona de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
                         } else if (esPlayoffAscenso) {
-                          zonaClass = 'bg-blue-900/20 hover:bg-blue-900/30 border-l-4 border-blue-500'
+                          zonaClass = 'bg-red-900/20 hover:bg-red-900/30 border-l-4 border-red-500'
                           zonaTitle = 'Zona de Playoff de Ascenso'
                         } else if (esPlayoffDescenso) {
                           zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
-                          zonaTitle = 'Zona de Playoff de Descenso'
+                          zonaTitle = 'Zona de Playoff de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                        } else if (!cumpleMinimo) {
+                          zonaClass = 'hover:bg-gray-800/50'
+                          zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
                         } else {
                           zonaClass = 'hover:bg-gray-800/50'
                         }
@@ -462,7 +534,7 @@ export default function RankingsPublicosPage() {
                           <tr
                             key={ranking.id || `inscripcion-${ranking.usuario_id}-${index}`}
                             className={`border-b border-gray-800 transition-colors ${zonaClass}`}
-                            title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. No participa en ascensos/descensos.' : '')}
+                            title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.' : '')}
                           >
                             <td className="py-3 px-4">
                               {cumpleMinimo && ranking.posicion_ranking ? (
