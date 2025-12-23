@@ -51,20 +51,31 @@ export default function CircuitookaPage() {
       if (etapaError && etapaError.code !== 'PGRST116') throw etapaError
       setEtapaActiva(etapa || null)
 
-      // Obtener estadísticas
-      const { count: totalInscripciones } = await supabase
-        .from('circuitooka_inscripciones')
-        .select('*', { count: 'exact', head: true })
-        .eq('estado', 'activa')
+      // Obtener estadísticas - todos los jugadores únicos registrados y todos los partidos
+      // Contar jugadores únicos desde rankings e inscripciones (combinar ambas fuentes)
+      const [rankingsResult, inscripcionesResult, partidosResult] = await Promise.all([
+        supabase
+          .from('circuitooka_rankings')
+          .select('usuario_id'),
+        supabase
+          .from('circuitooka_inscripciones')
+          .select('usuario_id'),
+        supabase
+          .from('circuitooka_partidos')
+          .select('*', { count: 'exact', head: true })
+      ])
 
-      const { count: totalPartidos } = await supabase
-        .from('circuitooka_partidos')
-        .select('*', { count: 'exact', head: true })
-        .eq('estado', 'jugado')
+      // Combinar ambos conjuntos para obtener todos los jugadores únicos
+      const usuariosRankings = new Set(rankingsResult.data?.map(r => r.usuario_id).filter(Boolean) || [])
+      const usuariosInscripciones = new Set(inscripcionesResult.data?.map(i => i.usuario_id).filter(Boolean) || [])
+      
+      // Unir ambos sets para obtener el total de jugadores únicos
+      const todosLosUsuarios = new Set([...usuariosRankings, ...usuariosInscripciones])
+      const totalJugadores = todosLosUsuarios.size
 
       setStats({
-        totalJugadores: totalInscripciones || 0,
-        totalPartidos: totalPartidos || 0
+        totalJugadores: totalJugadores,
+        totalPartidos: partidosResult.count || 0
       })
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -146,7 +157,7 @@ export default function CircuitookaPage() {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Jugadores Activos</p>
+                      <p className="text-sm text-gray-400 mb-1">Jugadores Registrados</p>
                       <p className="text-3xl font-bold text-white">{stats.totalJugadores}</p>
                     </div>
                     <Users className="w-12 h-12 text-[#E2FF1B]" />
