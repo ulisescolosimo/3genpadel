@@ -304,25 +304,25 @@ export default function RankingsPublicosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-6 md:py-12">
       <div className="container mx-auto px-4 md:px-6 max-w-7xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 md:mb-8"
         >
           <Link href="/circuitooka">
-            <Button variant="ghost" className="mb-4 text-gray-400 hover:text-white">
+            <Button variant="ghost" className="mb-3 md:mb-4 text-gray-400 hover:text-white text-sm md:text-base">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
-            <BarChart3 className="w-10 h-10 text-[#E2FF1B]" />
+          <div className="flex items-center gap-2 md:gap-3">
+            <BarChart3 className="w-8 h-8 md:w-10 md:h-10 text-[#E2FF1B]" />
             <div>
-              <h1 className="text-4xl font-bold text-white">Rankings Públicos</h1>
-              <p className="text-gray-300 mt-1">
+              <h1 className="text-2xl md:text-4xl font-bold text-white">Rankings Públicos</h1>
+              <p className="text-gray-300 mt-1 text-sm md:text-base">
                 Consulta los rankings de todas las divisiones
               </p>
             </div>
@@ -418,72 +418,73 @@ export default function RankingsPublicosPage() {
         ) : (
           <>
             {/* Leyenda de Zonas */}
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm mb-6">
-              <CardContent className="py-3">
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <span className="text-gray-400 font-semibold">Leyenda:</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-900/20 border-l-4 border-green-500"></div>
+            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm mb-4 md:mb-6">
+              <CardContent className="py-2 md:py-3">
+                <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm">
+                  <span className="text-gray-400 font-semibold w-full md:w-auto mb-1 md:mb-0">Leyenda:</span>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-green-900/20 border-l-4 border-green-500"></div>
                     <span className="text-gray-300">Ascenso ({zonasAscensoDescenso.jugadoresAscenso.length})</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-900/20 border-l-4 border-red-500"></div>
-                    <span className="text-gray-300">Playoff Ascenso ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.length || 0})</span>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-red-900/20 border-l-4 border-red-500"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">Playoff Asc. ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.length || 0})</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-yellow-900/20 border-l-4 border-yellow-500"></div>
-                    <span className="text-gray-300">Playoff Descenso ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.length || 0})</span>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-900/20 border-l-4 border-yellow-500"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">Playoff Desc. ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.length || 0})</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-900/20 border-l-4 border-red-500"></div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-red-900/20 border-l-4 border-red-500"></div>
                     <span className="text-gray-300">Descenso ({zonasAscensoDescenso.jugadoresDescenso.length})</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gray-900/30 opacity-75"></div>
-                    <span className="text-gray-300">Inactivo (sin mínimo)</span>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-900/30 opacity-75"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">Inactivo</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">
-                    Rankings - {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
+              <CardHeader className="pb-3 md:pb-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <CardTitle className="text-white text-lg md:text-xl">
+                    {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
                   </CardTitle>
                   {minimoRequeridoDivision !== null && (
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4" />
-                        <span>Mínimo: <span className="text-white font-semibold">{minimoRequeridoDivision}</span> partido{minimoRequeridoDivision !== 1 ? 's' : ''}</span>
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-400">
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <Target className="w-3 h-3 md:w-4 md:h-4" />
+                        <span>Mín: <span className="text-white font-semibold">{minimoRequeridoDivision}</span></span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>Jugadores: <span className="text-white font-semibold">{datosDivision.jugadores_inscriptos}</span></span>
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <Users className="w-3 h-3 md:w-4 md:h-4" />
+                        <span>Jug: <span className="text-white font-semibold">{datosDivision.jugadores_inscriptos}</span></span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4" />
-                        <span>Partidos: <span className="text-white font-semibold">{datosDivision.partidos_jugados}</span></span>
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <Activity className="w-3 h-3 md:w-4 md:h-4" />
+                        <span>Part: <span className="text-white font-semibold">{datosDivision.partidos_jugados}</span></span>
                       </div>
                     </div>
                   )}
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                {/* Vista Desktop: Tabla */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-800">
-                        <th className="text-left py-3 px-4 text-gray-400 font-semibold">Pos.</th>
-                        <th className="text-left py-3 px-4 text-gray-400 font-semibold">Jugador</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">PJ</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">PG</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">Prom. Ind.</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">Prom. Gen.</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">Prom. Final</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">Estado</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold">Acciones</th>
+                        <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Pos.</th>
+                        <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Jugador</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">PJ</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">PG</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Ind.</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Gen.</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Final</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Estado</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -502,7 +503,6 @@ export default function RankingsPublicosPage() {
                         const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
                         
                         // Determinar clase CSS según la zona
-                        // IMPORTANTE: Los jugadores que no cumplen mínimo también participan en descensos y playoffs de descenso
                         let zonaClass = ''
                         let zonaTitle = ''
                         
@@ -525,7 +525,6 @@ export default function RankingsPublicosPage() {
                           zonaClass = 'hover:bg-gray-800/50'
                         }
                         
-                        // Si es el usuario logueado, solo agregar al título (sin cambiar estilos de la fila)
                         if (esUsuarioLogueado) {
                           zonaTitle = 'Tú' + (zonaTitle ? ` - ${zonaTitle}` : '')
                         }
@@ -604,6 +603,151 @@ export default function RankingsPublicosPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Vista Mobile: Tarjetas */}
+                <div className="md:hidden space-y-3">
+                  {rankings.map((ranking, index) => {
+                    const minimo = ranking.minimo_requerido != null ? ranking.minimo_requerido : minimoRequeridoDivision
+                    const partidosJugados = ranking.partidos_jugados || 0
+                    const cumpleMinimo = partidosJugados >= minimo && minimo > 0
+                    
+                    // Determinar en qué zona está el jugador
+                    const esAscenso = zonasAscensoDescenso.jugadoresAscenso.some(j => j.usuario_id === ranking.usuario_id)
+                    const esDescenso = zonasAscensoDescenso.jugadoresDescenso.some(j => j.usuario_id === ranking.usuario_id)
+                    const esPlayoffAscenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.some(j => j.usuario_id === ranking.usuario_id)
+                    const esPlayoffDescenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.some(j => j.usuario_id === ranking.usuario_id)
+                    
+                    // Verificar si es el usuario logueado
+                    const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
+                    
+                    // Determinar clase CSS según la zona
+                    let zonaClass = ''
+                    let zonaTitle = ''
+                    
+                    if (esAscenso) {
+                      zonaClass = 'bg-green-900/20 border-l-4 border-green-500'
+                      zonaTitle = 'Zona de Ascenso'
+                    } else if (esDescenso) {
+                      zonaClass = 'bg-red-900/20 border-l-4 border-red-500'
+                      zonaTitle = 'Zona de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                    } else if (esPlayoffAscenso) {
+                      zonaClass = 'bg-red-900/20 border-l-4 border-red-500'
+                      zonaTitle = 'Zona de Playoff de Ascenso'
+                    } else if (esPlayoffDescenso) {
+                      zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
+                      zonaTitle = 'Zona de Playoff de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                    } else if (!cumpleMinimo) {
+                      zonaClass = 'bg-gray-800/30'
+                      zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                    } else {
+                      zonaClass = 'bg-gray-800/30'
+                    }
+                    
+                    if (esUsuarioLogueado) {
+                      zonaTitle = 'Tú' + (zonaTitle ? ` - ${zonaTitle}` : '')
+                    }
+                    
+                      return (
+                      <div
+                        key={ranking.id || `inscripcion-${ranking.usuario_id}-${index}`}
+                        className={`rounded-lg p-4 border border-gray-700 ${zonaClass}`}
+                        title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.' : '')}
+                      >
+                        <div className="mb-3">
+                          {/* Primera fila: Posición y Nombre */}
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex-shrink-0">
+                              {cumpleMinimo && ranking.posicion_ranking ? (
+                                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                                  <span className="text-white font-bold text-sm">{ranking.posicion_ranking}</span>
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center">
+                                  <span className="text-gray-500 text-xs">-</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <User className={`w-4 h-4 flex-shrink-0 ${esUsuarioLogueado ? 'text-[#E2FF1B]' : 'text-gray-400'}`} />
+                                <div className={`font-medium truncate ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
+                                  {obtenerNombreJugador(ranking.usuario)}
+                                </div>
+                                {esUsuarioLogueado && (
+                                  <Badge className="bg-[#E2FF1B] text-black text-xs flex-shrink-0 whitespace-nowrap">
+                                    Tú
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Segunda fila: Zona y Estado */}
+                          <div className="flex items-center justify-between gap-2">
+                            {zonaTitle && (
+                              <div className="text-xs text-gray-400 truncate flex-1 min-w-0">
+                                {zonaTitle}
+                              </div>
+                            )}
+                            <div className="flex-shrink-0">
+                              {cumpleMinimo ? (
+                                <Badge variant="default" className="bg-green-600 text-white text-xs whitespace-nowrap">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Cumple
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-gray-600 text-gray-500 bg-gray-800/50 text-xs whitespace-nowrap">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  {partidosJugados === 0 ? 'Sin partidos' : 'No cumple'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Partidos Jugados</div>
+                            <div className="text-white font-semibold">{partidosJugados}</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Partidos Ganados</div>
+                            <div className="text-white font-semibold">{ranking.partidos_ganados || 0}</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Prom. Individual</div>
+                            <div className="text-white font-semibold">
+                              {ranking.promedio_individual ? ranking.promedio_individual.toFixed(2) : '0.00'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Prom. General</div>
+                            <div className="text-white font-semibold">
+                              {ranking.promedio_general ? ranking.promedio_general.toFixed(2) : '0.00'}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+                          <div>
+                            <div className="text-xs text-gray-400 mb-1">Promedio Final</div>
+                            <div className="text-[#E2FF1B] font-bold text-lg">
+                              {ranking.promedio_final ? ranking.promedio_final.toFixed(2) : '0.00'}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleVerDetalle(ranking)}
+                            className="text-white hover:bg-gray-800 text-xs"
+                          >
+                            Ver Detalle
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </CardContent>
             </Card>
           </>
@@ -611,7 +755,7 @@ export default function RankingsPublicosPage() {
 
         {/* Dialog de Detalle */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-5xl w-[95vw] max-h-[85vh] overflow-y-auto">
+          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-5xl w-[95vw] md:w-[90vw] max-h-[90vh] md:max-h-[85vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
               <DialogTitle className="text-white">Detalle del Ranking</DialogTitle>
               <DialogDescription className="text-gray-400">

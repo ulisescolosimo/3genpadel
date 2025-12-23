@@ -455,7 +455,7 @@ export default function RankingsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-white">
-                Rankings - {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
+                {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
               </CardTitle>
               {minimoRequeridoDivision !== null && (
                 <div className="flex items-center gap-4 text-sm text-gray-400">
