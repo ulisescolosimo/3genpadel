@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake, Gamepad2, Building2, Store, ExternalLink } from 'lucide-react'
+import { Menu, LogOut, ShoppingBag, User, Home, Trophy, X, Bell, Users, Mail, Settings, MapPin, Medal, BookOpen, ChevronDown, LogIn, Handshake, Gamepad2, Building2, Store, ExternalLink, PlayCircle, BarChart3 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -195,35 +195,47 @@ export default function Header() {
             
             {/* Navigation Section */}
             <div className="flex items-center gap-6">
-              {/* Torneos Dropdown */}
+              {/* Circuitooka Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') || isActive('/rankings') || isActive('/partidos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka') || pathname?.startsWith('/circuitooka') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                   >
                     <Trophy className="w-4 h-4" />
-                    Torneos
+                    Circuitooka
                     <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48" align="start">
                   <DropdownMenuItem asChild>
-                    <Link href="/inscripciones" className="flex items-center gap-2">
+                    <Link href="/circuitooka" className="flex items-center gap-2">
                       <Trophy className="w-4 h-4" />
-                      Ligas
+                      Inicio
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/rankings" className="flex items-center gap-2">
-                      <Medal className="w-4 h-4" />
+                    <Link href="/circuitooka/rankings" className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
                       Rankings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/partidos" className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4" />
-                      Partidos
+                    <Link href="/circuitooka/partidos" className="flex items-center gap-2">
+                      <PlayCircle className="w-4 h-4" />
+                      Mis Partidos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/circuitooka/ranking" className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Mi Ranking
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/circuitooka/inscripcion" className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Inscribirme
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -450,36 +462,52 @@ export default function Header() {
         <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-white/10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col gap-4">
-              {/* Torneos Section */}
+              {/* Circuitooka Section */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs font-semibold text-[#E2FF1B] uppercase tracking-wider">
                   <Trophy className="w-3 h-3" />
-                  Torneos
+                  Circuitooka
                 </div>
                 <div className="ml-4 space-y-1">
                   <Link 
-                    href="/inscripciones" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/inscripciones') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/circuitooka" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka') && !pathname?.includes('/circuitooka/') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <Trophy className="w-4 h-4" />
-                    Ligas
+                    Inicio
                   </Link>
                   <Link 
-                    href="/rankings" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/circuitooka/rankings" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
-                    <Medal className="w-4 h-4" />
+                    <BarChart3 className="w-4 h-4" />
                     Rankings
                   </Link>
                   <Link 
-                    href="/partidos" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/partidos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/circuitooka/partidos" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka/partidos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
-                    <Trophy className="w-4 h-4" />
-                    Partidos
+                    <PlayCircle className="w-4 h-4" />
+                    Mis Partidos
+                  </Link>
+                  <Link 
+                    href="/circuitooka/ranking" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka/ranking') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    Mi Ranking
+                  </Link>
+                  <Link 
+                    href="/circuitooka/inscripcion" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka/inscripcion') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <User className="w-4 h-4" />
+                    Inscribirme
                   </Link>
                 </div>
               </div>

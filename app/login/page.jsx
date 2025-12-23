@@ -151,15 +151,6 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 space-y-4 text-center">
-              <div className="flex items-center justify-center gap-2 flex-col text-gray-400 text-sm">
-                <span>¿Fuiste registrado por otro integrante de tu equipo?</span>
-                <Link href="/activar-cuenta" className="text-[#E2FF1B] hover:underline">
-                  Activar cuenta
-                </Link>
-              </div>
-            </div>
-
             <div className="mt-6 pt-6 border-t border-white/10">
               <Link 
                 href="/" 
