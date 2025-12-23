@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { verificarAdmin } from '@/lib/circuitooka/auth'
-import { obtenerMinimoRequerido, obtenerDatosDivision, calcularTodosLosPromedios } from '@/lib/circuitooka/promedios'
+import { verificarAdmin } from '../../../../lib/circuitooka/auth'
+import { obtenerMinimoRequerido, obtenerDatosDivision, calcularTodosLosPromedios } from '../../../../lib/circuitooka/promedios'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
