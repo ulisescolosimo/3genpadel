@@ -94,7 +94,7 @@ export default function Nosotros() {
     {
       name: "Juan Gallego",
       role: "Coach",
-      image: "/images/profesores/placeholder.png",
+      image: "/images/profesores/gallego.jpeg",
       bio: "Especialista en introducción al pádel y preparación para niveles medios. Enfoque en el desarrollo inicial y primeros pasos de los jugadores.",
       achievements: [
         "Más de 1 año de experiencia como entrenador de pádel",
