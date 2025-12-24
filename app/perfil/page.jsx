@@ -77,21 +77,11 @@ export default function ProfilePage() {
   console.log('ProfilePage - authLoading:', authLoading)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [inscripcionesLigas, setInscripcionesLigas] = useState([])
-  const [loadingInscripciones, setLoadingInscripciones] = useState(true)
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
-  
-  // Nuevos estados para partidos
-  const [partidos, setPartidos] = useState([])
-  const [loadingPartidos, setLoadingPartidos] = useState(true)
-  
-  // Estados para ranking points
-  const [rankingData, setRankingData] = useState(null)
-  const [loadingRanking, setLoadingRanking] = useState(true)
   
   // Estados para Circuitooka
   const [inscripcionesCircuitooka, setInscripcionesCircuitooka] = useState([])
@@ -114,25 +104,6 @@ export default function ProfilePage() {
     lado: "none"
   })
 
-  // Función para formatear fechas de partidos
-  const formatearFecha = (fecha) => {
-    return formatArgentineDateTime(fecha)
-  }
-
-  // Función para obtener el nombre del equipo
-  const getEquipoNombre = (equipo) => {
-    if (!equipo) return 'N/A'
-    const titular1 = equipo.titular_1?.nombre || 'N/A'
-    const titular2 = equipo.titular_2?.nombre || 'N/A'
-    return `${titular1} & ${titular2}`
-  }
-
-  // Función para obtener el nombre de la categoría
-  const getCategoriaNombre = (partido) => {
-    if (!partido.liga_categorias) return 'N/A'
-    return `${partido.liga_categorias.ligas?.nombre || 'N/A'} - ${partido.liga_categorias.categoria}`
-  }
-
   // Función para obtener el nombre del jugador (usada en circuitooka)
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
@@ -147,157 +118,6 @@ export default function ProfilePage() {
       cancelado: 'destructive'
     }
     return <Badge variant={variants[estado]}>{estado}</Badge>
-  }
-
-  // Función para obtener el rol del usuario en el partido
-  const getRolEnPartido = (partido) => {
-    if (!usuario?.id) return null
-    
-    // Verificar si el usuario está en equipo_a
-    if (partido.equipo_a) {
-      if (partido.equipo_a.titular_1?.id === usuario.id) return 'Titular 1'
-      if (partido.equipo_a.titular_2?.id === usuario.id) return 'Titular 2'
-    }
-    
-    // Verificar si el usuario está en equipo_b
-    if (partido.equipo_b) {
-      if (partido.equipo_b.titular_1?.id === usuario.id) return 'Titular 1'
-      if (partido.equipo_b.titular_2?.id === usuario.id) return 'Titular 2'
-    }
-    
-    return null
-  }
-
-  // Función para obtener el equipo del usuario
-  const getEquipoUsuario = (partido) => {
-    if (!usuario?.id) return null
-    
-    if (partido.equipo_a) {
-      if (partido.equipo_a.titular_1?.id === usuario.id || partido.equipo_a.titular_2?.id === usuario.id) {
-        return { equipo: partido.equipo_a, esEquipoA: true }
-      }
-    }
-    
-    if (partido.equipo_b) {
-      if (partido.equipo_b.titular_1?.id === usuario.id || partido.equipo_b.titular_2?.id === usuario.id) {
-        return { equipo: partido.equipo_b, esEquipoA: false }
-      }
-    }
-    
-    return null
-  }
-
-  // Función para obtener el resultado del partido para el usuario
-  const getResultadoPartido = (partido) => {
-    const equipoUsuario = getEquipoUsuario(partido)
-    if (!equipoUsuario) return null
-    
-    if (partido.estado !== 'jugado' || !partido.equipo_ganador_id) return null
-    
-    const esGanador = partido.equipo_ganador_id === equipoUsuario.equipo.id
-    return {
-      resultado: esGanador ? 'victoria' : 'derrota',
-      equipoGanador: partido.equipo_ganador ? getEquipoNombre(partido.equipo_ganador) : 'N/A'
-    }
-  }
-
-  // Función para cargar partidos del usuario
-  const fetchPartidos = async () => {
-    if (!usuario?.id) return
-
-    try {
-      setLoadingPartidos(true)
-
-      // Primero obtener las inscripciones del usuario
-      const { data: inscripcionesData, error: inscripcionesError } = await supabase
-        .from('ligainscripciones')
-        .select('id')
-        .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
-
-      if (inscripcionesError) {
-        console.error('Error fetching inscripciones:', inscripcionesError)
-        setPartidos([])
-        return
-      }
-
-      if (!inscripcionesData || inscripcionesData.length === 0) {
-        setPartidos([])
-        return
-      }
-
-      // Obtener los IDs de las inscripciones
-      const inscripcionIds = inscripcionesData.map(ins => ins.id)
-
-      // Buscar partidos donde el usuario participa
-      const { data: partidosData, error: partidosError } = await supabase
-        .from('liga_partidos')
-        .select(`
-          *,
-          liga_categorias (
-            id,
-            categoria,
-            ligas (
-              id,
-              nombre,
-              fecha_inicio
-            )
-          ),
-          equipo_a:ligainscripciones!liga_partidos_equipo_a_id_fkey (
-            id,
-            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-              id,
-              nombre,
-              apellido
-            ),
-            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-              id,
-              nombre,
-              apellido
-            )
-          ),
-          equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
-            id,
-            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-              id,
-              nombre,
-              apellido
-            ),
-            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-              id,
-              nombre,
-              apellido
-            )
-          ),
-          equipo_ganador:ligainscripciones!liga_partidos_equipo_ganador_id_fkey (
-            id,
-            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-              id,
-              nombre,
-              apellido
-            ),
-            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-              id,
-              nombre,
-              apellido
-            )
-          )
-        `)
-        .or(`equipo_a_id.in.(${inscripcionIds.join(',')}),equipo_b_id.in.(${inscripcionIds.join(',')})`)
-        .order('fecha', { ascending: true })
-
-      if (partidosError) {
-        console.error('Error fetching partidos:', partidosError)
-        setPartidos([])
-      } else {
-        setPartidos(partidosData || [])
-      }
-
-    } catch (error) {
-      console.error('Error fetching partidos:', error)
-      setPartidos([])
-    } finally {
-      setLoadingPartidos(false)
-    }
   }
 
   // Cargar datos del usuario
@@ -452,120 +272,32 @@ export default function ProfilePage() {
     }
   }, [user, impersonatedUser, authLoading, router])
 
-  // Cargar partidos cuando el usuario esté disponible
-  useEffect(() => {
-    if (usuario?.id) {
-      fetchPartidos()
-    }
-  }, [usuario])
-
-  // Cargar inscripciones cuando el usuario esté disponible
-  useEffect(() => {
-    if (usuario?.id) {
-      fetchInscripciones()
-    }
-  }, [usuario])
-
   // Cargar datos de ranking cuando el usuario esté disponible
   useEffect(() => {
     if (usuario?.id) {
-      fetchRankingData()
       fetchCircuitookaData()
     }
   }, [usuario])
-
-  const fetchInscripciones = async () => {
-    if (!usuario?.id) return
-
-    try {
-      setLoadingInscripciones(true)
-
-      const { data: ligasData, error: ligasError } = await supabase
-        .from('ligainscripciones')
-        .select(`
-          *,
-          liga_categorias (
-            id,
-            categoria,
-            ligas (
-              id,
-              nombre,
-              fecha_inicio,
-              estado,
-              descripcion
-            )
-          )
-        `)
-        .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
-        .order('created_at', { ascending: false })
-
-      if (ligasError) {
-        console.error('Error fetching ligas inscripciones:', ligasError)
-        setInscripcionesLigas([])
-      } else {
-        setInscripcionesLigas(ligasData || [])
-      }
-
-    } catch (error) {
-      console.error('Error fetching inscripciones:', error)
-      setInscripcionesLigas([])
-    } finally {
-      setLoadingInscripciones(false)
-    }
-  }
-
-  // Función para cargar datos de ranking del usuario
-  const fetchRankingData = async () => {
-    if (!usuario?.id) return
-
-    try {
-      setLoadingRanking(true)
-
-      const { data: rankingData, error: rankingError } = await supabase
-        .from('ranking_jugadores')
-        .select('*')
-        .eq('usuario_id', usuario.id)
-        .single()
-
-      if (rankingError) {
-        if (rankingError.code === 'PGRST116') {
-          // No hay datos de ranking para este usuario
-          setRankingData(null)
-        } else {
-          console.error('Error fetching ranking data:', rankingError)
-          setRankingData(null)
-        }
-      } else {
-        setRankingData(rankingData)
-      }
-
-    } catch (error) {
-      console.error('Error fetching ranking data:', error)
-      setRankingData(null)
-    } finally {
-      setLoadingRanking(false)
-    }
-  }
 
   // Función para cargar datos del Circuitooka
   const fetchCircuitookaData = async () => {
     if (!usuario?.id) return
 
     try {
-      // Cargar inscripciones
+      // Cargar inscripciones con relaciones explícitas
       setLoadingInscripcionesCircuitooka(true)
       const { data: inscripcionesData, error: inscripcionesError } = await supabase
         .from('circuitooka_inscripciones')
         .select(`
           *,
-          etapa:circuitooka_etapas (
+          etapa:circuitooka_etapas!circuitooka_inscripciones_etapa_id_fkey (
             id,
             nombre,
             estado,
             fecha_inicio,
             fecha_fin
           ),
-          division:circuitooka_divisiones (
+          division:circuitooka_divisiones!circuitooka_inscripciones_division_id_fkey (
             id,
             numero_division,
             nombre
@@ -604,37 +336,43 @@ export default function ProfilePage() {
         setPartidosCircuitooka(partidosOrdenados)
       }
 
-      // Cargar ranking (obtener etapa activa primero)
+      // Cargar ranking - buscar en todas las inscripciones activas
       setLoadingRankingCircuitooka(true)
-      const { data: etapaActiva } = await supabase
-        .from('circuitooka_etapas')
-        .select('id')
-        .eq('estado', 'activa')
-        .order('fecha_inicio', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      
+      // Obtener todas las inscripciones activas del usuario
+      const inscripcionesActivas = (inscripcionesData || []).filter(
+        ins => ins.estado === 'activa'
+      )
 
-      if (etapaActiva) {
-        // Buscar inscripción activa para obtener división
-        const inscripcionActiva = (inscripcionesData || []).find(
-          ins => ins.estado === 'activa' && ins.etapa_id === etapaActiva.id
-        )
+      if (inscripcionesActivas.length > 0) {
+        // Intentar obtener ranking de la inscripción más reciente primero
+        // Ordenar por fecha de inscripción descendente
+        const inscripcionesOrdenadas = inscripcionesActivas.sort((a, b) => {
+          const fechaA = new Date(a.fecha_inscripcion || 0)
+          const fechaB = new Date(b.fecha_inscripcion || 0)
+          return fechaB - fechaA
+        })
 
-        if (inscripcionActiva) {
-          // Obtener ranking usando la API
-          const rankingResponse = await fetch(
-            `/api/circuitooka/rankings?etapa_id=${etapaActiva.id}&division_id=${inscripcionActiva.division_id}&usuario_id=${usuario.id}`
-          )
-          const rankingResult = await rankingResponse.json()
+        // Intentar obtener ranking de cada inscripción activa hasta encontrar una
+        let rankingEncontrado = null
+        for (const inscripcion of inscripcionesOrdenadas) {
+          try {
+            const rankingResponse = await fetch(
+              `/api/circuitooka/rankings?etapa_id=${inscripcion.etapa_id}&division_id=${inscripcion.division_id}&usuario_id=${usuario.id}`
+            )
+            const rankingResult = await rankingResponse.json()
 
-          if (rankingResult.success && rankingResult.data) {
-            setRankingCircuitooka(rankingResult.data)
-          } else {
-            setRankingCircuitooka(null)
+            if (rankingResult.success && rankingResult.data) {
+              rankingEncontrado = rankingResult.data
+              break // Encontramos un ranking, salir del loop
+            }
+          } catch (error) {
+            console.error(`Error obteniendo ranking para etapa ${inscripcion.etapa_id}, división ${inscripcion.division_id}:`, error)
+            continue // Intentar con la siguiente inscripción
           }
-        } else {
-          setRankingCircuitooka(null)
         }
+
+        setRankingCircuitooka(rankingEncontrado)
       } else {
         setRankingCircuitooka(null)
       }
@@ -846,48 +584,6 @@ export default function ProfilePage() {
       console.error('Error refrescando usuario:', error)
       toast.error('Error al refrescar datos')
     }
-  }
-
-  const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'aprobada': return 'bg-green-500/20 border-green-500/30 text-green-400'
-      case 'rechazada': return 'bg-red-500/20 border-red-500/30 text-red-400'
-      case 'pendiente': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400'
-      default: return 'bg-gray-500/20 border-gray-500/30 text-gray-400'
-    }
-  }
-
-  const getEstadoIcon = (estado) => {
-    switch (estado) {
-      case 'aprobada': return <CheckCircle className="w-4 h-4" />
-      case 'rechazada': return <XCircle className="w-4 h-4" />
-      case 'pendiente': return <Clock className="w-4 h-4" />
-      default: return <Clock className="w-4 h-4" />
-    }
-  }
-
-  const getEstadoText = (estado) => {
-    switch (estado) {
-      case 'aprobada': return 'Aprobada'
-      case 'rechazada': return 'Rechazada'
-      case 'pendiente': return 'Pendiente'
-      default: return estado
-    }
-  }
-
-  // Función para formatear fechas correctamente sin problemas de zona horaria
-  const formatDate = (dateString) => {
-    return formatArgentineDate(dateString)
-  }
-
-  const getRolUsuario = (inscripcion) => {
-    if (!usuario?.id) return 'Jugador'
-    
-    if (inscripcion.titular_1_id === usuario.id) return 'Titular 1'
-    if (inscripcion.titular_2_id === usuario.id) return 'Titular 2'
-    if (inscripcion.suplente_1_id === usuario.id) return 'Suplente 1'
-    if (inscripcion.suplente_2_id === usuario.id) return 'Suplente 2'
-    return 'Jugador'
   }
 
   const getInitials = (name) => {
@@ -1366,446 +1062,66 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
+                  {usuario.promedio_global !== null && usuario.promedio_global !== undefined && (
+                    <div className="flex items-center gap-3">
+                      <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-400">Promedio Global</p>
+                        <p className="text-lg sm:text-xl text-white font-bold">
+                          {usuario.promedio_global.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Ranking Points */}
-            {rankingData && (
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                    <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-                    Ranking
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3">
-                      <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Puntos Totales</p>
-                        <p className="text-lg sm:text-xl text-white font-bold">
-                          {rankingData.puntos || 0}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Categoría</p>
-                        <p className="text-sm sm:text-base text-white">
-                          {rankingData.categoria || 'Sin categoría'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Posición</p>
-                        <p className="text-sm sm:text-base text-white">
-                          {rankingData.posicion || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Info className="w-4 h-4 text-[#E2FF1B]" />
-                      <span className="text-sm font-medium text-[#E2FF1B]">Sistema de puntos</span>
-                    </div>
-                    <p className="text-xs text-gray-300">
-                      Los puntos se acumulan según tu rendimiento en los torneos. 
-                      Cuanto más lejos llegues, más puntos obtienes.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Inscripciones Activas */}
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Inscripciones
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingInscripciones ? (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E2FF1B] mx-auto"></div>
-                    <p className="text-gray-400 mt-2 text-sm">Cargando inscripciones...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {inscripcionesLigas.length > 0 ? (
-                      <div className="space-y-3">
-                        {inscripcionesLigas.map((inscripcion) => (
-                          <div key={inscripcion.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                  <h5 className="text-white font-semibold text-sm sm:text-base">
-                                    {inscripcion.liga_categorias?.ligas?.nombre || 'Liga'}
-                                  </h5>
-                                </div>
-                                
-                                <div className="space-y-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <BookOpen className="w-3 h-3 text-gray-400" />
-                                    <span className="text-xs sm:text-sm text-gray-300">
-                                      Categoría: <span className="text-[#E2FF1B] font-medium">{inscripcion.liga_categorias?.categoria || 'N/A'}</span>
-                                    </span>
-                                  </div>
-                                  
-
-                                  
-                                  {inscripcion.liga_categorias?.ligas?.fecha_inicio && (
-                                    <div className="flex items-center gap-2">
-                                      <Calendar className="w-3 h-3 text-gray-400" />
-                                      <span className="text-xs sm:text-sm text-gray-300">
-                                        Inicio: {formatDate(inscripcion.liga_categorias.ligas.fecha_inicio)}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col items-end gap-2">
-                                <Badge 
-                                  variant="outline" 
-                                  className={`${
-                                    inscripcion.estado === 'aprobada' 
-                                      ? 'text-green-400 border-green-500/30 bg-green-500/10' 
-                                      : inscripcion.estado === 'rechazada'
-                                      ? 'text-red-400 border-red-500/30 bg-red-500/10'
-                                      : 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-1">
-                                    {getEstadoIcon(inscripcion.estado)}
-                                    <span className="text-xs">{getEstadoText(inscripcion.estado)}</span>
-                                  </div>
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <Trophy className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">No tienes inscripciones activas en ligas</p>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="mt-2 border-gray-600 text-gray-300 hover:bg-gray-800"
-                          onClick={() => router.push('/inscripciones/ligas')}
-                        >
-                          Ver Ligas Disponibles
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Partidos */}
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Partidos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingPartidos ? (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E2FF1B] mx-auto"></div>
-                    <p className="text-gray-400 mt-2 text-sm">Cargando partidos...</p>
-                  </div>
-                ) : (
-                  <Tabs defaultValue="proximos" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-gray-800/50 rounded-lg p-1">
-                      <TabsTrigger value="proximos" className="w-full rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white">
-                        Próximos Partidos
-                      </TabsTrigger>
-                      <TabsTrigger value="jugados" className="w-full rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white">
-                        Partidos Jugados
-                      </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="proximos" className="space-y-4">
-                      {partidos.filter(p => p.estado === 'pendiente').length === 0 ? (
-                        <div className="text-center py-4">
-                          <CalendarDays className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                          <p className="text-gray-400 text-sm">No tienes próximos partidos programados.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                                                     {partidos.filter(p => p.estado === 'pendiente').map((partido) => (
-                             <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
-                               <div className="flex items-start justify-between mb-3">
-                                 <div className="flex-1">
-                                   <div className="flex items-center gap-2 mb-2">
-                                     <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                     <h5 className="text-white font-semibold text-sm sm:text-base">
-                                       {getCategoriaNombre(partido)}
-                                     </h5>
-                                   </div>
-                                   
-                                   <div className="space-y-1.5">
-                                     <div className="flex items-center gap-2">
-                                       <Calendar className="w-3 h-3 text-gray-400" />
-                                       <span className="text-xs sm:text-sm text-gray-300">
-                                         {formatearFecha(partido.fecha)?.fecha} a las {formatearFecha(partido.fecha)?.hora}
-                                       </span>
-                                     </div>
-                                     
-                                     <div className="flex items-center gap-2">
-                                       <Users className="w-3 h-3 text-gray-400" />
-                                       <span className="text-xs sm:text-sm text-gray-300">
-                                         {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
-                                       </span>
-                                     </div>
-                                     
-                                     <div className="flex items-center gap-2">
-                                       <User className="w-3 h-3 text-gray-400" />
-                                       <span className="text-xs sm:text-sm text-gray-300">
-                                         Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
-                                       </span>
-                                     </div>
-                                     
-                                     {partido.cancha && (
-                                       <div className="flex items-center gap-2">
-                                         <MapPin className="w-3 h-3 text-blue-400" />
-                                         <span className="text-xs sm:text-sm text-blue-400">
-                                           Cancha {partido.cancha}
-                                         </span>
-                                       </div>
-                                     )}
-                                   </div>
-                                 </div>
-                                 
-                                 <div className="flex flex-col items-end gap-2">
-                                   <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10">
-                                     <div className="flex items-center gap-1">
-                                       <Clock className="w-3 h-3" />
-                                       <span className="text-xs">Próximo</span>
-                                     </div>
-                                   </Badge>
-                                   
-                                   {partido.ronda && (
-                                     <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-800/50">
-                                       <span className="text-xs">{partido.ronda}</span>
-                                     </Badge>
-                                   )}
-                                 </div>
-                               </div>
-                               
-                               {partido.equipo_ganador_id && (
-                                 <div className="mt-3 pt-3 border-t border-gray-700">
-                                   <div className="flex items-center gap-2">
-                                     <Award className="w-3 h-3 text-yellow-400" />
-                                     <span className="text-xs text-yellow-400">
-                                       Ganador: {getEquipoNombre(partido.equipo_ganador)}
-                                     </span>
-                                   </div>
-                                 </div>
-                               )}
-                             </div>
-                           ))}
-                        </div>
-                      )}
-                    </TabsContent>
-                    <TabsContent value="jugados" className="space-y-4">
-                      {partidos.filter(p => p.estado === 'jugado').length === 0 ? (
-                        <div className="text-center py-4">
-                          <Award className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                          <p className="text-gray-400 text-sm">No tienes partidos jugados registrados.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                                                     {partidos.filter(p => p.estado === 'jugado').map((partido) => {
-                             const resultado = getResultadoPartido(partido)
-                             return (
-                               <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
-                                 <div className="flex items-start justify-between mb-3">
-                                   <div className="flex-1">
-                                     <div className="flex items-center gap-2 mb-2">
-                                       <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                       <h5 className="text-white font-semibold text-sm sm:text-base">
-                                         {getCategoriaNombre(partido)}
-                                       </h5>
-                                     </div>
-                                     
-                                     <div className="space-y-1.5">
-                                       <div className="flex items-center gap-2">
-                                         <Calendar className="w-3 h-3 text-gray-400" />
-                                         <span className="text-xs sm:text-sm text-gray-300">
-                                           {formatearFecha(partido.fecha)?.fecha} a las {formatearFecha(partido.fecha)?.hora}
-                                         </span>
-                                       </div>
-                                       
-                                       <div className="flex items-center gap-2">
-                                         <Users className="w-3 h-3 text-gray-400" />
-                                         <span className="text-xs sm:text-sm text-gray-300">
-                                           {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
-                                         </span>
-                                       </div>
-                                       
-                                       <div className="flex items-center gap-2">
-                                         <User className="w-3 h-3 text-gray-400" />
-                                         <span className="text-xs sm:text-sm text-gray-300">
-                                           Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
-                                         </span>
-                                       </div>
-                                       
-                                       {partido.cancha && (
-                                         <div className="flex items-center gap-2">
-                                           <MapPin className="w-3 h-3 text-blue-400" />
-                                           <span className="text-xs sm:text-sm text-blue-400">
-                                             Cancha {partido.cancha}
-                                           </span>
-                                         </div>
-                                       )}
-                                       
-                                       {partido.resultado && (
-                                         <div className="flex items-center gap-2">
-                                           <Award className="w-3 h-3 text-green-400" />
-                                           <span className="text-xs sm:text-sm text-green-400">
-                                             Resultado: {partido.resultado}
-                                           </span>
-                                         </div>
-                                       )}
-                                     </div>
-                                   </div>
-                                   
-                                   <div className="flex flex-col items-end gap-2">
-                                     <Badge 
-                                       variant="outline" 
-                                       className={`${
-                                         resultado?.resultado === 'victoria' 
-                                           ? 'text-green-400 border-green-500/30 bg-green-500/10' 
-                                           : 'text-red-400 border-red-500/30 bg-red-500/10'
-                                       }`}
-                                     >
-                                       <div className="flex items-center gap-1">
-                                         {resultado?.resultado === 'victoria' ? (
-                                           <Award className="w-3 h-3" />
-                                         ) : (
-                                           <XCircle className="w-3 h-3" />
-                                         )}
-                                         <span className="text-xs">
-                                           {resultado?.resultado === 'victoria' ? 'Victoria' : 'Derrota'}
-                                         </span>
-                                       </div>
-                                     </Badge>
-                                     
-                                     {partido.ronda && (
-                                       <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-800/50">
-                                         <span className="text-xs">{partido.ronda}</span>
-                                       </Badge>
-                                     )}
-                                   </div>
-                                 </div>
-                                 
-                                 {resultado && (
-                                   <div className="mt-3 pt-3 border-t border-gray-700">
-                                     <div className="flex items-center gap-2">
-                                       <Trophy className="w-3 h-3 text-yellow-400" />
-                                       <span className="text-xs text-yellow-400">
-                                         Ganador: {resultado.equipoGanador}
-                                       </span>
-                                     </div>
-                                   </div>
-                                 )}
-                               </div>
-                             )
-                           })}
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Circuitooka - Ranking */}
-            {rankingCircuitooka && (
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-                    Ranking Circuitooka
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Posición</p>
-                        <p className="text-lg sm:text-xl text-white font-bold">
-                          {rankingCircuitooka.posicion_ranking || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Partidos Jugados</p>
-                        <p className="text-sm sm:text-base text-white">
-                          {rankingCircuitooka.partidos_jugados || 0}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Partidos Ganados</p>
-                        <p className="text-sm sm:text-base text-white">
-                          {rankingCircuitooka.partidos_ganados || 0}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">Promedio Individual</p>
-                      <p className="text-lg font-bold text-white">
-                        {rankingCircuitooka.promedio_individual ? rankingCircuitooka.promedio_individual.toFixed(2) : '0.00'}
+            <Card className="bg-gray-900/50 border-gray-800 border-[#E2FF1B]/30">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  Ranking Circuitooka
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {usuario.promedio_global !== null && usuario.promedio_global !== undefined ? (
+                  <>
+                    <div className="bg-[#E2FF1B]/10 border-2 border-[#E2FF1B]/50 rounded-lg p-6 text-center">
+                      <p className="text-sm text-gray-400 mb-2">Puntaje Global</p>
+                      <p className="text-4xl sm:text-5xl font-bold text-[#E2FF1B] mb-2">
+                        {usuario.promedio_global.toFixed(2)}
                       </p>
+                      <p className="text-xs text-gray-500">Usado para calcular tu posición en el ranking</p>
                     </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">Promedio General</p>
-                      <p className="text-lg font-bold text-white">
-                        {rankingCircuitooka.promedio_general ? rankingCircuitooka.promedio_general.toFixed(2) : '0.00'}
-                      </p>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">Promedio Final</p>
-                      <p className="text-lg font-bold text-[#E2FF1B]">
-                        {rankingCircuitooka.promedio_final ? rankingCircuitooka.promedio_final.toFixed(2) : '0.00'}
-                      </p>
-                    </div>
-                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
-                    onClick={() => router.push('/circuitooka/rankings')}
-                  >
-                    Ver Rankings Completos
-                    <BarChart3 className="w-4 h-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                    <Button
+                      variant="outline"
+                      className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                      onClick={() => router.push('/circuitooka/rankings')}
+                    >
+                      Ver Rankings Completos
+                      <BarChart3 className="w-4 h-4 ml-2" />
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 text-sm mb-4">No tienes puntaje global aún</p>
+                    <p className="text-gray-500 text-xs mb-4">Juega partidos en Circuitooka para obtener tu puntaje</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                      onClick={() => router.push('/circuitooka/inscripcion')}
+                    >
+                      Inscribirme en Circuitooka
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Circuitooka - Inscripciones */}
             <Card className="bg-gray-900/50 border-gray-800">

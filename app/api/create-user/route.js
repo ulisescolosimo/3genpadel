@@ -24,11 +24,19 @@ export async function POST(request) {
       )
     }
 
-    const { email, nombre, apellido, dni } = await request.json()
+    const { email, nombre, apellido, dni, password } = await request.json()
 
     if (!email || !nombre || !apellido || !dni) {
       return NextResponse.json(
         { error: 'Faltan datos requeridos: email, nombre, apellido, dni' },
+        { status: 400 }
+      )
+    }
+
+    // Si se proporciona password, validar que tenga al menos 6 caracteres
+    if (password && password.length < 6) {
+      return NextResponse.json(
+        { error: 'La contraseña debe tener al menos 6 caracteres' },
         { status: 400 }
       )
     }
@@ -95,8 +103,8 @@ export async function POST(request) {
       )
     }
 
-    // Generar una contraseña temporal (el usuario deberá cambiarla después)
-    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+    // Usar la contraseña proporcionada o generar una temporal
+    const userPassword = password || Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
 
     // Crear usuario en Supabase Auth
     console.log('Creando usuario en Auth...')
@@ -106,7 +114,7 @@ export async function POST(request) {
 
     const createResult = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
-      password: tempPassword,
+      password: userPassword,
       email_confirm: true, // Confirmar email automáticamente
       user_metadata: {
         full_name: `${nombre} ${apellido}`.trim()
@@ -129,7 +137,7 @@ export async function POST(request) {
         // Intentar hacer login para obtener el usuario existente
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: email.toLowerCase(),
-          password: tempPassword
+          password: userPassword
         })
         
         if (signInError) {
@@ -179,9 +187,11 @@ export async function POST(request) {
           nombre: nombre,
           apellido: apellido,
           dni: dniNumber,
-          ranking_puntos: 0,
-          cuenta_activada: false, // Cuenta no activada hasta que configure contraseña
+          cuenta_activada: password ? true : false, // Cuenta activada si se proporcionó contraseña
           rol: 'user',
+          promedio_global: 0,
+          partidos_totales_jugados: 0,
+          partidos_totales_ganados: 0,
           updated_at: new Date().toISOString()
         })
         .eq('id', authData.user.id)
@@ -198,9 +208,11 @@ export async function POST(request) {
           nombre: nombre,
           apellido: apellido,
           dni: dniNumber,
-          ranking_puntos: 0,
-          cuenta_activada: false, // Cuenta no activada hasta que configure contraseña
+          cuenta_activada: password ? true : false, // Cuenta activada si se proporcionó contraseña
           rol: 'user',
+          promedio_global: 0,
+          partidos_totales_jugados: 0,
+          partidos_totales_ganados: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -261,7 +273,7 @@ export async function POST(request) {
         dni: usuarioFinal.dni,
         cuenta_activada: usuarioFinal.cuenta_activada
       },
-      tempPassword: process.env.NODE_ENV === 'development' ? tempPassword : undefined // Solo en desarrollo
+      tempPassword: (!password && process.env.NODE_ENV === 'development') ? userPassword : undefined // Solo en desarrollo si no se proporcionó password
     })
 
   } catch (error) {

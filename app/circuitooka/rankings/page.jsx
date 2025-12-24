@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { 
   calcularRankingCompleto,
@@ -49,6 +50,7 @@ import {
 } from '@/components/ui/dialog'
 
 export default function RankingsPublicosPage() {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [rankings, setRankings] = useState([])
   const [etapas, setEtapas] = useState([])
@@ -73,6 +75,21 @@ export default function RankingsPublicosPage() {
     jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
   })
   const [error, setError] = useState(null)
+
+  // Leer query params de la URL al cargar (debe ejecutarse primero)
+  useEffect(() => {
+    const etapaParam = searchParams.get('etapa')
+    const divisionParam = searchParams.get('division')
+    
+    if (etapaParam || divisionParam) {
+      setFiltros(prev => ({
+        ...prev,
+        etapa_id: etapaParam || prev.etapa_id,
+        division_id: divisionParam || prev.division_id,
+        busqueda: prev.busqueda // Mantener búsqueda si existe
+      }))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     checkAuth()
@@ -143,6 +160,10 @@ export default function RankingsPublicosPage() {
     try {
       setLoading(true)
 
+      // Leer query params
+      const etapaParam = searchParams.get('etapa')
+      const divisionParam = searchParams.get('division')
+
       // Obtener etapa activa
       const { data: etapa, error: etapaError } = await supabase
         .from('circuitooka_etapas')
@@ -156,7 +177,10 @@ export default function RankingsPublicosPage() {
       
       if (etapa) {
         setEtapaActiva(etapa)
-        setFiltros(prev => ({ ...prev, etapa_id: etapa.id }))
+        // Solo establecer etapa activa si no hay query params
+        if (!etapaParam) {
+          setFiltros(prev => ({ ...prev, etapa_id: etapa.id }))
+        }
       }
 
       // Obtener todas las etapas
@@ -382,7 +406,7 @@ export default function RankingsPublicosPage() {
           <div className="flex items-center gap-2 md:gap-3">
             <BarChart3 className="w-8 h-8 md:w-10 md:h-10 text-[#E2FF1B]" />
             <div>
-              <h1 className="text-2xl md:text-4xl font-bold text-white">Rankings Públicos</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white break-words">Rankings Públicos</h1>
               <p className="text-gray-300 mt-1 text-sm md:text-base">
                 Consulta los rankings de todas las divisiones
               </p>
@@ -399,8 +423,8 @@ export default function RankingsPublicosPage() {
         >
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Filter className="w-5 h-5" />
+              <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
                 Filtros
               </CardTitle>
             </CardHeader>
@@ -524,7 +548,7 @@ export default function RankingsPublicosPage() {
             <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
               <CardHeader className="pb-3 md:pb-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                  <CardTitle className="text-white text-lg md:text-xl">
+                  <CardTitle className="text-white text-sm sm:text-base md:text-lg lg:text-xl break-words">
                     {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
                   </CardTitle>
                   {minimoRequeridoDivision !== null && (

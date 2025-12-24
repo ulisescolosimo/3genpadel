@@ -246,7 +246,7 @@ export default function MisPartidosPage() {
             <div className="flex items-center gap-3">
               <PlayCircle className="w-10 h-10 text-[#E2FF1B]" />
               <div>
-                <h1 className="text-4xl font-bold text-white">Mis Partidos</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">Mis Partidos</h1>
                 <p className="text-gray-300 mt-1">
                   {partidos.length} partido{partidos.length !== 1 ? 's' : ''} total{partidos.length !== 1 ? 'es' : ''}
                 </p>
@@ -272,8 +272,8 @@ export default function MisPartidosPage() {
         >
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Filter className="w-5 h-5" />
+              <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
                 Filtros
               </CardTitle>
             </CardHeader>
@@ -348,8 +348,8 @@ export default function MisPartidosPage() {
             transition={{ delay: 0.2 }}
             className="mb-6"
           >
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-              <Clock className="w-6 h-6 text-orange-500" />
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2 break-words">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
               Próximos Partidos ({partidosPendientes.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -361,7 +361,7 @@ export default function MisPartidosPage() {
                   <Card key={partido.id} className="bg-gray-800/50 border-gray-700 backdrop-blur-sm hover:border-[#E2FF1B]/50 transition-colors">
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-white text-lg">
+                        <CardTitle className="text-white text-sm sm:text-base md:text-lg break-words">
                           {partido.division?.nombre || `División ${partido.division?.numero_division}`}
                         </CardTitle>
                         <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/50">
@@ -419,8 +419,8 @@ export default function MisPartidosPage() {
             transition={{ delay: 0.3 }}
             className="mb-6"
           >
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-green-500" />
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2 break-words">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
               Partidos Jugados ({partidosJugados.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -434,7 +434,7 @@ export default function MisPartidosPage() {
                   <Card key={partido.id} className={`bg-gray-800/50 border-gray-700 backdrop-blur-sm ${gano ? 'border-green-500/50' : 'border-red-500/50'}`}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-white text-lg">
+                        <CardTitle className="text-white text-sm sm:text-base md:text-lg break-words">
                           {partido.division?.nombre || `División ${partido.division?.numero_division}`}
                         </CardTitle>
                         <Badge className={gano ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}>
@@ -488,7 +488,7 @@ export default function MisPartidosPage() {
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardContent className="py-12 text-center">
               <PlayCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">No tienes partidos</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 break-words">No tienes partidos</h3>
               <p className="text-gray-400 mb-4">
                 Aún no has sido asignado a ningún partido del circuito
               </p>

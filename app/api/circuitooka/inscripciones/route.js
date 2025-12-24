@@ -87,17 +87,19 @@ export async function POST(request) {
       )
     }
 
-    // Verificar que no esté ya inscripto en esta etapa
-    const { data: inscripcionExistente } = await supabase
+    // Verificar que no esté ya inscripto en esta etapa (en cualquier división)
+    const { data: inscripcionesExistentes, error: errorVerificacion } = await supabase
       .from('circuitooka_inscripciones')
-      .select('id')
+      .select('id, division_id, estado')
       .eq('etapa_id', etapa_id)
       .eq('usuario_id', usuarioId)
-      .single()
+      .eq('estado', 'activa')
 
-    if (inscripcionExistente) {
+    if (errorVerificacion) throw errorVerificacion
+
+    if (inscripcionesExistentes && inscripcionesExistentes.length > 0) {
       return NextResponse.json(
-        { success: false, error: 'Ya está inscripto en esta etapa' },
+        { success: false, error: 'Ya estás inscripto en una división de esta etapa. No puedes inscribirte en múltiples divisiones de la misma etapa.' },
         { status: 400 }
       )
     }

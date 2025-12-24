@@ -19,7 +19,9 @@ import {
   Calendar,
   ArrowUp,
   ArrowDown,
-  Minus
+  Minus,
+  PieChart,
+  Activity
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { calcularRankingCompleto } from '@/lib/circuitooka/rankings-client'
 
 export default function MiRankingPage() {
   const router = useRouter()
@@ -49,6 +52,8 @@ export default function MiRankingPage() {
     division_id: 'all'
   })
   const [inscripciones, setInscripciones] = useState([])
+  const [tablaPosiciones, setTablaPosiciones] = useState([])
+  const [loadingTabla, setLoadingTabla] = useState(false)
 
   useEffect(() => {
     checkAuth()
@@ -65,6 +70,12 @@ export default function MiRankingPage() {
       fetchMiRanking()
     }
   }, [usuario, filtros])
+
+  useEffect(() => {
+    if (usuario && inscripciones.length > 0) {
+      fetchTablaPosiciones()
+    }
+  }, [usuario, inscripciones])
 
   const checkAuth = async () => {
     try {
@@ -167,17 +178,48 @@ export default function MiRankingPage() {
     try {
       setLoading(true)
 
-      const params = new URLSearchParams()
-      params.append('etapa_id', filtros.etapa_id)
-      params.append('division_id', filtros.division_id)
-      params.append('usuario_id', usuario.id)
+      // Obtener inscripciones activas de la división
+      const { data: inscripciones, error: errorInscripciones } = await supabase
+        .from('circuitooka_inscripciones')
+        .select(`
+          usuario_id,
+          usuario:usuarios (
+            id,
+            nombre,
+            apellido,
+            email
+          )
+        `)
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .eq('estado', 'activa')
 
-      const response = await fetch(`/api/circuitooka/rankings?${params.toString()}`)
-      const result = await response.json()
+      if (errorInscripciones) throw errorInscripciones
 
-      if (!result.success) throw new Error(result.error)
+      // Obtener todos los partidos jugados de la división
+      const { data: partidos, error: errorPartidos } = await supabase
+        .from('circuitooka_partidos')
+        .select('*')
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .eq('estado', 'jugado')
 
-      setRankings(result.data ? [result.data] : [])
+      if (errorPartidos) throw errorPartidos
+
+      const partidosJugados = partidos?.length || 0
+      const jugadoresInscriptos = inscripciones?.length || 0
+
+      // Calcular rankings en el frontend
+      const rankingsCalculados = calcularRankingCompleto(
+        inscripciones || [],
+        partidos || [],
+        partidosJugados,
+        jugadoresInscriptos
+      )
+
+      // Filtrar solo el ranking del usuario
+      const miRanking = rankingsCalculados.find(r => r.usuario_id === usuario.id)
+      setRankings(miRanking ? [miRanking] : [])
     } catch (error) {
       console.error('Error fetching mi ranking:', error)
       toast({
@@ -191,10 +233,182 @@ export default function MiRankingPage() {
     }
   }
 
+  const fetchTablaPosiciones = async () => {
+    if (!usuario || inscripciones.length === 0) return
+
+    try {
+      setLoadingTabla(true)
+      const rankingsPromises = inscripciones.map(async (inscripcion) => {
+        try {
+          // Obtener inscripciones activas de la división
+          const { data: inscripcionesDiv, error: errorInscripciones } = await supabase
+            .from('circuitooka_inscripciones')
+            .select(`
+              usuario_id,
+              usuario:usuarios (
+                id,
+                nombre,
+                apellido,
+                email
+              )
+            `)
+            .eq('etapa_id', inscripcion.etapa_id)
+            .eq('division_id', inscripcion.division_id)
+            .eq('estado', 'activa')
+
+          if (errorInscripciones) throw errorInscripciones
+
+          // Obtener todos los partidos jugados de la división
+          const { data: partidos, error: errorPartidos } = await supabase
+            .from('circuitooka_partidos')
+            .select('*')
+            .eq('etapa_id', inscripcion.etapa_id)
+            .eq('division_id', inscripcion.division_id)
+            .eq('estado', 'jugado')
+
+          if (errorPartidos) throw errorPartidos
+
+          const partidosJugados = partidos?.length || 0
+          const jugadoresInscriptos = inscripcionesDiv?.length || 0
+
+          // Calcular rankings en el frontend
+          const rankingsCalculados = calcularRankingCompleto(
+            inscripcionesDiv || [],
+            partidos || [],
+            partidosJugados,
+            jugadoresInscriptos
+          )
+
+          // Filtrar solo el ranking del usuario
+          const miRanking = rankingsCalculados.find(r => r.usuario_id === usuario.id)
+          
+          if (miRanking) {
+            return {
+              ...miRanking,
+              etapa: inscripcion.etapa,
+              division: inscripcion.division
+            }
+          }
+          return null
+        } catch (error) {
+          console.error(`Error fetching ranking para inscripción ${inscripcion.id}:`, error)
+          return null
+        }
+      })
+
+      const rankingsData = await Promise.all(rankingsPromises)
+      setTablaPosiciones(rankingsData.filter(r => r !== null))
+    } catch (error) {
+      console.error('Error fetching tabla de posiciones:', error)
+      setTablaPosiciones([])
+    } finally {
+      setLoadingTabla(false)
+    }
+  }
+
   const obtenerNombreJugador = (usuario) => {
     if (!usuario) return 'N/A'
     return `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'N/A'
   }
+
+  // Componente de gráfico de torta simple
+  const PieChartComponent = ({ ganados, perdidos, size = 120 }) => {
+    const total = ganados + perdidos
+    if (total === 0) {
+      return (
+        <div className="flex items-center justify-center" style={{ width: size, height: size }}>
+          <span className="text-gray-500 text-sm">Sin datos</span>
+        </div>
+      )
+    }
+
+    const porcentajeGanados = (ganados / total) * 100
+    const porcentajePerdidos = (perdidos / total) * 100
+    
+    const radio = size / 2 - 10
+    const circunferencia = 2 * Math.PI * radio
+    const longitudGanados = (porcentajeGanados / 100) * circunferencia
+    const longitudPerdidos = (porcentajePerdidos / 100) * circunferencia
+    const offsetGanados = circunferencia - longitudGanados
+    // El segundo círculo debe empezar donde terminó el primero
+    const offsetPerdidos = offsetGanados - longitudPerdidos
+
+    return (
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radio}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="20"
+            className="text-gray-700"
+          />
+          {ganados > 0 && (
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radio}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="20"
+              strokeDasharray={circunferencia}
+              strokeDashoffset={offsetGanados}
+              className="text-green-500"
+              strokeLinecap="round"
+            />
+          )}
+          {perdidos > 0 && (
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radio}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="20"
+              strokeDasharray={circunferencia}
+              strokeDashoffset={offsetPerdidos}
+              className="text-red-500"
+              strokeLinecap="round"
+            />
+          )}
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{Math.round(porcentajeGanados)}%</div>
+            <div className="text-xs text-gray-400">Victorias</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Calcular estadísticas globales del usuario
+  const calcularEstadisticasGlobales = () => {
+    if (tablaPosiciones.length === 0) return null
+
+    const totalPartidosJugados = tablaPosiciones.reduce((sum, r) => sum + (r.partidos_jugados || 0), 0)
+    const totalPartidosGanados = tablaPosiciones.reduce((sum, r) => sum + (r.partidos_ganados || 0), 0)
+    const totalPartidosPerdidos = totalPartidosJugados - totalPartidosGanados
+    const promedioVictorias = totalPartidosJugados > 0 ? (totalPartidosGanados / totalPartidosJugados) * 100 : 0
+    const promedioFinalPromedio = tablaPosiciones.reduce((sum, r) => sum + (r.promedio_final || 0), 0) / tablaPosiciones.length
+    const mejorPosicion = Math.min(...tablaPosiciones.map(r => r.posicion_ranking || Infinity).filter(p => p !== Infinity))
+    const peorPosicion = Math.max(...tablaPosiciones.map(r => r.posicion_ranking || 0).filter(p => p > 0))
+
+    return {
+      totalPartidosJugados,
+      totalPartidosGanados,
+      totalPartidosPerdidos,
+      promedioVictorias,
+      promedioFinalPromedio,
+      mejorPosicion: mejorPosicion !== Infinity ? mejorPosicion : null,
+      peorPosicion: peorPosicion > 0 ? peorPosicion : null,
+      torneosParticipados: tablaPosiciones.length
+    }
+  }
+
+  const estadisticasGlobales = calcularEstadisticasGlobales()
 
   if (loading && rankings.length === 0) {
     return (
@@ -225,7 +439,7 @@ export default function MiRankingPage() {
           <div className="flex items-center gap-3">
             <Trophy className="w-10 h-10 text-[#E2FF1B]" />
             <div>
-              <h1 className="text-4xl font-bold text-white">Mi Ranking</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">Mi Ranking</h1>
               <p className="text-gray-300 mt-1">
                 Consulta tu posición y estadísticas en el circuito
               </p>
@@ -242,8 +456,8 @@ export default function MiRankingPage() {
         >
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Target className="w-5 h-5" />
+              <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                 Seleccionar Etapa y División
               </CardTitle>
             </CardHeader>
@@ -292,12 +506,214 @@ export default function MiRankingPage() {
           </Card>
         </motion.div>
 
+        {/* Estadísticas Globales - Solo mostrar cuando no hay filtro específico de división */}
+        {inscripciones.length > 0 && estadisticasGlobales && filtros.division_id === 'all' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  Estadísticas Globales
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Gráfico de Torta - Partidos */}
+                  <div className="flex flex-col items-center">
+                    <h3 className="text-white font-semibold mb-4 text-xs sm:text-sm break-words">Distribución de Partidos</h3>
+                    <PieChartComponent
+                      ganados={estadisticasGlobales.totalPartidosGanados}
+                      perdidos={estadisticasGlobales.totalPartidosPerdidos}
+                      size={150}
+                    />
+                    <div className="mt-4 space-y-2 w-full">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span className="text-gray-300">Ganados</span>
+                        </div>
+                        <span className="text-white font-semibold">{estadisticasGlobales.totalPartidosGanados}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span className="text-gray-300">Perdidos</span>
+                        </div>
+                        <span className="text-white font-semibold">{estadisticasGlobales.totalPartidosPerdidos}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Estadísticas Numéricas */}
+                  <div className="space-y-4">
+                    <h3 className="text-white font-semibold mb-4 text-xs sm:text-sm break-words">Resumen</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                        <span className="text-gray-300 text-sm">Torneos Participados:</span>
+                        <span className="text-white font-bold text-lg">{estadisticasGlobales.torneosParticipados}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                        <span className="text-gray-300 text-sm">Total Partidos:</span>
+                        <span className="text-white font-bold text-lg">{estadisticasGlobales.totalPartidosJugados}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                        <span className="text-gray-300 text-sm">% Victorias:</span>
+                        <span className="text-green-400 font-bold text-lg">{estadisticasGlobales.promedioVictorias.toFixed(1)}%</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                        <span className="text-gray-300 text-sm">Promedio Final:</span>
+                        <span className="text-[#E2FF1B] font-bold text-lg">{estadisticasGlobales.promedioFinalPromedio.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mejores y Peores Posiciones */}
+                  <div className="space-y-4">
+                    <h3 className="text-white font-semibold mb-4 text-xs sm:text-sm break-words">Posiciones</h3>
+                    <div className="space-y-3">
+                      {estadisticasGlobales.mejorPosicion && (
+                        <div className="flex justify-between items-center p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                          <span className="text-gray-300 text-sm">Mejor Posición:</span>
+                          <Badge className="bg-green-600 text-white font-bold">
+                            #{estadisticasGlobales.mejorPosicion}
+                          </Badge>
+                        </div>
+                      )}
+                      {estadisticasGlobales.peorPosicion && (
+                        <div className="flex justify-between items-center p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                          <span className="text-gray-300 text-sm">Peor Posición:</span>
+                          <Badge className="bg-red-600 text-white font-bold">
+                            #{estadisticasGlobales.peorPosicion}
+                          </Badge>
+                        </div>
+                      )}
+                      {estadisticasGlobales.mejorPosicion && estadisticasGlobales.peorPosicion && (
+                        <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                          <span className="text-gray-300 text-sm">Diferencia:</span>
+                          <span className="text-white font-semibold">
+                            {estadisticasGlobales.peorPosicion - estadisticasGlobales.mejorPosicion} posiciones
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Tabla de Posiciones - Solo mostrar cuando no hay filtro específico de división */}
+        {inscripciones.length > 0 && filtros.division_id === 'all' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  Tabla de Posiciones - Mis Torneos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingTabla ? (
+                  <div className="flex justify-center py-8">
+                    <Spinner />
+                  </div>
+                ) : tablaPosiciones.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[800px]">
+                      <thead>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Etapa</th>
+                          <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">División</th>
+                          <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Posición</th>
+                          <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Promedio Final</th>
+                          <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm" title="Partidos Jugados">PJ</th>
+                          <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm" title="Partidos Ganados">PG</th>
+                          <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm" title="Partidos Perdidos">PP</th>
+                          <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tablaPosiciones.map((ranking, index) => (
+                          <tr
+                            key={`${ranking.etapa?.id}-${ranking.division?.id}`}
+                            className={`border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors ${
+                              index % 2 === 0 ? 'bg-gray-800/30' : ''
+                            }`}
+                          >
+                            <td className="py-3 px-4 text-white font-medium">
+                              {ranking.etapa?.nombre || 'N/A'}
+                            </td>
+                            <td className="py-3 px-4 text-gray-300">
+                              {ranking.division?.nombre || `División ${ranking.division?.numero_division}`}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {ranking.posicion_ranking ? (
+                                <Badge className="bg-[#E2FF1B] text-black font-semibold">
+                                  #{ranking.posicion_ranking}
+                                </Badge>
+                              ) : (
+                                <span className="text-gray-500">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="text-[#E2FF1B] font-bold text-lg">
+                                {ranking.promedio_final ? ranking.promedio_final.toFixed(2) : '0.00'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-center text-white">
+                              {ranking.partidos_jugados || 0}
+                            </td>
+                            <td className="py-3 px-4 text-center text-green-400 font-semibold">
+                              {ranking.partidos_ganados || 0}
+                            </td>
+                            <td className="py-3 px-4 text-center text-red-400 font-semibold">
+                              {(ranking.partidos_jugados || 0) - (ranking.partidos_ganados || 0)}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <Link href={`/circuitooka/rankings?etapa=${ranking.etapa?.id}&division=${ranking.division?.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-[#E2FF1B] hover:text-[#E2FF1B]/80 hover:bg-[#E2FF1B]/10"
+                                >
+                                  Ver
+                                  <BarChart3 className="w-3 h-3 ml-1" />
+                                </Button>
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400">No hay rankings disponibles para tus inscripciones</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Sin inscripción */}
         {inscripciones.length === 0 && (
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardContent className="py-12 text-center">
               <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">No estás inscripto</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 break-words">No estás inscripto</h3>
               <p className="text-gray-400 mb-4">
                 Debes inscribirte en el circuito para ver tu ranking
               </p>
@@ -338,7 +754,7 @@ export default function MiRankingPage() {
                         <Trophy className="w-12 h-12 text-[#E2FF1B]" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold text-white mb-1">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 break-words">
                           {obtenerNombreJugador(miRanking.usuario)}
                         </h2>
                         <p className="text-gray-400">
@@ -373,12 +789,19 @@ export default function MiRankingPage() {
               >
                 <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2 text-lg">
-                      <PlayCircle className="w-5 h-5 text-[#E2FF1B]" />
+                    <CardTitle className="text-white text-sm sm:text-base md:text-lg flex items-center gap-2 break-words">
+                      <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                       Partidos
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    <div className="flex flex-col items-center mb-4">
+                      <PieChartComponent
+                        ganados={miRanking.partidos_ganados || 0}
+                        perdidos={(miRanking.partidos_jugados || 0) - (miRanking.partidos_ganados || 0)}
+                        size={140}
+                      />
+                    </div>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400">Jugados:</span>
@@ -394,6 +817,14 @@ export default function MiRankingPage() {
                           {(miRanking.partidos_jugados || 0) - (miRanking.partidos_ganados || 0)}
                         </span>
                       </div>
+                      {miRanking.partidos_jugados > 0 && (
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-700">
+                          <span className="text-gray-400">% Victorias:</span>
+                          <span className="text-[#E2FF1B] font-semibold text-lg">
+                            {((miRanking.partidos_ganados || 0) / (miRanking.partidos_jugados || 1) * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -406,8 +837,8 @@ export default function MiRankingPage() {
               >
                 <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2 text-lg">
-                      <TrendingUp className="w-5 h-5 text-[#E2FF1B]" />
+                    <CardTitle className="text-white text-sm sm:text-base md:text-lg flex items-center gap-2 break-words">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                       Promedios
                     </CardTitle>
                   </CardHeader>
@@ -443,8 +874,8 @@ export default function MiRankingPage() {
               >
                 <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2 text-lg">
-                      <Target className="w-5 h-5 text-[#E2FF1B]" />
+                    <CardTitle className="text-white text-sm sm:text-base md:text-lg flex items-center gap-2 break-words">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                       Mínimo Requerido
                     </CardTitle>
                   </CardHeader>
@@ -491,8 +922,8 @@ export default function MiRankingPage() {
             >
               <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-[#E2FF1B]" />
+                  <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     Desglose de Promedios
                   </CardTitle>
                 </CardHeader>
@@ -556,8 +987,8 @@ export default function MiRankingPage() {
             >
               <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Award className="w-5 h-5 text-[#E2FF1B]" />
+                  <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     Estadísticas Adicionales
                   </CardTitle>
                 </CardHeader>
@@ -608,7 +1039,7 @@ export default function MiRankingPage() {
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardContent className="py-12 text-center">
               <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">No tienes ranking en esta división</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 break-words">No tienes ranking en esta división</h3>
               <p className="text-gray-400">
                 No estás inscripto en esta división o aún no has jugado partidos
               </p>

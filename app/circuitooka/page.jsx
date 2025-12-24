@@ -118,7 +118,7 @@ export default function CircuitookaPage() {
             <div className="flex justify-center mb-4">
               <Trophy className="w-16 h-16 text-[#E2FF1B]" />
             </div>
-            <h1 className="text-5xl font-bold tracking-tighter sm:text-6xl md:text-7xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-[#E2FF1B] to-white">
                 Circuitooka 3GEN
               </span>
@@ -197,14 +197,14 @@ export default function CircuitookaPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
-                <Calendar className="w-8 h-8 text-[#E2FF1B]" />
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-2">
+                <Calendar className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#E2FF1B]" />
                 Etapa Actual
               </h2>
               <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm hover:border-[#E2FF1B]/50 transition-colors">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white text-2xl">{etapaActiva.nombre}</CardTitle>
+                    <CardTitle className="text-white text-lg sm:text-xl md:text-2xl break-words">{etapaActiva.nombre}</CardTitle>
                     <Badge className="bg-green-600 text-white">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Activa
@@ -256,8 +256,8 @@ export default function CircuitookaPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-white mb-4 flex items-center justify-center gap-2">
-              <Info className="w-8 h-8 text-[#E2FF1B]" />
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 flex items-center justify-center gap-2">
+              <Info className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#E2FF1B]" />
               ¿Cómo Funciona?
             </h2>
             <p className="text-gray-300 max-w-2xl mx-auto">
@@ -301,7 +301,7 @@ export default function CircuitookaPage() {
                         <step.icon className="w-8 h-8 text-[#E2FF1B]" />
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2 break-words">{step.title}</h3>
                     <p className="text-gray-400">{step.description}</p>
                   </CardContent>
                 </Card>
@@ -320,8 +320,8 @@ export default function CircuitookaPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-white mb-4 flex items-center justify-center gap-2">
-              <BarChart3 className="w-8 h-8 text-[#E2FF1B]" />
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 flex items-center justify-center gap-2">
+              <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#E2FF1B]" />
               Sistema de Rankings
             </h2>
             <p className="text-gray-300 max-w-2xl mx-auto">
@@ -332,8 +332,8 @@ export default function CircuitookaPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Award className="w-5 h-5 text-[#E2FF1B]" />
+                <CardTitle className="text-white text-sm sm:text-base md:text-lg flex items-center gap-2 break-words">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                   Promedio Individual
                 </CardTitle>
               </CardHeader>
@@ -346,8 +346,8 @@ export default function CircuitookaPage() {
 
             <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#E2FF1B]" />
+                <CardTitle className="text-white text-sm sm:text-base md:text-lg flex items-center gap-2 break-words">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                   Promedio General
                 </CardTitle>
               </CardHeader>
@@ -360,8 +360,8 @@ export default function CircuitookaPage() {
 
             <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Target className="w-5 h-5 text-[#E2FF1B]" />
+                <CardTitle className="text-white text-sm sm:text-base md:text-lg flex items-center gap-2 break-words">
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                   Bonus por Jugar
                 </CardTitle>
               </CardHeader>
@@ -392,7 +392,7 @@ export default function CircuitookaPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 break-words">
               ¿Listo para competir?
             </h2>
             <p className="text-gray-300 mb-8 text-lg">
