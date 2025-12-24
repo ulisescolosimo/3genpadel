@@ -69,6 +69,12 @@ CREATE POLICY "Divisiones: escritura admin"
 -- circuitooka_inscripciones
 -- =====================================================
 
+-- Lectura pública de inscripciones activas (para rankings públicos)
+CREATE POLICY "Inscripciones: lectura pública activas"
+    ON circuitooka_inscripciones
+    FOR SELECT
+    USING (estado = 'activa');
+
 -- Usuarios pueden ver sus propias inscripciones
 CREATE POLICY "Inscripciones: ver propias"
     ON circuitooka_inscripciones
@@ -96,6 +102,12 @@ CREATE POLICY "Inscripciones: eliminar admin"
 -- =====================================================
 -- circuitooka_partidos
 -- =====================================================
+
+-- Lectura pública de partidos jugados (para rankings públicos)
+CREATE POLICY "Partidos: lectura pública jugados"
+    ON circuitooka_partidos
+    FOR SELECT
+    USING (estado = 'jugado');
 
 -- Lectura: usuarios pueden ver partidos donde participan o todos si son admin
 CREATE POLICY "Partidos: ver propios o todos (admin)"

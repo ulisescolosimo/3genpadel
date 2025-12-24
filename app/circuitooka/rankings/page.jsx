@@ -57,7 +57,7 @@ export default function RankingsPublicosPage() {
   const [usuarioLogueado, setUsuarioLogueado] = useState(null)
   const [filtros, setFiltros] = useState({
     etapa_id: '',
-    division_id: 'all',
+    division_id: '',
     busqueda: ''
   })
   const [detalleRanking, setDetalleRanking] = useState(null)
@@ -72,6 +72,7 @@ export default function RankingsPublicosPage() {
     jugadoresDescenso: [],
     jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
   })
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     checkAuth()
@@ -98,13 +99,45 @@ export default function RankingsPublicosPage() {
     }
   }
 
+  // Estado para almacenar todos los rankings calculados (antes del filtro de búsqueda)
+  const [rankingsCompletos, setRankingsCompletos] = useState([])
+
   useEffect(() => {
-    if (filtros.etapa_id && filtros.division_id !== 'all') {
+    if (filtros.etapa_id && filtros.division_id) {
       fetchRankings()
     } else {
       setRankings([])
+      setRankingsCompletos([])
+      setZonasAscensoDescenso({
+        jugadoresAscenso: [],
+        jugadoresDescenso: [],
+        jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
+      })
+      setMinimoRequeridoDivision(null)
+      setDatosDivision({
+        jugadores_inscriptos: 0,
+        partidos_jugados: 0
+      })
     }
-  }, [filtros])
+  }, [filtros.etapa_id, filtros.division_id])
+
+  // Efecto para filtrar por búsqueda cuando cambia el texto de búsqueda
+  useEffect(() => {
+    // Solo aplicar filtro si hay rankings completos cargados
+    if (rankingsCompletos.length === 0) return
+
+    if (filtros.busqueda) {
+      const busquedaLower = filtros.busqueda.toLowerCase()
+      const rankingsFiltrados = rankingsCompletos.filter(ranking => {
+        const nombre = `${ranking.usuario?.nombre || ''} ${ranking.usuario?.apellido || ''}`.toLowerCase()
+        return nombre.includes(busquedaLower)
+      })
+      setRankings(rankingsFiltrados)
+    } else {
+      // Si no hay búsqueda, mostrar todos los rankings
+      setRankings(rankingsCompletos)
+    }
+  }, [filtros.busqueda, rankingsCompletos])
 
   const fetchData = async () => {
     try {
@@ -194,6 +227,15 @@ export default function RankingsPublicosPage() {
   const fetchRankings = async () => {
     try {
       setLoading(true)
+      setError(null)
+
+      if (!filtros.etapa_id || !filtros.division_id) {
+        setRankings([])
+        setLoading(false)
+        return
+      }
+
+      console.log('Fetching rankings para:', { etapa_id: filtros.etapa_id, division_id: filtros.division_id })
 
       // Obtener inscripciones activas
       const { data: inscripciones, error: errorInscripciones } = await supabase
@@ -211,7 +253,12 @@ export default function RankingsPublicosPage() {
         .eq('division_id', filtros.division_id)
         .eq('estado', 'activa')
 
-      if (errorInscripciones) throw errorInscripciones
+      if (errorInscripciones) {
+        console.error('Error obteniendo inscripciones:', errorInscripciones)
+        throw errorInscripciones
+      }
+
+      console.log('Inscripciones obtenidas:', inscripciones?.length || 0)
 
       // Obtener todos los partidos jugados de la división
       const { data: partidos, error: errorPartidos } = await supabase
@@ -221,7 +268,12 @@ export default function RankingsPublicosPage() {
         .eq('division_id', filtros.division_id)
         .eq('estado', 'jugado')
 
-      if (errorPartidos) throw errorPartidos
+      if (errorPartidos) {
+        console.error('Error obteniendo partidos:', errorPartidos)
+        throw errorPartidos
+      }
+
+      console.log('Partidos obtenidos:', partidos?.length || 0)
 
       const partidosJugados = partidos?.length || 0
       const jugadoresInscriptos = inscripciones?.length || 0
@@ -234,6 +286,8 @@ export default function RankingsPublicosPage() {
         jugadoresInscriptos
       )
 
+      console.log('Rankings calculados:', rankingsCalculados?.length || 0)
+
       // Obtener mínimo requerido del primer ranking
       const minimoRequerido = rankingsCalculados[0]?.minimo_requerido || 0
 
@@ -243,16 +297,21 @@ export default function RankingsPublicosPage() {
         partidos_jugados: partidosJugados
       })
 
-      // Filtro de búsqueda por nombre
-      let rankingsFiltrados = rankingsCalculados
+      // Guardar rankings completos para el filtro de búsqueda
+      const rankingsParaGuardar = rankingsCalculados || []
+      setRankingsCompletos(rankingsParaGuardar)
+
+      // Aplicar filtro de búsqueda si existe
+      let rankingsFiltrados = rankingsParaGuardar
       if (filtros.busqueda) {
         const busquedaLower = filtros.busqueda.toLowerCase()
-        rankingsFiltrados = rankingsCalculados.filter(ranking => {
+        rankingsFiltrados = rankingsParaGuardar.filter(ranking => {
           const nombre = `${ranking.usuario?.nombre || ''} ${ranking.usuario?.apellido || ''}`.toLowerCase()
           return nombre.includes(busquedaLower)
         })
       }
 
+      console.log('Rankings filtrados:', rankingsFiltrados?.length || 0)
       setRankings(rankingsFiltrados)
 
       // Obtener configuración para calcular zonas
@@ -280,6 +339,8 @@ export default function RankingsPublicosPage() {
       setZonasAscensoDescenso(zonas)
     } catch (error) {
       console.error('Error fetching rankings:', error)
+      setError(error.message || 'Error al cargar los rankings')
+      setRankings([])
     } finally {
       setLoading(false)
     }
@@ -349,7 +410,7 @@ export default function RankingsPublicosPage() {
                   <Label className="text-gray-400 mb-2 block">Etapa</Label>
                   <Select
                     value={filtros.etapa_id}
-                    onValueChange={(value) => setFiltros({ ...filtros, etapa_id: value, division_id: 'all' })}
+                    onValueChange={(value) => setFiltros({ ...filtros, etapa_id: value, division_id: '' })}
                   >
                     <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                       <SelectValue placeholder="Seleccionar etapa" />
@@ -374,7 +435,6 @@ export default function RankingsPublicosPage() {
                       <SelectValue placeholder="Seleccionar división" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem value="all" className="text-white hover:bg-gray-700">Todas</SelectItem>
                       {divisiones.map((division) => (
                         <SelectItem key={division.id} value={division.id} className="text-white hover:bg-gray-700">
                           {division.nombre}
@@ -401,11 +461,26 @@ export default function RankingsPublicosPage() {
         </motion.div>
 
         {/* Tabla de Rankings */}
-        {!filtros.etapa_id || filtros.division_id === 'all' ? (
+        {error ? (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-400 mb-2">Error al cargar los rankings</p>
+              <p className="text-gray-400 text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        ) : !filtros.etapa_id || !filtros.division_id ? (
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardContent className="py-12 text-center">
               <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
               <p className="text-gray-400">Selecciona una etapa y una división para ver los rankings</p>
+            </CardContent>
+          </Card>
+        ) : loading ? (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <Spinner />
+              <p className="text-gray-400 mt-4">Cargando rankings...</p>
             </CardContent>
           </Card>
         ) : rankings.length === 0 ? (

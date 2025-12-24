@@ -13,6 +13,7 @@ Este directorio contiene los scripts SQL para crear el esquema de base de datos 
 2. **`circuitooka_rls_policies.sql`** - Políticas de seguridad (RLS)
    - Row Level Security habilitado en todas las tablas
    - Políticas para usuarios y administradores (1.3.1 a 1.3.4)
+   - **Incluye políticas públicas para rankings**: Permite acceso público a inscripciones activas y partidos jugados para que los rankings sean visibles sin autenticación
 
 3. **`circuitooka_initial_data.sql`** - Datos iniciales
    - Divisiones base (1.4.1)
@@ -27,6 +28,10 @@ Este directorio contiene los scripts SQL para crear el esquema de base de datos 
    - Permite tener configuración específica por división además de la configuración general por etapa
    - La configuración por división tiene prioridad sobre la configuración general
    - Útil para personalizar cupos de ascenso/descenso y playoffs por división
+
+6. **`circuitooka_rankings_publicos.sql`** - Políticas adicionales para rankings públicos (OPCIONAL)
+   - Si ya ejecutaste `circuitooka_rls_policies.sql` antes de la actualización, ejecuta este script para agregar las políticas públicas
+   - Si ejecutaste `circuitooka_rls_policies.sql` después de la actualización, este script no es necesario
 
 ## 🚀 Instrucciones de Ejecución
 
@@ -64,10 +69,11 @@ Puedes ejecutar los scripts usando cualquier cliente SQL que se conecte a tu bas
 **IMPORTANTE**: Ejecuta los scripts en este orden:
 
 1. ✅ `circuitooka_schema.sql` (primero)
-2. ✅ `circuitooka_rls_policies.sql` (segundo)
+2. ✅ `circuitooka_rls_policies.sql` (segundo - **ya incluye políticas públicas para rankings**)
 3. ✅ `circuitooka_initial_data.sql` (tercero)
 4. ✅ `circuitooka_add_promedio_global.sql` (cuarto - opcional pero recomendado)
 5. ✅ `circuitooka_add_division_config.sql` (quinto - opcional, permite configuración por división)
+6. ✅ `circuitooka_rankings_publicos.sql` (solo si ejecutaste `circuitooka_rls_policies.sql` antes de la actualización)
 
 ## 📝 Notas
 
