@@ -10,6 +10,10 @@ import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { formatArgentineDate, formatArgentineDateTime } from '@/lib/date-utils'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
 import { 
   Edit, 
   Calendar, 
@@ -21,7 +25,6 @@ import {
   Users, 
   TrendingUp,
   User,
-  Settings,
   LogOut,
   BookOpen,
   CheckCircle,
@@ -39,7 +42,9 @@ import {
   Info,
   PlayCircle,
   BarChart3,
-  Target
+  Target,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -865,15 +870,6 @@ export default function ProfilePage() {
                 </Button>
               </DialogTrigger>
               
-              <Button 
-                onClick={handleSignOut}
-                variant="outline"
-                className="border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 text-sm sm:text-base w-full sm:w-auto"
-              >
-                <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                {impersonatedUser ? 'Salir del Modo Admin' : 'Cerrar Sesión'}
-              </Button>
-              
               <DialogContent className="bg-gray-900 border-gray-800 text-white w-[95vw] max-w-md mx-auto">
                 <DialogHeader>
                   <DialogTitle>Editar Perfil de Jugador</DialogTitle>
@@ -985,9 +981,56 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Información del Perfil */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Primera fila: Ranking Circuitooka e Información Personal (50/50) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Circuitooka - Ranking */}
+            <Card className="bg-gray-900/50 border-gray-800 border-[#E2FF1B]/30">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  Ranking Circuitooka
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {usuario.promedio_global !== null && usuario.promedio_global !== undefined ? (
+                  <>
+                    <div className="bg-[#E2FF1B]/10 border-2 border-[#E2FF1B]/50 rounded-lg p-6 text-center">
+                      <p className="text-sm text-white mb-2">Puntaje Global</p>
+                      <p className="text-4xl sm:text-5xl font-bold text-[#E2FF1B] mb-2">
+                        {usuario.promedio_global.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-white">Usado para calcular tu posición en el ranking</p>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                      onClick={() => router.push('/circuitooka/rankings')}
+                    >
+                      Ver Rankings Completos
+                      <BarChart3 className="w-4 h-4 ml-2" />
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 text-sm mb-4">No tienes puntaje global aún</p>
+                    <p className="text-gray-500 text-xs mb-4">Juega partidos en Circuitooka para obtener tu puntaje</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                      onClick={() => router.push('/circuitooka/inscripcion')}
+                    >
+                      Inscribirme en Circuitooka
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Información del Perfil */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
@@ -1062,67 +1105,13 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
-                  {usuario.promedio_global !== null && usuario.promedio_global !== undefined && (
-                    <div className="flex items-center gap-3">
-                      <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Promedio Global</p>
-                        <p className="text-lg sm:text-xl text-white font-bold">
-                          {usuario.promedio_global.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Circuitooka - Ranking */}
-            <Card className="bg-gray-900/50 border-gray-800 border-[#E2FF1B]/30">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                  Ranking Circuitooka
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {usuario.promedio_global !== null && usuario.promedio_global !== undefined ? (
-                  <>
-                    <div className="bg-[#E2FF1B]/10 border-2 border-[#E2FF1B]/50 rounded-lg p-6 text-center">
-                      <p className="text-sm text-gray-400 mb-2">Puntaje Global</p>
-                      <p className="text-4xl sm:text-5xl font-bold text-[#E2FF1B] mb-2">
-                        {usuario.promedio_global.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500">Usado para calcular tu posición en el ranking</p>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
-                      onClick={() => router.push('/circuitooka/rankings')}
-                    >
-                      Ver Rankings Completos
-                      <BarChart3 className="w-4 h-4 ml-2" />
-                    </Button>
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400 text-sm mb-4">No tienes puntaje global aún</p>
-                    <p className="text-gray-500 text-xs mb-4">Juega partidos en Circuitooka para obtener tu puntaje</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
-                      onClick={() => router.push('/circuitooka/inscripcion')}
-                    >
-                      Inscribirme en Circuitooka
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
+          {/* Segunda fila: Inscripciones y Partidos Circuitooka (50/50) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             {/* Circuitooka - Inscripciones */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
@@ -1246,66 +1235,97 @@ export default function ProfilePage() {
                           <p className="text-gray-400 text-sm">No tienes próximos partidos programados.</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          {partidosCircuitooka.filter(p => p.estado === 'pendiente').map((partido) => {
-                            const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
-                            const companero = esEquipoA 
-                              ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
-                              : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
-                            const oponentes = esEquipoA 
-                              ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
-                              : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
+                        <div className="relative w-full">
+                          <Swiper
+                            modules={[Navigation]}
+                            spaceBetween={0}
+                            slidesPerView={1}
+                            navigation={{
+                              nextEl: '.swiper-button-next-proximos',
+                              prevEl: '.swiper-button-prev-proximos',
+                            }}
+                            className="w-full"
+                          >
+                            {partidosCircuitooka.filter(p => p.estado === 'pendiente').map((partido) => {
+                              const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
+                              const companero = esEquipoA 
+                                ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
+                                : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
+                              const oponentes = esEquipoA 
+                                ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
+                                : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
 
-                            return (
-                              <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
-                                <div className="flex items-start justify-between mb-3">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                      <h5 className="text-white font-semibold text-sm sm:text-base">
-                                        {partido.division?.nombre || `División ${partido.division?.numero_division}`}
-                                      </h5>
-                                    </div>
-                                    
-                                    <div className="space-y-1.5">
-                                      <div className="flex items-center gap-2">
-                                        <Calendar className="w-3 h-3 text-gray-400" />
-                                        <span className="text-xs sm:text-sm text-gray-300">
-                                          {formatArgentineDate(partido.fecha_partido)}
-                                          {partido.horario && ` a las ${partido.horario.substring(0, 5)}`}
-                                        </span>
+                              return (
+                                <SwiperSlide key={partido.id} className="!h-auto !w-full">
+                                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200 h-full w-full">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Trophy className="w-4 h-4 text-[#E2FF1B] flex-shrink-0" />
+                                          <h5 className="text-white font-semibold text-sm sm:text-base truncate">
+                                            {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                                          </h5>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm text-gray-300">
+                                              {formatArgentineDate(partido.fecha_partido)}
+                                              {partido.horario && ` a las ${partido.horario.substring(0, 5)}`}
+                                            </span>
+                                          </div>
+                                          
+                                          {partido.cancha && (
+                                            <div className="flex items-center gap-2">
+                                              <MapPin className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                              <span className="text-xs sm:text-sm text-blue-400">
+                                                {partido.cancha}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
+                                            <div className="mb-1">
+                                              <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                                            </div>
+                                            <div>
+                                              <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                                            </div>
+                                          </div>
+                                        </div>
                                       </div>
                                       
-                                      {partido.cancha && (
-                                        <div className="flex items-center gap-2">
-                                          <MapPin className="w-3 h-3 text-blue-400" />
-                                          <span className="text-xs sm:text-sm text-blue-400">
-                                            {partido.cancha}
-                                          </span>
+                                      <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10 flex-shrink-0">
+                                        <div className="flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          <span className="text-xs whitespace-nowrap">Pendiente</span>
                                         </div>
-                                      )}
-
-                                      <div className="pt-2 border-t border-gray-700">
-                                        <div className="text-xs sm:text-sm text-gray-300 mb-1">
-                                          <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
-                                        </div>
-                                        <div className="text-xs sm:text-sm text-gray-300">
-                                          <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
-                                        </div>
-                                      </div>
+                                      </Badge>
                                     </div>
                                   </div>
-                                  
-                                  <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10">
-                                    <div className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      <span className="text-xs">Pendiente</span>
-                                    </div>
-                                  </Badge>
-                                </div>
-                              </div>
-                            )
-                          })}
+                                </SwiperSlide>
+                              )
+                            })}
+                          </Swiper>
+                          
+                          {/* Controles de navegación personalizados */}
+                          <div className="flex items-center justify-center gap-4 mt-4">
+                            <button 
+                              type="button"
+                              className="swiper-button-prev-proximos p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido anterior"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button 
+                              type="button"
+                              className="swiper-button-next-proximos p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido siguiente"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </TabsContent>
@@ -1316,128 +1336,113 @@ export default function ProfilePage() {
                           <p className="text-gray-400 text-sm">No tienes partidos jugados registrados.</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          {partidosCircuitooka.filter(p => p.estado === 'jugado').map((partido) => {
-                            const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
-                            const equipoJugador = esEquipoA ? 'A' : 'B'
-                            const gano = partido.equipo_ganador === equipoJugador
-                            const companero = esEquipoA 
-                              ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
-                              : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
-                            const oponentes = esEquipoA 
-                              ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
-                              : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
+                        <div className="relative w-full">
+                          <Swiper
+                            modules={[Navigation]}
+                            spaceBetween={0}
+                            slidesPerView={1}
+                            navigation={{
+                              nextEl: '.swiper-button-next-jugados',
+                              prevEl: '.swiper-button-prev-jugados',
+                            }}
+                            className="w-full"
+                          >
+                            {partidosCircuitooka.filter(p => p.estado === 'jugado').map((partido) => {
+                              const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
+                              const equipoJugador = esEquipoA ? 'A' : 'B'
+                              const gano = partido.equipo_ganador === equipoJugador
+                              const companero = esEquipoA 
+                                ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
+                                : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
+                              const oponentes = esEquipoA 
+                                ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
+                                : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
 
-                            return (
-                              <div key={partido.id} className={`bg-gray-800/50 rounded-lg p-4 border ${gano ? 'border-green-500/50' : 'border-red-500/50'} hover:bg-gray-800/70 transition-all duration-200`}>
-                                <div className="flex items-start justify-between mb-3">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                      <h5 className="text-white font-semibold text-sm sm:text-base">
-                                        {partido.division?.nombre || `División ${partido.division?.numero_division}`}
-                                      </h5>
-                                    </div>
-                                    
-                                    <div className="space-y-1.5">
-                                      <div className="flex items-center gap-2">
-                                        <Calendar className="w-3 h-3 text-gray-400" />
-                                        <span className="text-xs sm:text-sm text-gray-300">
-                                          {formatArgentineDate(partido.fecha_partido)}
-                                        </span>
+                              return (
+                                <SwiperSlide key={partido.id} className="!h-auto !w-full">
+                                  <div className={`bg-gray-800/50 rounded-lg p-4 border ${gano ? 'border-green-500/50' : 'border-red-500/50'} hover:bg-gray-800/70 transition-all duration-200 h-full w-full`}>
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Trophy className="w-4 h-4 text-[#E2FF1B] flex-shrink-0" />
+                                          <h5 className="text-white font-semibold text-sm sm:text-base truncate">
+                                            {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                                          </h5>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm text-gray-300">
+                                              {formatArgentineDate(partido.fecha_partido)}
+                                            </span>
+                                          </div>
+                                          
+                                          <div className="pt-2 border-t border-gray-700">
+                                            <div className="text-xs sm:text-sm text-gray-300 mb-2">
+                                              <strong>Resultado:</strong>
+                                            </div>
+                                            <div className="text-sm font-bold text-white mb-1">
+                                              Equipo {equipoJugador}: {equipoJugador === 'A' ? partido.sets_equipo_a : partido.sets_equipo_b} sets
+                                            </div>
+                                            <div className="text-sm font-bold text-gray-400">
+                                              Equipo {equipoJugador === 'A' ? 'B' : 'A'}: {equipoJugador === 'A' ? partido.sets_equipo_b : partido.sets_equipo_a} sets
+                                            </div>
+                                          </div>
+
+                                          <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
+                                            <div className="mb-1">
+                                              <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                                            </div>
+                                            <div>
+                                              <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                                            </div>
+                                          </div>
+                                        </div>
                                       </div>
                                       
-                                      <div className="pt-2 border-t border-gray-700">
-                                        <div className="text-xs sm:text-sm text-gray-300 mb-2">
-                                          <strong>Resultado:</strong>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`${gano ? 'text-green-400 border-green-500/30 bg-green-500/10' : 'text-red-400 border-red-500/30 bg-red-500/10'} flex-shrink-0`}
+                                      >
+                                        <div className="flex items-center gap-1">
+                                          {gano ? (
+                                            <Award className="w-3 h-3" />
+                                          ) : (
+                                            <XCircle className="w-3 h-3" />
+                                          )}
+                                          <span className="text-xs whitespace-nowrap">{gano ? 'Victoria' : 'Derrota'}</span>
                                         </div>
-                                        <div className="text-sm font-bold text-white mb-1">
-                                          Equipo {equipoJugador}: {equipoJugador === 'A' ? partido.sets_equipo_a : partido.sets_equipo_b} sets
-                                        </div>
-                                        <div className="text-sm font-bold text-gray-400">
-                                          Equipo {equipoJugador === 'A' ? 'B' : 'A'}: {equipoJugador === 'A' ? partido.sets_equipo_b : partido.sets_equipo_a} sets
-                                        </div>
-                                      </div>
-
-                                      <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
-                                        <div className="mb-1">
-                                          <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
-                                        </div>
-                                        <div>
-                                          <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
-                                        </div>
-                                      </div>
+                                      </Badge>
                                     </div>
                                   </div>
-                                  
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`${gano ? 'text-green-400 border-green-500/30 bg-green-500/10' : 'text-red-400 border-red-500/30 bg-red-500/10'}`}
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      {gano ? (
-                                        <Award className="w-3 h-3" />
-                                      ) : (
-                                        <XCircle className="w-3 h-3" />
-                                      )}
-                                      <span className="text-xs">{gano ? 'Victoria' : 'Derrota'}</span>
-                                    </div>
-                                  </Badge>
-                                </div>
-                              </div>
-                            )
-                          })}
+                                </SwiperSlide>
+                              )
+                            })}
+                          </Swiper>
+                          
+                          {/* Controles de navegación personalizados */}
+                          <div className="flex items-center justify-center gap-4 mt-4">
+                            <button 
+                              type="button"
+                              className="swiper-button-prev-jugados p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido anterior"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button 
+                              type="button"
+                              className="swiper-button-next-jugados p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido siguiente"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </TabsContent>
                   </Tabs>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Acciones Rápidas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/inscripciones/ligas')}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Ver Ligas
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
-                  onClick={() => router.push('/circuitooka')}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Circuitooka
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/academia')}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Ver Academia
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/contacto')}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Contacto
-                </Button>
               </CardContent>
             </Card>
           </div>

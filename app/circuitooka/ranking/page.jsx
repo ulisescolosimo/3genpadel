@@ -219,6 +219,19 @@ export default function MiRankingPage() {
 
       // Filtrar solo el ranking del usuario
       const miRanking = rankingsCalculados.find(r => r.usuario_id === usuario.id)
+      
+      // Agregar información de la división al ranking
+      if (miRanking) {
+        const division = divisiones.find(d => d.id === filtros.division_id)
+        if (division) {
+          miRanking.division = {
+            id: division.id,
+            numero_division: division.numero_division,
+            nombre: division.nombre
+          }
+        }
+      }
+      
       setRankings(miRanking ? [miRanking] : [])
     } catch (error) {
       console.error('Error fetching mi ranking:', error)
@@ -329,13 +342,17 @@ export default function MiRankingPage() {
     const circunferencia = 2 * Math.PI * radio
     const longitudGanados = (porcentajeGanados / 100) * circunferencia
     const longitudPerdidos = (porcentajePerdidos / 100) * circunferencia
+    
+    // Calcular offsets correctamente para que ambos segmentos se muestren
+    // El primer segmento (ganados) empieza en 0 y termina en longitudGanados
     const offsetGanados = circunferencia - longitudGanados
-    // El segundo círculo debe empezar donde terminó el primero
+    // El segundo segmento (perdidos) empieza donde terminó el primero
     const offsetPerdidos = offsetGanados - longitudPerdidos
 
     return (
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="transform -rotate-90">
+          {/* Círculo de fondo */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -345,6 +362,7 @@ export default function MiRankingPage() {
             strokeWidth="20"
             className="text-gray-700"
           />
+          {/* Segmento de partidos ganados */}
           {ganados > 0 && (
             <circle
               cx={size / 2}
@@ -359,6 +377,7 @@ export default function MiRankingPage() {
               strokeLinecap="round"
             />
           )}
+          {/* Segmento de partidos perdidos */}
           {perdidos > 0 && (
             <circle
               cx={size / 2}
@@ -420,6 +439,20 @@ export default function MiRankingPage() {
 
   const miRanking = rankings[0]
   const inscripcionActual = inscripciones.find(i => i.etapa_id === filtros.etapa_id)
+  
+  // Función helper para obtener el promedio a mostrar
+  // Usa promedio_global si no hay filtro de división específica, sino usa promedio_final de la división
+  const obtenerPromedioAMostrar = () => {
+    if (filtros.division_id === 'all' || !miRanking) {
+      // Si no hay filtro de división específica, usar promedio_global del usuario
+      return usuario?.promedio_global || 0
+    } else {
+      // Si hay filtro de división específica, usar promedio_final del ranking de esa división
+      return miRanking.promedio_final || 0
+    }
+  }
+  
+  const promedioAMostrar = obtenerPromedioAMostrar()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-12">
@@ -726,8 +759,42 @@ export default function MiRankingPage() {
           </Card>
         )}
 
-        {/* Sin ranking seleccionado */}
-        {inscripciones.length > 0 && (!filtros.etapa_id || filtros.division_id === 'all') && (
+        {/* Sin ranking seleccionado - Mostrar promedio global si no hay filtro de división */}
+        {inscripciones.length > 0 && (!filtros.etapa_id || filtros.division_id === 'all') && !miRanking && usuario && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-[#E2FF1B]/30 backdrop-blur-sm">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-[#E2FF1B]/10 rounded-full">
+                      <Trophy className="w-12 h-12 text-[#E2FF1B]" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 break-words">
+                        {obtenerNombreJugador(usuario)}
+                      </h2>
+                      <p className="text-gray-400">Promedio Global</p>
+                    </div>
+                  </div>
+                  <div className="text-center md:text-right">
+                    <div className="text-sm text-gray-400 mb-1">Promedio Global</div>
+                    <div className="text-4xl font-bold text-[#E2FF1B]">
+                      {promedioAMostrar.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Sin ranking seleccionado - Mensaje cuando no hay etapa seleccionada */}
+        {inscripciones.length > 0 && !filtros.etapa_id && !usuario?.promedio_global && (
           <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
             <CardContent className="py-12 text-center">
               <BarChart3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -736,7 +803,7 @@ export default function MiRankingPage() {
           </Card>
         )}
 
-        {/* Mi Ranking */}
+        {/* Mi Ranking - Cuando hay filtro de división específica */}
         {miRanking && (
           <>
             {/* Card Principal de Ranking */}
@@ -770,9 +837,11 @@ export default function MiRankingPage() {
                       </div>
                     </div>
                     <div className="text-center md:text-right">
-                      <div className="text-sm text-gray-400 mb-1">Promedio Final</div>
+                      <div className="text-sm text-gray-400 mb-1">
+                        {filtros.division_id === 'all' ? 'Promedio Global' : 'Promedio Final'}
+                      </div>
                       <div className="text-4xl font-bold text-[#E2FF1B]">
-                        {miRanking.promedio_final ? miRanking.promedio_final.toFixed(2) : '0.00'}
+                        {promedioAMostrar.toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -964,14 +1033,22 @@ export default function MiRankingPage() {
                     </div>
                     <div className="bg-[#E2FF1B]/10 border-2 border-[#E2FF1B]/30 rounded-lg p-4">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-[#E2FF1B] font-semibold">Promedio Final</span>
+                        <span className="text-[#E2FF1B] font-semibold">
+                          {filtros.division_id === 'all' ? 'Promedio Global' : 'Promedio Final'}
+                        </span>
                         <span className="text-[#E2FF1B] font-bold text-2xl">
-                          {miRanking.promedio_final ? miRanking.promedio_final.toFixed(2) : '0.00'}
+                          {promedioAMostrar.toFixed(2)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">
-                        Suma: {miRanking.promedio_individual?.toFixed(2) || '0.00'} + {miRanking.promedio_general?.toFixed(2) || '0.00'} + {miRanking.bonus_por_jugar?.toFixed(2) || '0.00'} = {miRanking.promedio_final?.toFixed(2) || '0.00'}
-                      </p>
+                      {filtros.division_id !== 'all' && miRanking ? (
+                        <p className="text-xs text-gray-400">
+                          Suma: {miRanking.promedio_individual?.toFixed(2) || '0.00'} + {miRanking.promedio_general?.toFixed(2) || '0.00'} + {miRanking.bonus_por_jugar?.toFixed(2) || '0.00'} = {miRanking.promedio_final?.toFixed(2) || '0.00'}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-400">
+                          Promedio global calculado a partir de todos tus partidos en todas las divisiones
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

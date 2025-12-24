@@ -362,7 +362,7 @@ export default function InscripcionPage() {
                     </p>
                   </div>
                   <Link href="/circuitooka/partidos">
-                    <Button className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 w-full sm:w-auto">
+                    <Button className="bg-[#E2FF1B] my-4 text-black hover:bg-[#E2FF1B]/90 w-full sm:w-auto">
                       Ver mis partidos
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -407,12 +407,6 @@ export default function InscripcionPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {etapaSeleccionada && (
-                      <div className="mt-2 text-sm text-gray-400">
-                        <Calendar className="w-4 h-4 inline mr-1" />
-                        {formatDate(etapaSeleccionada.fecha_inicio)} - {etapaSeleccionada.fecha_fin ? formatDate(etapaSeleccionada.fecha_fin) : 'En curso'}
-                      </div>
-                    )}
                   </div>
 
                   {/* División */}

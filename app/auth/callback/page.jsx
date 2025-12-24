@@ -9,11 +9,19 @@ export default function AuthCallback() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/'
+  const type = searchParams.get('type')
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
         console.log('=== AUTH CALLBACK START ===')
+        
+        // Si es un callback de recuperación de contraseña, redirigir directamente
+        if (type === 'recovery') {
+          console.log('Callback de recuperación de contraseña detectado')
+          router.push('/restablecer-contrasena')
+          return
+        }
         
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
