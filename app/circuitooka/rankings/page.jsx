@@ -48,6 +48,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export default function RankingsPublicosPage() {
   const searchParams = useSearchParams()
@@ -552,20 +558,49 @@ export default function RankingsPublicosPage() {
                     {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
                   </CardTitle>
                   {minimoRequeridoDivision !== null && (
-                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-400">
-                      <div className="flex items-center gap-1.5 md:gap-2">
-                        <Target className="w-3 h-3 md:w-4 md:h-4" />
-                        <span>Mín: <span className="text-white font-semibold">{minimoRequeridoDivision}</span></span>
+                    <TooltipProvider delayDuration={0}>
+                      <div className="flex flex-wrap items-center gap-2 md:gap-6 text-xs md:text-sm text-gray-400">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Target className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Mínimo: </span>
+                              <span className="md:hidden">Mín: </span>
+                              <span className="text-white font-semibold">{minimoRequeridoDivision}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                            <p>Número mínimo de partidos requeridos para participar en ascensos y ser considerado activo en el ranking</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Users className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Jugadores: </span>
+                              <span className="md:hidden">Jug: </span>
+                              <span className="text-white font-semibold">{datosDivision.jugadores_inscriptos}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                            <p>Cantidad total de jugadores inscritos en esta división</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Activity className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Partidos: </span>
+                              <span className="md:hidden">Part: </span>
+                              <span className="text-white font-semibold">{datosDivision.partidos_jugados}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                            <p>Cantidad total de partidos jugados en esta división</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
-                      <div className="flex items-center gap-1.5 md:gap-2">
-                        <Users className="w-3 h-3 md:w-4 md:h-4" />
-                        <span>Jug: <span className="text-white font-semibold">{datosDivision.jugadores_inscriptos}</span></span>
-                      </div>
-                      <div className="flex items-center gap-1.5 md:gap-2">
-                        <Activity className="w-3 h-3 md:w-4 md:h-4" />
-                        <span>Part: <span className="text-white font-semibold">{datosDivision.partidos_jugados}</span></span>
-                      </div>
-                    </div>
+                    </TooltipProvider>
                   )}
                 </div>
               </CardHeader>
@@ -583,7 +618,6 @@ export default function RankingsPublicosPage() {
                         <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Gen.</th>
                         <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Final</th>
                         <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Estado</th>
-                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -631,8 +665,9 @@ export default function RankingsPublicosPage() {
                         return (
                           <tr
                             key={ranking.id || `inscripcion-${ranking.usuario_id}-${index}`}
-                            className={`border-b border-gray-800 transition-colors ${zonaClass}`}
+                            className={`border-b border-gray-800 transition-colors cursor-pointer ${zonaClass}`}
                             title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.' : '')}
+                            onClick={() => handleVerDetalle(ranking)}
                           >
                             <td className="py-3 px-4">
                               {cumpleMinimo && ranking.posicion_ranking ? (
@@ -685,16 +720,6 @@ export default function RankingsPublicosPage() {
                                   {partidosJugados === 0 ? 'Sin partidos' : 'No cumple'}
                                 </Badge>
                               )}
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleVerDetalle(ranking)}
-                                className="text-white hover:bg-gray-800"
-                              >
-                                Ver Detalle
-                              </Button>
                             </td>
                           </tr>
                         )
@@ -749,8 +774,9 @@ export default function RankingsPublicosPage() {
                       return (
                       <div
                         key={ranking.id || `inscripcion-${ranking.usuario_id}-${index}`}
-                        className={`rounded-lg p-4 border border-gray-700 ${zonaClass}`}
+                        className={`rounded-lg p-4 border border-gray-700 cursor-pointer ${zonaClass}`}
                         title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.' : '')}
+                        onClick={() => handleVerDetalle(ranking)}
                       >
                         <div className="mb-3">
                           {/* Primera fila: Posición y Nombre */}
@@ -827,21 +853,11 @@ export default function RankingsPublicosPage() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-700">
-                          <div>
-                            <div className="text-xs text-gray-400 mb-1">Promedio Final</div>
-                            <div className="text-[#E2FF1B] font-bold text-lg">
-                              {ranking.promedio_final ? ranking.promedio_final.toFixed(2) : '0.00'}
-                            </div>
+                        <div className="pt-2 border-t border-gray-700">
+                          <div className="text-xs text-gray-400 mb-1">Promedio Final</div>
+                          <div className="text-[#E2FF1B] font-bold text-lg">
+                            {ranking.promedio_final ? ranking.promedio_final.toFixed(2) : '0.00'}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleVerDetalle(ranking)}
-                            className="text-white hover:bg-gray-800 text-xs"
-                          >
-                            Ver Detalle
-                          </Button>
                         </div>
                       </div>
                     )

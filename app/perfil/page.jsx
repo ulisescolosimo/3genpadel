@@ -30,7 +30,6 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  AlertCircle,
   Save,
   Camera,
   Upload,
@@ -1080,20 +1079,9 @@ export default function ProfilePage() {
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
                       <p className="text-xs sm:text-sm text-gray-400">DNI</p>
-                      {usuario.dni ? (
-                        <p className="text-sm sm:text-base text-white">
-                          {usuario.dni.toString()}
-                        </p>
-                      ) : (
-                        <div className="mt-1 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs">
-                          <div className="flex items-center gap-1 text-red-400">
-                            <AlertCircle className="w-3 h-3" />
-                            <span className="text-red-300">
-                              Debes configurar tu DNI para poder inscribirte en ligas.
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                      <p className="text-sm sm:text-base text-white">
+                        {usuario.dni ? usuario.dni.toString() : 'No especificado'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
