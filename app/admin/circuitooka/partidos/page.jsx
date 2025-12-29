@@ -72,7 +72,8 @@ export default function PartidosPage() {
     sets_equipo_a: 0,
     sets_equipo_b: 0,
     games_equipo_a: 0,
-    games_equipo_b: 0
+    games_equipo_b: 0,
+    sets: [] // Array de sets: [{equipo_a: 6, equipo_b: 4}, ...]
   })
   const [jugadoresDisponibles, setJugadoresDisponibles] = useState([])
   const [busquedaJugador, setBusquedaJugador] = useState('')
@@ -247,6 +248,28 @@ export default function PartidosPage() {
     }
   }
 
+  // Función para calcular totales de games desde los sets
+  const calcularTotalesGames = (sets) => {
+    if (!sets || sets.length === 0) return { totalGamesA: 0, totalGamesB: 0 }
+    const totalGamesA = sets.reduce((sum, set) => sum + (parseInt(set.equipo_a) || 0), 0)
+    const totalGamesB = sets.reduce((sum, set) => sum + (parseInt(set.equipo_b) || 0), 0)
+    return { totalGamesA, totalGamesB }
+  }
+
+  // Función para calcular sets ganados desde los sets
+  const calcularSetsGanados = (sets) => {
+    if (!sets || sets.length === 0) return { setsA: 0, setsB: 0 }
+    let setsA = 0
+    let setsB = 0
+    sets.forEach(set => {
+      const gamesA = parseInt(set.equipo_a) || 0
+      const gamesB = parseInt(set.equipo_b) || 0
+      if (gamesA > gamesB) setsA++
+      else if (gamesB > gamesA) setsB++
+    })
+    return { setsA, setsB }
+  }
+
   const seleccionarJugador = (jugador, campo) => {
     setFormData({ ...formData, [campo]: jugador.id })
     setJugadoresPartido({ ...jugadoresPartido, [campo === 'jugador_a1_id' ? 'a1' : campo === 'jugador_a2_id' ? 'a2' : campo === 'jugador_b1_id' ? 'b1' : 'b2']: jugador })
@@ -275,6 +298,17 @@ export default function PartidosPage() {
         b1: partido.jugador_b1,
         b2: partido.jugador_b2
       })
+      
+      // Parsear resultado_detallado si existe, o crear sets vacíos
+      let sets = []
+      if (partido.resultado_detallado && partido.resultado_detallado.sets) {
+        sets = partido.resultado_detallado.sets
+      } else if (partido.games_equipo_a > 0 || partido.games_equipo_b > 0) {
+        // Si hay games pero no resultado_detallado, crear un set único con los totales
+        // Esto es para compatibilidad con datos antiguos
+        sets = [{ equipo_a: partido.games_equipo_a || 0, equipo_b: partido.games_equipo_b || 0 }]
+      }
+      
       setFormData({
         etapa_id: partido.etapa_id,
         division_id: partido.division_id,
@@ -290,7 +324,8 @@ export default function PartidosPage() {
         sets_equipo_a: partido.sets_equipo_a || 0,
         sets_equipo_b: partido.sets_equipo_b || 0,
         games_equipo_a: partido.games_equipo_a || 0,
-        games_equipo_b: partido.games_equipo_b || 0
+        games_equipo_b: partido.games_equipo_b || 0,
+        sets: sets
       })
     } else {
       setEditingPartido(null)
@@ -315,7 +350,8 @@ export default function PartidosPage() {
         sets_equipo_a: 0,
         sets_equipo_b: 0,
         games_equipo_a: 0,
-        games_equipo_b: 0
+        games_equipo_b: 0,
+        sets: []
       })
     }
     setIsDialogOpen(true)
@@ -339,7 +375,8 @@ export default function PartidosPage() {
       sets_equipo_a: 0,
       sets_equipo_b: 0,
       games_equipo_a: 0,
-      games_equipo_b: 0
+      games_equipo_b: 0,
+      sets: []
     })
     setJugadorSeleccionado(null)
     setBusquedaJugador('')
@@ -368,12 +405,31 @@ export default function PartidosPage() {
         return
       }
 
+      // Calcular totales de games y sets desde los sets individuales
+      const { totalGamesA, totalGamesB } = calcularTotalesGames(formData.sets || [])
+      const { setsA, setsB } = calcularSetsGanados(formData.sets || [])
+
+      // Preparar el body con los datos calculados y resultado_detallado
+      const bodyData = {
+        ...formData,
+        games_equipo_a: totalGamesA,
+        games_equipo_b: totalGamesB,
+        sets_equipo_a: setsA,
+        sets_equipo_b: setsB,
+        resultado_detallado: formData.sets && formData.sets.length > 0 
+          ? { sets: formData.sets } 
+          : null
+      }
+
+      // Remover el campo 'sets' del body ya que no existe en la BD
+      delete bodyData.sets
+
       const url = editingPartido ? '/api/circuitooka/partidos' : '/api/circuitooka/partidos'
       const method = editingPartido ? 'PUT' : 'POST'
 
       const body = editingPartido
-        ? { id: editingPartido.id, ...formData }
-        : formData
+        ? { id: editingPartido.id, ...bodyData }
+        : bodyData
 
       const response = await fetch(url, {
         method,
@@ -763,23 +819,85 @@ export default function PartidosPage() {
 
                     {/* Resultado */}
                     {partido.estado === 'jugado' && (
-                      <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-400">Sets:</span>
-                            <span className="text-white font-semibold">
-                              {partido.sets_equipo_a || 0} - {partido.sets_equipo_b || 0}
-                            </span>
+                      <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+                        {/* Mostrar sets individuales si están disponibles en resultado_detallado */}
+                        {partido.resultado_detallado && partido.resultado_detallado.sets && partido.resultado_detallado.sets.length > 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Trophy className="w-3 h-3 text-yellow-500" />
+                              <span className="text-white font-semibold text-xs">Ganador: Equipo {partido.equipo_ganador}</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-1.5">
+                              {partido.resultado_detallado.sets.map((set, index) => {
+                                const gamesA = set.equipo_a || 0
+                                const gamesB = set.equipo_b || 0
+                                const ganadorSet = gamesA > gamesB ? 'A' : gamesB > gamesA ? 'B' : null
+                                const esGanador = ganadorSet === partido.equipo_ganador
+                                
+                                return (
+                                  <div 
+                                    key={index} 
+                                    className={`flex items-center justify-between p-2 rounded border text-xs ${
+                                      esGanador 
+                                        ? 'bg-yellow-500/15 border-yellow-500/40' 
+                                        : 'bg-gray-700/20 border-gray-600'
+                                    }`}
+                                  >
+                                    <span className="text-gray-400 font-medium w-10">
+                                      Set {index + 1}
+                                    </span>
+                                    <div className="flex items-center gap-2 flex-1 justify-center">
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-gray-500 text-[10px]">A</span>
+                                        <span className={`text-sm font-bold ${
+                                          ganadorSet === 'A' ? 'text-yellow-500' : 'text-white'
+                                        }`}>
+                                          {gamesA}
+                                        </span>
+                                      </div>
+                                      <span className="text-gray-500">-</span>
+                                      <div className="flex items-center gap-1">
+                                        <span className={`text-sm font-bold ${
+                                          ganadorSet === 'B' ? 'text-yellow-500' : 'text-white'
+                                        }`}>
+                                          {gamesB}
+                                        </span>
+                                        <span className="text-gray-500 text-[10px]">B</span>
+                                      </div>
+                                    </div>
+                                    {ganadorSet && (
+                                      <div className="w-6 text-right">
+                                        <span className={`text-[10px] font-semibold ${
+                                          esGanador ? 'text-yellow-500' : 'text-gray-400'
+                                        }`}>
+                                          {esGanador ? '✓' : ''}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
                           </div>
-                          {(partido.games_equipo_a > 0 || partido.games_equipo_b > 0) && (
+                        ) : (
+                          /* Mostrar solo totales si no hay sets individuales */
+                          <div className="flex items-center gap-4 text-sm">
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-400">Games:</span>
+                              <span className="text-gray-400">Sets:</span>
                               <span className="text-white font-semibold">
-                                {partido.games_equipo_a || 0} - {partido.games_equipo_b || 0}
+                                {partido.sets_equipo_a || 0} - {partido.sets_equipo_b || 0}
                               </span>
                             </div>
-                          )}
-                        </div>
+                            {(partido.games_equipo_a > 0 || partido.games_equipo_b > 0) && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-400">Games:</span>
+                                <span className="text-white font-semibold">
+                                  {partido.games_equipo_a || 0} - {partido.games_equipo_b || 0}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1154,7 +1272,7 @@ export default function PartidosPage() {
             {formData.estado === 'jugado' && (
               <div className="border-t border-gray-800 pt-4">
                 <h3 className="text-white font-semibold mb-4">Resultado</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
                     <Label className="text-gray-400 mb-2 block">Equipo Ganador *</Label>
                     <Select
@@ -1171,49 +1289,101 @@ export default function PartidosPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-gray-400 mb-2 block">Sets Equipo A</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="2"
-                        value={formData.sets_equipo_a}
-                        onChange={(e) => setFormData({ ...formData, sets_equipo_a: parseInt(e.target.value) || 0 })}
-                        className="bg-gray-800 border-gray-700 text-white"
-                      />
+
+                  {/* Sets individuales con games */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-gray-400">Sets del Partido</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newSets = [...(formData.sets || []), { equipo_a: 0, equipo_b: 0 }]
+                          setFormData({ ...formData, sets: newSets })
+                        }}
+                        className="text-gray-300 border-gray-600 hover:bg-gray-700"
+                      >
+                        + Agregar Set
+                      </Button>
                     </div>
-                    <div>
-                      <Label className="text-gray-400 mb-2 block">Sets Equipo B</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="2"
-                        value={formData.sets_equipo_b}
-                        onChange={(e) => setFormData({ ...formData, sets_equipo_b: parseInt(e.target.value) || 0 })}
-                        className="bg-gray-800 border-gray-700 text-white"
-                      />
+                    
+                    <div className="space-y-3">
+                      {(formData.sets || []).map((set, index) => (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                          <span className="text-gray-400 text-sm font-medium w-16">Set {index + 1}</span>
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="flex-1">
+                              <Label className="text-gray-400 text-xs mb-1 block">Equipo A</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={set.equipo_a || 0}
+                                onChange={(e) => {
+                                  const newSets = [...formData.sets]
+                                  newSets[index] = { ...newSets[index], equipo_a: parseInt(e.target.value) || 0 }
+                                  setFormData({ ...formData, sets: newSets })
+                                }}
+                                className="bg-gray-700 border-gray-600 text-white"
+                              />
+                            </div>
+                            <span className="text-gray-400 text-xl font-bold pt-5">-</span>
+                            <div className="flex-1">
+                              <Label className="text-gray-400 text-xs mb-1 block">Equipo B</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={set.equipo_b || 0}
+                                onChange={(e) => {
+                                  const newSets = [...formData.sets]
+                                  newSets[index] = { ...newSets[index], equipo_b: parseInt(e.target.value) || 0 }
+                                  setFormData({ ...formData, sets: newSets })
+                                }}
+                                className="bg-gray-700 border-gray-600 text-white"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newSets = formData.sets.filter((_, i) => i !== index)
+                                setFormData({ ...formData, sets: newSets })
+                              }}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {(!formData.sets || formData.sets.length === 0) && (
+                        <div className="text-center py-4 text-gray-500 text-sm">
+                          No hay sets agregados. Haz clic en "Agregar Set" para comenzar.
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <Label className="text-gray-400 mb-2 block">Games Equipo A</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={formData.games_equipo_a}
-                        onChange={(e) => setFormData({ ...formData, games_equipo_a: parseInt(e.target.value) || 0 })}
-                        className="bg-gray-800 border-gray-700 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-gray-400 mb-2 block">Games Equipo B</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={formData.games_equipo_b}
-                        onChange={(e) => setFormData({ ...formData, games_equipo_b: parseInt(e.target.value) || 0 })}
-                        className="bg-gray-800 border-gray-700 text-white"
-                      />
-                    </div>
+
+                    {/* Totales calculados automáticamente */}
+                    {(formData.sets && formData.sets.length > 0) && (
+                      <div className="mt-4 p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-400">Sets Totales:</span>
+                            <span className="text-white font-semibold ml-2">
+                              {calcularSetsGanados(formData.sets).setsA} - {calcularSetsGanados(formData.sets).setsB}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Games Totales:</span>
+                            <span className="text-white font-semibold ml-2">
+                              {calcularTotalesGames(formData.sets).totalGamesA} - {calcularTotalesGames(formData.sets).totalGamesB}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

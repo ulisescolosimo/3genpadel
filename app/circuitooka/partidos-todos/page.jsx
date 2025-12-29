@@ -498,32 +498,78 @@ export default function PartidosCircuitookaPage() {
 
                               {/* Resultado del partido cuando ya finalizó */}
                               {partido.estado === 'jugado' && partido.equipo_ganador && (
-                                <div className="mt-4 p-3 bg-[#E2FF1B]/10 border border-[#E2FF1B]/30 rounded-lg">
-                                  <div className="text-center">
+                                <div className="mt-4 p-4 bg-[#E2FF1B]/10 border border-[#E2FF1B]/30 rounded-lg">
+                                  <div className="text-center mb-4">
                                     <div className="flex items-center justify-center gap-2 mb-2">
                                       <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                      <span className="text-[#E2FF1B] font-semibold text-sm">Ganador</span>
+                                      <span className="text-[#E2FF1B] font-semibold text-sm">Ganador: Equipo {partido.equipo_ganador}</span>
                                     </div>
-                                    <div className="text-white text-sm mb-3">
-                                      <span className="font-medium">
-                                        Equipo {partido.equipo_ganador}
-                                      </span>
-                                    </div>
-                                    
-                                    {/* Resultado del partido */}
-                                    {(partido.games_equipo_a !== null || partido.games_equipo_b !== null || partido.games_equipo_a > 0 || partido.games_equipo_b > 0) && (
-                                      <div className="border-t border-[#E2FF1B]/30 pt-3">
-                                        <div className="flex items-center justify-center gap-2 mb-2">
-                                          <span className="text-[#E2FF1B] font-semibold text-sm">Resultado</span>
-                                        </div>
-                                        <div className="text-white text-sm">
-                                          <span className="font-medium">
-                                            Equipo A: {partido.games_equipo_a || 0} games - Equipo B: {partido.games_equipo_b || 0} games
-                                          </span>
-                                        </div>
-                                      </div>
-                                    )}
                                   </div>
+                                  
+                                  {/* Resultado del partido - mostrar sets individuales si están disponibles */}
+                                  {partido.resultado_detallado && partido.resultado_detallado.sets && partido.resultado_detallado.sets.length > 0 ? (
+                                    <div className="space-y-2">
+                                      <div className="text-center mb-3">
+                                        <span className="text-[#E2FF1B] font-semibold text-xs uppercase tracking-wide">Resultado por Sets</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 gap-2">
+                                        {partido.resultado_detallado.sets.map((set, index) => {
+                                          const gamesA = set.equipo_a || 0
+                                          const gamesB = set.equipo_b || 0
+                                          const ganadorSet = gamesA > gamesB ? 'A' : gamesB > gamesA ? 'B' : null
+                                          const esGanador = ganadorSet === partido.equipo_ganador
+                                          
+                                          return (
+                                            <div 
+                                              key={index} 
+                                              className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
+                                                esGanador 
+                                                  ? 'bg-[#E2FF1B]/20 border-[#E2FF1B]/50' 
+                                                  : 'bg-black/20 border-white/10'
+                                              }`}
+                                            >
+                                              <span className="text-gray-400 text-xs font-medium w-12 text-left">
+                                                Set {index + 1}
+                                              </span>
+                                              <div className="flex items-center gap-3 flex-1 justify-center">
+                                                <span className={`text-sm font-bold ${
+                                                  ganadorSet === 'A' ? 'text-[#E2FF1B]' : 'text-white'
+                                                }`}>
+                                                  {gamesA}
+                                                </span>
+                                                <span className="text-gray-500 text-xs">-</span>
+                                                <span className={`text-sm font-bold ${
+                                                  ganadorSet === 'B' ? 'text-[#E2FF1B]' : 'text-white'
+                                                }`}>
+                                                  {gamesB}
+                                                </span>
+                                              </div>
+                                              {ganadorSet && (
+                                                <div className="w-12 text-right">
+                                                  <span className={`text-xs font-semibold ${
+                                                    esGanador ? 'text-[#E2FF1B]' : 'text-gray-400'
+                                                  }`}>
+                                                    {esGanador ? '✓' : ''}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    </div>
+                                  ) : (partido.games_equipo_a !== null || partido.games_equipo_b !== null || partido.games_equipo_a > 0 || partido.games_equipo_b > 0) ? (
+                                    <div className="border-t border-[#E2FF1B]/30 pt-3">
+                                      <div className="flex items-center justify-center gap-2 mb-2">
+                                        <span className="text-[#E2FF1B] font-semibold text-sm">Resultado</span>
+                                      </div>
+                                      <div className="text-white text-sm">
+                                        <span className="font-medium">
+                                          Equipo A: {partido.games_equipo_a || 0} games - Equipo B: {partido.games_equipo_b || 0} games
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ) : null}
                                 </div>
                               )}
                             </CardContent>
