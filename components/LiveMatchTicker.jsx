@@ -206,7 +206,7 @@ export default function LiveMatchTicker() {
           <div className="flex items-center gap-2 mr-4">
             <div className="flex items-center gap-1 px-2 py-1 bg-black text-[#E2FF1B] rounded-full">
               <Trophy className="w-4 h-4" />
-              <Link href="/partidos">
+              <Link href="/circuitooka/partidos-todos">
                 <span className="text-sm font-bold">
                   PARTIDOS
                 </span>
