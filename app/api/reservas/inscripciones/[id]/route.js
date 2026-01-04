@@ -54,14 +54,10 @@ export async function PATCH(request, { params }) {
       )
     }
 
-    // Obtener la inscripción con detalles del turno y usuario
+    // Verificar que la inscripción existe
     const { data: inscripcion, error: inscError } = await supabase
       .from('reservas_inscripciones')
-      .select(`
-        *,
-        turno:turno_id(*),
-        usuario:usuario_id(*)
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 

@@ -566,7 +566,7 @@ export default function NotificacionesPage() {
                 { tipo: 'general', nombre: 'General', icono: '📢' },
                 { tipo: 'liga', nombre: 'Liga', icono: '🏆' },
                 { tipo: 'ranking', nombre: 'Ranking', icono: '🥇' },
-                { tipo: 'academia', nombre: 'Academia', icono: '📚' },
+                { tipo: 'academia', nombre: 'Academia', icono: '🎾' },
                 { tipo: 'sistema', nombre: 'Sistema', icono: '🔔' }
                              ].map((item) => (
                  <div key={item.tipo} className="text-center p-3 border border-gray-700 rounded-lg bg-gray-800/50">

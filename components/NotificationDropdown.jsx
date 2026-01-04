@@ -54,7 +54,7 @@ export default function NotificationDropdown({ isMobile = false }) {
       case 'ranking':
         return '🥇'
       case 'academia':
-        return '📚'
+        return '🎾'
       case 'sistema':
         return '🔔'
       default:

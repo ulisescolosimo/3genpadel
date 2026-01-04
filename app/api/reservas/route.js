@@ -9,119 +9,188 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-// Obtener turnos disponibles
+// Obtener horarios disponibles para una fecha/categoría o inscripciones agrupadas para admin
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const categoria = searchParams.get('categoria')
     const fecha = searchParams.get('fecha')
-    const incluirInscripciones = searchParams.get('incluir_inscripciones') === 'true'
     const usuario_id = searchParams.get('usuario_id')
+    const horarios_disponibles = searchParams.get('horarios_disponibles') === 'true'
+    const incluirInscripciones = searchParams.get('incluir_inscripciones') === 'true'
+    const admin = searchParams.get('admin') === 'true'
 
-    let query = supabase
-      .from('reservas_turnos')
-      .select('*')
-      .order('fecha', { ascending: true })
-      .order('hora_inicio', { ascending: true })
+    // Endpoint para admin: obtener inscripciones agrupadas por fecha/hora/categoria
+    if (admin && incluirInscripciones) {
+      const authHeader = request.headers.get('authorization')
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return NextResponse.json(
+          { error: 'Token de autorización requerido' },
+          { status: 401 }
+        )
+      }
 
-    if (categoria) {
-      query = query.eq('categoria', categoria)
-    }
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
-    if (fecha) {
-      query = query.eq('fecha', fecha)
-    }
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Token de autorización inválido' },
+          { status: 401 }
+        )
+      }
 
-    const { data: turnos, error } = await query
+      // Verificar que el usuario sea admin
+      const { data: usuario, error: usuarioError } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', user.id)
+        .single()
 
-    if (error) {
-      console.error('Error fetching turnos:', error)
-      return NextResponse.json(
-        { error: 'Error al obtener turnos' },
-        { status: 500 }
-      )
-    }
+      if (usuarioError || !usuario || usuario.rol !== 'admin') {
+        return NextResponse.json(
+          { error: 'No tienes permisos para realizar esta acción' },
+          { status: 403 }
+        )
+      }
 
-    // Contar inscripciones CONFIRMADAS para cada turno (pendientes no ocupan lugar)
-    const turnosConContador = await Promise.all(
-      turnos.map(async (turno) => {
-        const { count: inscripcionesCount, error: countError } = await supabase
-          .from('reservas_inscripciones')
-          .select('*', { count: 'exact', head: true })
-          .eq('turno_id', turno.id)
-          .eq('estado', 'confirmada')
+      // Obtener todas las inscripciones con datos de usuario
+      let query = supabase
+        .from('reservas_inscripciones')
+        .select(`
+          id,
+          fecha,
+          hora_inicio,
+          hora_fin,
+          categoria,
+          estado,
+          created_at,
+          usuarios:usuario_id(
+            id,
+            nombre,
+            apellido,
+            email
+          )
+        `)
+        .order('fecha', { ascending: true })
+        .order('hora_inicio', { ascending: true })
 
-        if (countError) {
-          console.error('Error counting inscripciones:', countError)
-          return { ...turno, inscripciones_count: 0 }
+      if (categoria && categoria !== 'all') {
+        query = query.eq('categoria', categoria)
+      }
+
+      const { data: inscripciones, error: inscError } = await query
+
+      if (inscError) {
+        console.error('Error fetching inscripciones:', inscError)
+        return NextResponse.json(
+          { error: 'Error al obtener inscripciones' },
+          { status: 500 }
+        )
+      }
+
+      // Agrupar inscripciones por fecha/hora/categoria
+      const grupos = new Map()
+      
+      inscripciones?.forEach(ins => {
+        const key = `${ins.fecha}_${ins.hora_inicio}_${ins.hora_fin}_${ins.categoria}`
+        if (!grupos.has(key)) {
+          grupos.set(key, {
+            fecha: ins.fecha,
+            hora_inicio: ins.hora_inicio,
+            hora_fin: ins.hora_fin,
+            categoria: ins.categoria,
+            inscripciones: []
+          })
         }
-
-        return { ...turno, inscripciones_count: inscripcionesCount || 0 }
+        grupos.get(key).inscripciones.push(ins)
       })
-    )
 
-    // Si se solicita incluir inscripciones detalladas (para admin)
-    if (incluirInscripciones) {
-      const turnosConInscripciones = await Promise.all(
-        turnosConContador.map(async (turno) => {
-          const { data: inscripciones, error: inscError } = await supabase
-            .from('reservas_inscripciones')
-            .select(`
-              id,
-              created_at,
-              estado,
-              usuarios!inner(
-                id,
-                nombre,
-                apellido,
-                email
-              )
-            `)
-            .eq('turno_id', turno.id)
-
-          if (inscError) {
-            console.error('Error fetching inscripciones:', inscError)
-            return { ...turno, inscripciones: [] }
-          }
-
-          return { ...turno, inscripciones: inscripciones || [] }
-        })
-      )
+      // Convertir a array y contar inscripciones
+      const turnosAgrupados = Array.from(grupos.values()).map(grupo => ({
+        fecha: grupo.fecha,
+        hora_inicio: grupo.hora_inicio,
+        hora_fin: grupo.hora_fin,
+        categoria: grupo.categoria,
+        inscripciones_count: grupo.inscripciones.filter(i => i.estado !== 'cancelada').length,
+        capacidad: 4,
+        inscripciones: grupo.inscripciones
+      }))
 
       return NextResponse.json({
         success: true,
-        data: turnosConInscripciones
+        data: turnosAgrupados
       })
     }
 
-    // Si se proporciona usuario_id, verificar si está inscrito en cada turno
-    if (usuario_id) {
-      const turnosConEstado = await Promise.all(
-        turnosConContador.map(async (turno) => {
-          const { data: inscripcion } = await supabase
+    // Si se solicita horarios disponibles para una fecha/categoría específica
+    if (horarios_disponibles && fecha && categoria) {
+      // Definir horarios posibles
+      const horarios = [
+        { hora_inicio: '12:00:00', hora_fin: '13:00:00' },
+        { hora_inicio: '13:00:00', hora_fin: '14:00:00' },
+        { hora_inicio: '14:00:00', hora_fin: '15:00:00' },
+        { hora_inicio: '15:00:00', hora_fin: '16:00:00' }
+      ]
+
+      // Para cada horario, verificar disponibilidad consultando reservas_inscripciones
+      const horariosConDisponibilidad = await Promise.all(
+        horarios.map(async (horario) => {
+          // Contar inscripciones confirmadas y pendientes para este horario
+          const { count: inscripcionesCount } = await supabase
             .from('reservas_inscripciones')
-            .select('id, created_at, estado')
-            .eq('turno_id', turno.id)
-            .eq('usuario_id', usuario_id)
-            .single()
+            .select('*', { count: 'exact', head: true })
+            .eq('fecha', fecha)
+            .eq('hora_inicio', horario.hora_inicio)
+            .eq('hora_fin', horario.hora_fin)
+            .eq('categoria', categoria)
+            .in('estado', ['confirmada', 'pendiente'])
+
+          const capacidadMaxima = 4
+          const disponible = (inscripcionesCount || 0) < capacidadMaxima
+
+          // Si se proporciona usuario_id, verificar si está inscrito
+          let mi_inscripcion = null
+          if (usuario_id) {
+            const { data: inscripcion } = await supabase
+              .from('reservas_inscripciones')
+              .select('id, created_at, estado')
+              .eq('fecha', fecha)
+              .eq('hora_inicio', horario.hora_inicio)
+              .eq('hora_fin', horario.hora_fin)
+              .eq('categoria', categoria)
+              .eq('usuario_id', usuario_id)
+              .in('estado', ['pendiente', 'confirmada'])
+              .single()
+
+            mi_inscripcion = inscripcion || null
+          }
 
           return {
-            ...turno,
-            mi_inscripcion: inscripcion || null
+            hora_inicio: horario.hora_inicio,
+            hora_fin: horario.hora_fin,
+            inscripciones_count: inscripcionesCount || 0,
+            capacidad: capacidadMaxima,
+            disponible,
+            mi_inscripcion
           }
         })
       )
 
       return NextResponse.json({
         success: true,
-        data: turnosConEstado
+        data: horariosConDisponibilidad
       })
     }
 
+    // Si no se solicita horarios_disponibles, devolver error o respuesta vacía
+    // (ya no hay turnos predefinidos)
     return NextResponse.json({
       success: true,
-      data: turnosConContador
+      data: [],
+      message: 'Use horarios_disponibles=true con fecha y categoria para obtener horarios disponibles'
     })
+
   } catch (error) {
     console.error('Error in GET /api/reservas:', error)
     return NextResponse.json(
@@ -131,219 +200,5 @@ export async function GET(request) {
   }
 }
 
-// Crear nuevo turno (solo admin)
-export async function POST(request) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Token de autorización requerido' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Token de autorización inválido' },
-        { status: 401 }
-      )
-    }
-
-    // Verificar que el usuario sea admin
-    const { data: usuario, error: usuarioError } = await supabase
-      .from('usuarios')
-      .select('rol')
-      .eq('id', user.id)
-      .single()
-
-    if (usuarioError || !usuario || usuario.rol !== 'admin') {
-      return NextResponse.json(
-        { error: 'No tienes permisos para realizar esta acción' },
-        { status: 403 }
-      )
-    }
-
-    const { fecha, hora_inicio, hora_fin, categoria, capacidad } = await request.json()
-
-    // Validar campos requeridos
-    if (!fecha || !hora_inicio || !hora_fin || !categoria) {
-      return NextResponse.json(
-        { error: 'Fecha, hora_inicio, hora_fin y categoría son requeridos' },
-        { status: 400 }
-      )
-    }
-
-    // Validar categoría
-    if (!['C4', 'C6', 'C7', 'C8'].includes(categoria)) {
-      return NextResponse.json(
-        { error: 'Categoría inválida' },
-        { status: 400 }
-      )
-    }
-
-    // Validar que hora_inicio sea menor que hora_fin
-    if (hora_inicio >= hora_fin) {
-      return NextResponse.json(
-        { error: 'La hora de inicio debe ser menor que la hora de fin' },
-        { status: 400 }
-      )
-    }
-
-    // Validar fecha no sea del pasado
-    const fechaTurno = new Date(fecha)
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    
-    if (fechaTurno < hoy) {
-      return NextResponse.json(
-        { error: 'No se pueden crear turnos para fechas pasadas' },
-        { status: 400 }
-      )
-    }
-
-    // Obtener día de la semana
-    const fechaObj = new Date(fecha)
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    const dia_semana = dias[fechaObj.getDay()]
-
-    const { data: nuevoTurno, error: createError } = await supabase
-      .from('reservas_turnos')
-      .insert({
-        fecha,
-        hora_inicio,
-        hora_fin,
-        categoria,
-        dia_semana,
-        capacidad: capacidad || 4,
-        estado: 'disponible'
-      })
-      .select()
-      .single()
-
-    if (createError) {
-      console.error('Error creating turno:', createError)
-      return NextResponse.json(
-        { error: 'Error al crear turno. Puede que ya exista un turno con esa fecha, hora y categoría.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Turno creado exitosamente',
-      data: nuevoTurno
-    })
-
-  } catch (error) {
-    console.error('Error in POST /api/reservas:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
-  }
-}
-
-// Eliminar turno (solo admin)
-export async function DELETE(request) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Token de autorización requerido' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Token de autorización inválido' },
-        { status: 401 }
-      )
-    }
-
-    // Verificar que el usuario sea admin
-    const { data: usuario, error: usuarioError } = await supabase
-      .from('usuarios')
-      .select('rol')
-      .eq('id', user.id)
-      .single()
-
-    if (usuarioError || !usuario || usuario.rol !== 'admin') {
-      return NextResponse.json(
-        { error: 'No tienes permisos para realizar esta acción' },
-        { status: 403 }
-      )
-    }
-
-    const { searchParams } = new URL(request.url)
-    const turnoId = searchParams.get('id')
-
-    if (!turnoId) {
-      return NextResponse.json(
-        { error: 'ID del turno requerido' },
-        { status: 400 }
-      )
-    }
-
-    // Verificar si el turno tiene inscripciones confirmadas
-    const { count: inscripcionesCount, error: countError } = await supabase
-      .from('reservas_inscripciones')
-      .select('*', { count: 'exact', head: true })
-      .eq('turno_id', turnoId)
-      .eq('estado', 'confirmada')
-
-    if (countError) {
-      console.error('Error counting inscripciones:', countError)
-      return NextResponse.json(
-        { error: 'Error al verificar inscripciones' },
-        { status: 500 }
-      )
-    }
-
-    if (inscripcionesCount > 0) {
-      return NextResponse.json(
-        { error: 'No se puede eliminar un turno con inscripciones confirmadas. Primero cancela las inscripciones.' },
-        { status: 400 }
-      )
-    }
-
-    // Eliminar inscripciones pendientes primero
-    await supabase
-      .from('reservas_inscripciones')
-      .delete()
-      .eq('turno_id', turnoId)
-
-    // Eliminar el turno
-    const { error: deleteError } = await supabase
-      .from('reservas_turnos')
-      .delete()
-      .eq('id', turnoId)
-
-    if (deleteError) {
-      console.error('Error deleting turno:', deleteError)
-      return NextResponse.json(
-        { error: 'Error al eliminar turno' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Turno eliminado exitosamente'
-    })
-
-  } catch (error) {
-    console.error('Error in DELETE /api/reservas:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
-  }
-}
-
+// Los endpoints POST y DELETE para crear/eliminar turnos ya no son necesarios
+// ya que no usamos la tabla reservas_turnos

@@ -9,7 +9,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-// Inscribirse a un turno
+// Inscribirse a un turno (sin usar reservas_turnos)
 export async function POST(request) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -30,42 +30,74 @@ export async function POST(request) {
       )
     }
 
-    const { turno_id } = await request.json()
+    const { fecha, hora_inicio, hora_fin, categoria } = await request.json()
 
-    if (!turno_id) {
+    // Validar campos requeridos
+    if (!fecha || !hora_inicio || !hora_fin || !categoria) {
       return NextResponse.json(
-        { error: 'ID de turno requerido' },
+        { error: 'Fecha, hora_inicio, hora_fin y categoría son requeridos' },
         { status: 400 }
       )
     }
 
-    // Verificar que el turno exista y esté disponible
-    const { data: turno, error: turnoError } = await supabase
-      .from('reservas_turnos')
-      .select('*')
-      .eq('id', turno_id)
-      .single()
-
-    if (turnoError || !turno) {
+    // Validar categoría
+    const categoriasValidas = ['Iniciante de cero', 'Principiante', 'Intermedio', 'Avanzado', 'Profesional']
+    if (!categoriasValidas.includes(categoria)) {
       return NextResponse.json(
-        { error: 'Turno no encontrado' },
-        { status: 404 }
-      )
-    }
-
-    if (turno.estado !== 'disponible' && turno.estado !== 'completo') {
-      return NextResponse.json(
-        { error: 'El turno no está disponible' },
+        { error: 'Categoría inválida' },
         { status: 400 }
       )
     }
 
-    // Verificar si ya está inscrito (cualquier estado)
+    // Validar que la fecha no sea del pasado
+    // Parsear fecha manualmente para evitar problemas de zona horaria
+    const [year, month, day] = fecha.split('-')
+    const fechaTurno = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    fechaTurno.setHours(0, 0, 0, 0)
+    
+    if (fechaTurno < hoy) {
+      return NextResponse.json(
+        { error: 'No se pueden reservar turnos para fechas pasadas' },
+        { status: 400 }
+      )
+    }
+
+    // Validar día de la semana (martes=2, miércoles=3, viernes=5)
+    const diaSemana = fechaTurno.getDay()
+    if (diaSemana !== 2 && diaSemana !== 3 && diaSemana !== 5) {
+      return NextResponse.json(
+        { error: 'Solo se pueden reservar turnos para martes, miércoles o viernes' },
+        { status: 400 }
+      )
+    }
+
+    // Validar horarios permitidos
+    const horariosValidos = {
+      '12:00:00': '13:00:00',
+      '13:00:00': '14:00:00',
+      '14:00:00': '15:00:00',
+      '15:00:00': '16:00:00'
+    }
+    
+    if (!horariosValidos[hora_inicio] || horariosValidos[hora_inicio] !== hora_fin) {
+      return NextResponse.json(
+        { error: 'Horario no válido. Los horarios permitidos son: 12-13, 13-14, 14-15, 15-16' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar si ya está inscrito (cualquier estado) para este turno
     const { data: inscripcionExistente } = await supabase
       .from('reservas_inscripciones')
       .select('*')
-      .eq('turno_id', turno_id)
+      .eq('fecha', fecha)
+      .eq('hora_inicio', hora_inicio)
+      .eq('hora_fin', hora_fin)
+      .eq('categoria', categoria)
       .eq('usuario_id', user.id)
+      .in('estado', ['pendiente', 'confirmada'])
       .single()
 
     if (inscripcionExistente) {
@@ -75,14 +107,18 @@ export async function POST(request) {
       )
     }
 
-    // Contar inscripciones confirmadas
+    // Contar inscripciones confirmadas y pendientes para verificar capacidad (máximo 4)
     const { count: inscripcionesCount } = await supabase
       .from('reservas_inscripciones')
       .select('*', { count: 'exact', head: true })
-      .eq('turno_id', turno_id)
-      .eq('estado', 'confirmada')
+      .eq('fecha', fecha)
+      .eq('hora_inicio', hora_inicio)
+      .eq('hora_fin', hora_fin)
+      .eq('categoria', categoria)
+      .in('estado', ['confirmada', 'pendiente'])
 
-    if (inscripcionesCount >= turno.capacidad) {
+    const capacidadMaxima = 4
+    if (inscripcionesCount >= capacidadMaxima) {
       return NextResponse.json(
         { error: 'El turno está completo' },
         { status: 400 }
@@ -93,7 +129,10 @@ export async function POST(request) {
     const { data: nuevaInscripcion, error: inscError } = await supabase
       .from('reservas_inscripciones')
       .insert({
-        turno_id,
+        fecha,
+        hora_inicio,
+        hora_fin,
+        categoria,
         usuario_id: user.id,
         estado: 'pendiente'
       })
@@ -108,14 +147,6 @@ export async function POST(request) {
       )
     }
 
-    // Enviar notificación al usuario
-    const { data: usuario } = await supabase
-      .from('usuarios')
-      .select('nombre, apellido')
-      .eq('id', user.id)
-      .single()
-
-    // No enviar notificación aún, esperar aprobación del admin
     return NextResponse.json({
       success: true,
       message: 'Reserva solicitada. Esperando confirmación del administrador.',
@@ -165,7 +196,7 @@ export async function DELETE(request) {
     // Verificar que la inscripción exista y pertenezca al usuario
     const { data: inscripcion, error: inscError } = await supabase
       .from('reservas_inscripciones')
-      .select('*, turno:turno_id(*)')
+      .select('*')
       .eq('id', inscripcion_id)
       .eq('usuario_id', user.id)
       .single()
@@ -176,7 +207,6 @@ export async function DELETE(request) {
         { status: 404 }
       )
     }
-
 
     // Eliminar la inscripción
     const { error: deleteError } = await supabase
@@ -196,7 +226,7 @@ export async function DELETE(request) {
     await supabase.rpc('crear_notificacion', {
       p_usuario_id: user.id,
       p_titulo: 'Inscripción Cancelada',
-      p_mensaje: `Has cancelado tu inscripción al turno de ${inscripcion.turno.categoria} del ${new Date(inscripcion.turno.fecha).toLocaleDateString('es-AR')} de ${inscripcion.turno.hora_inicio} a ${inscripcion.turno.hora_fin}.`,
+      p_mensaje: `Has cancelado tu inscripción al turno de ${inscripcion.categoria} del ${new Date(inscripcion.fecha).toLocaleDateString('es-AR')} de ${inscripcion.hora_inicio} a ${inscripcion.hora_fin}.`,
       p_tipo: 'academia'
     })
 
@@ -213,4 +243,3 @@ export async function DELETE(request) {
     )
   }
 }
-
