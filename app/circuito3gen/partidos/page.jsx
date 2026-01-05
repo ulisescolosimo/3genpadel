@@ -1,0 +1,630 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import {
+  PlayCircle,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Trophy,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Filter,
+  RefreshCw
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Spinner } from '@/components/ui/spinner'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+
+export default function MisPartidosPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(true)
+  const [partidos, setPartidos] = useState([])
+  const [etapas, setEtapas] = useState([])
+  const [divisiones, setDivisiones] = useState([])
+  const [usuario, setUsuario] = useState(null)
+  const [filtros, setFiltros] = useState({
+    etapa_id: 'all',
+    division_id: 'all',
+    estado: 'all'
+  })
+  const [partidoSeleccionado, setPartidoSeleccionado] = useState(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  useEffect(() => {
+    if (usuario) {
+      fetchData()
+      fetchPartidos()
+    }
+  }, [usuario, filtros])
+
+  const checkAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login?redirect=/circuito3gen/partidos')
+        return
+      }
+
+      const { data: usuarioData, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+
+      if (error) throw error
+      setUsuario(usuarioData)
+    } catch (error) {
+      console.error('Error checking auth:', error)
+      router.push('/login?redirect=/circuito3gen/partidos')
+    }
+  }
+
+  const fetchData = async () => {
+    try {
+      // Obtener etapas
+      const { data: etapasData, error: etapasError } = await supabase
+        .from('circuito3gen_etapas')
+        .select('*')
+        .order('fecha_inicio', { ascending: false })
+
+      if (etapasError) throw etapasError
+      setEtapas(etapasData || [])
+
+      // Obtener divisiones
+      const { data: divisionesData, error: divisionesError } = await supabase
+        .from('circuito3gen_divisiones')
+        .select('*')
+        .order('numero_division', { ascending: true })
+
+      if (divisionesError) throw divisionesError
+      setDivisiones(divisionesData || [])
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
+  }
+
+  const fetchPartidos = async () => {
+    if (!usuario) return
+
+    try {
+      setLoading(true)
+
+      const params = new URLSearchParams()
+      params.append('usuario_id', usuario.id)
+      if (filtros.etapa_id !== 'all') params.append('etapa_id', filtros.etapa_id)
+      if (filtros.division_id !== 'all') params.append('division_id', filtros.division_id)
+      if (filtros.estado !== 'all') params.append('estado', filtros.estado)
+
+      const response = await fetch(`/api/circuito3gen/partidos?${params.toString()}`)
+      const result = await response.json()
+
+      if (!result.success) throw new Error(result.error)
+
+      // Ordenar: pendientes primero (por fecha), luego jugados
+      const partidosOrdenados = (result.data || []).sort((a, b) => {
+        if (a.estado === 'pendiente' && b.estado !== 'pendiente') return -1
+        if (a.estado !== 'pendiente' && b.estado === 'pendiente') return 1
+        if (a.estado === 'pendiente' && b.estado === 'pendiente') {
+          const fechaA = new Date(a.fecha_partido)
+          const fechaB = new Date(b.fecha_partido)
+          return fechaA - fechaB
+        }
+        const fechaA = new Date(a.fecha_partido)
+        const fechaB = new Date(b.fecha_partido)
+        return fechaB - fechaA
+      })
+
+      setPartidos(partidosOrdenados)
+    } catch (error) {
+      console.error('Error fetching partidos:', error)
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los partidos',
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-AR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  const formatTime = (timeString) => {
+    if (!timeString) return ''
+    return timeString.substring(0, 5) // HH:MM
+  }
+
+  const obtenerNombreJugador = (jugador) => {
+    if (!jugador) return 'N/A'
+    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
+  }
+
+  const obtenerEquipoJugador = (partido) => {
+    if (!usuario || !partido) return null
+
+    const esEquipoA = partido.jugador_a1_id === usuario.id || partido.jugador_a2_id === usuario.id
+    return esEquipoA ? 'A' : 'B'
+  }
+
+  const obtenerCompanero = (partido) => {
+    if (!usuario || !partido) return null
+
+    const esEquipoA = partido.jugador_a1_id === usuario.id || partido.jugador_a2_id === usuario.id
+    
+    if (esEquipoA) {
+      if (partido.jugador_a1_id === usuario.id) return partido.jugador_a2
+      return partido.jugador_a1
+    } else {
+      if (partido.jugador_b1_id === usuario.id) return partido.jugador_b2
+      return partido.jugador_b1
+    }
+  }
+
+  const obtenerOponentes = (partido) => {
+    if (!partido) return []
+
+    const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
+    
+    if (esEquipoA) {
+      return [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
+    } else {
+      return [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
+    }
+  }
+
+  const handleVerDetalle = (partido) => {
+    setPartidoSeleccionado(partido)
+    setIsDialogOpen(true)
+  }
+
+  if (loading && partidos.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
+  }
+
+  const partidosPendientes = partidos.filter(p => p.estado === 'pendiente')
+  const partidosJugados = partidos.filter(p => p.estado === 'jugado')
+  const partidosCancelados = partidos.filter(p => p.estado === 'cancelado' || p.estado === 'WO')
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-12">
+      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <Link href="/circuito3gen">
+            <Button variant="ghost" className="mb-4 text-gray-400 hover:text-white">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+          </Link>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <PlayCircle className="w-10 h-10 text-[#E2FF1B]" />
+              <div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">Mis Partidos</h1>
+                <p className="text-gray-300 mt-1">
+                  {partidos.length} partido{partidos.length !== 1 ? 's' : ''} total{partidos.length !== 1 ? 'es' : ''}
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={fetchPartidos}
+              variant="outline"
+              className="border-gray-600 text-gray-300"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Actualizar
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Filtros */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+                Filtros
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-gray-400 mb-2 block">Etapa</Label>
+                  <Select
+                    value={filtros.etapa_id}
+                    onValueChange={(value) => setFiltros({ ...filtros, etapa_id: value })}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Todas las etapas" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="all" className="text-white hover:bg-gray-700">Todas</SelectItem>
+                      {etapas.map((etapa) => (
+                        <SelectItem key={etapa.id} value={etapa.id} className="text-white hover:bg-gray-700">
+                          {etapa.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-400 mb-2 block">División</Label>
+                  <Select
+                    value={filtros.division_id}
+                    onValueChange={(value) => setFiltros({ ...filtros, division_id: value })}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Todas las divisiones" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="all" className="text-white hover:bg-gray-700">Todas</SelectItem>
+                      {divisiones.map((division) => (
+                        <SelectItem key={division.id} value={division.id} className="text-white hover:bg-gray-700">
+                          {division.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-400 mb-2 block">Estado</Label>
+                  <Select
+                    value={filtros.estado}
+                    onValueChange={(value) => setFiltros({ ...filtros, estado: value })}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Todos los estados" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="all" className="text-white hover:bg-gray-700">Todos</SelectItem>
+                      <SelectItem value="pendiente" className="text-white hover:bg-gray-700">Pendientes</SelectItem>
+                      <SelectItem value="jugado" className="text-white hover:bg-gray-700">Jugados</SelectItem>
+                      <SelectItem value="cancelado" className="text-white hover:bg-gray-700">Cancelados</SelectItem>
+                      <SelectItem value="WO" className="text-white hover:bg-gray-700">WO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Partidos Pendientes */}
+        {partidosPendientes.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2 break-words">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
+              Próximos Partidos ({partidosPendientes.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {partidosPendientes.map((partido) => {
+                const companero = obtenerCompanero(partido)
+                const oponentes = obtenerOponentes(partido)
+                
+                return (
+                  <Card key={partido.id} className="bg-gray-800/50 border-gray-700 backdrop-blur-sm hover:border-[#E2FF1B]/50 transition-colors">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-white text-sm sm:text-base md:text-lg break-words">
+                          {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                        </CardTitle>
+                        <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/50">
+                          Pendiente
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(partido.fecha_partido)}</span>
+                        </div>
+                        {partido.horario && (
+                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <Clock className="w-4 h-4" />
+                            <span>{formatTime(partido.horario)}</span>
+                          </div>
+                        )}
+                        {partido.cancha && (
+                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <MapPin className="w-4 h-4" />
+                            <span>{partido.cancha}</span>
+                          </div>
+                        )}
+                        <div className="pt-2 border-t border-gray-700">
+                          <div className="text-sm text-gray-300 mb-1">
+                            <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                          </div>
+                          <div className="text-sm text-gray-300">
+                            <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                          onClick={() => handleVerDetalle(partido)}
+                        >
+                          Ver Detalle
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Partidos Jugados */}
+        {partidosJugados.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-6"
+          >
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2 break-words">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
+              Partidos Jugados ({partidosJugados.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {partidosJugados.map((partido) => {
+                const equipoJugador = obtenerEquipoJugador(partido)
+                const gano = partido.equipo_ganador === equipoJugador
+                const companero = obtenerCompanero(partido)
+                const oponentes = obtenerOponentes(partido)
+                
+                return (
+                  <Card key={partido.id} className={`bg-gray-800/50 border-gray-700 backdrop-blur-sm ${gano ? 'border-green-500/50' : 'border-red-500/50'}`}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-white text-sm sm:text-base md:text-lg break-words">
+                          {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                        </CardTitle>
+                        <Badge className={gano ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}>
+                          {gano ? 'Victoria' : 'Derrota'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(partido.fecha_partido)}</span>
+                        </div>
+                        <div className="pt-2 border-t border-gray-700">
+                          <div className="text-sm text-gray-300 mb-2">
+                            <strong>Resultado:</strong>
+                          </div>
+                          <div className="text-lg font-bold text-white mb-1">
+                            Equipo {equipoJugador}: {equipoJugador === 'A' ? partido.sets_equipo_a : partido.sets_equipo_b} sets
+                          </div>
+                          <div className="text-lg font-bold text-gray-400">
+                            Equipo {equipoJugador === 'A' ? 'B' : 'A'}: {equipoJugador === 'A' ? partido.sets_equipo_b : partido.sets_equipo_a} sets
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-gray-700 text-sm text-gray-300">
+                          <div className="mb-1">
+                            <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                          </div>
+                          <div>
+                            <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                          onClick={() => handleVerDetalle(partido)}
+                        >
+                          Ver Detalle
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Sin partidos */}
+        {partidos.length === 0 && !loading && (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <PlayCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 break-words">No tienes partidos</h3>
+              <p className="text-gray-400 mb-4">
+                Aún no has sido asignado a ningún partido del circuito
+              </p>
+              <Link href="/circuito3gen">
+                <Button variant="outline" className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10">
+                  Volver al inicio
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Dialog de Detalle */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-3xl w-[95vw] max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white">Detalle del Partido</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Información completa del partido
+              </DialogDescription>
+            </DialogHeader>
+
+            {partidoSeleccionado && (
+              <div className="space-y-4">
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <Trophy className="w-4 h-4" />
+                    Información General
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">División:</span>
+                      <span className="text-white ml-2">{partidoSeleccionado.division?.nombre}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Etapa:</span>
+                      <span className="text-white ml-2">{partidoSeleccionado.etapa?.nombre}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Fecha:</span>
+                      <span className="text-white ml-2">{formatDate(partidoSeleccionado.fecha_partido)}</span>
+                    </div>
+                    {partidoSeleccionado.horario && (
+                      <div>
+                        <span className="text-gray-400">Hora:</span>
+                        <span className="text-white ml-2">{formatTime(partidoSeleccionado.horario)}</span>
+                      </div>
+                    )}
+                    {partidoSeleccionado.cancha && (
+                      <div>
+                        <span className="text-gray-400">Cancha:</span>
+                        <span className="text-white ml-2">{partidoSeleccionado.cancha}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-gray-400">Estado:</span>
+                      <Badge className={`ml-2 ${
+                        partidoSeleccionado.estado === 'jugado' ? 'bg-green-500/20 text-green-400 border-green-500/50' :
+                        partidoSeleccionado.estado === 'pendiente' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' :
+                        'bg-red-500/20 text-red-400 border-red-500/50'
+                      }`}>
+                        {partidoSeleccionado.estado}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Jugadores
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-gray-400 text-sm mb-2">Equipo A</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_a1)}</div>
+                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_a2)}</div>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-gray-400 text-sm mb-2">Equipo B</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_b1)}</div>
+                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_b2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {partidoSeleccionado.estado === 'jugado' && (
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      Resultado
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Equipo A:</span>
+                        <span className="text-white font-bold">{partidoSeleccionado.sets_equipo_a || 0} sets</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Equipo B:</span>
+                        <span className="text-white font-bold">{partidoSeleccionado.sets_equipo_b || 0} sets</span>
+                      </div>
+                      {partidoSeleccionado.equipo_ganador && (
+                        <div className="pt-2 border-t border-gray-700">
+                          <span className="text-gray-400">Ganador: </span>
+                          <span className="text-green-400 font-bold">Equipo {partidoSeleccionado.equipo_ganador}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setIsDialogOpen(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                Cerrar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  )
+}
+
+
+
+
+
+
+

@@ -291,17 +291,17 @@ export default function ProfilePage() {
       // Cargar inscripciones con relaciones explícitas
       setLoadingInscripcionesCircuitooka(true)
       const { data: inscripcionesData, error: inscripcionesError } = await supabase
-        .from('circuitooka_inscripciones')
+        .from('circuito3gen_inscripciones')
         .select(`
           *,
-          etapa:circuitooka_etapas!circuitooka_inscripciones_etapa_id_fkey (
+          etapa:circuito3gen_etapas!circuito3gen_inscripciones_etapa_id_fkey (
             id,
             nombre,
             estado,
             fecha_inicio,
             fecha_fin
           ),
-          division:circuitooka_divisiones!circuitooka_inscripciones_division_id_fkey (
+          division:circuito3gen_divisiones!circuito3gen_inscripciones_division_id_fkey (
             id,
             numero_division,
             nombre
@@ -322,7 +322,7 @@ export default function ProfilePage() {
       const params = new URLSearchParams()
       params.append('usuario_id', usuario.id)
       
-      const response = await fetch(`/api/circuitooka/partidos?${params.toString()}`)
+      const response = await fetch(`/api/circuito3gen/partidos?${params.toString()}`)
       const result = await response.json()
 
       if (!result.success) {
@@ -362,7 +362,7 @@ export default function ProfilePage() {
         for (const inscripcion of inscripcionesOrdenadas) {
           try {
             const rankingResponse = await fetch(
-              `/api/circuitooka/rankings?etapa_id=${inscripcion.etapa_id}&division_id=${inscripcion.division_id}&usuario_id=${usuario.id}`
+              `/api/circuito3gen/rankings?etapa_id=${inscripcion.etapa_id}&division_id=${inscripcion.division_id}&usuario_id=${usuario.id}`
             )
             const rankingResult = await rankingResponse.json()
 
@@ -1005,7 +1005,7 @@ export default function ProfilePage() {
                     <Button
                       variant="outline"
                       className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
-                      onClick={() => router.push('/circuitooka/rankings')}
+                      onClick={() => router.push('/circuito3gen/rankings')}
                     >
                       Ver Rankings Completos
                       <BarChart3 className="w-4 h-4 ml-2" />
@@ -1020,7 +1020,7 @@ export default function ProfilePage() {
                       variant="outline" 
                       size="sm"
                       className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
-                      onClick={() => router.push('/circuitooka/inscripcion')}
+                      onClick={() => router.push('/circuito3gen/inscripcion')}
                     >
                       Inscribirme en Circuitooka
                     </Button>
@@ -1181,7 +1181,7 @@ export default function ProfilePage() {
                           variant="outline" 
                           size="sm"
                           className="mt-2 border-gray-600 text-gray-300 hover:bg-gray-800"
-                          onClick={() => router.push('/circuitooka/inscripcion')}
+                          onClick={() => router.push('/circuito3gen/inscripcion')}
                         >
                           Inscribirme en Circuitooka
                         </Button>

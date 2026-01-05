@@ -48,7 +48,7 @@ export default function AdminLayout({ children }) {
   }
 
   // Si estamos en circuitooka, no mostramos el header viejo
-  const isCircuitookaRoute = pathname?.startsWith('/admin/circuitooka')
+  const isCircuitookaRoute = pathname?.startsWith('/admin/circuito3gen')
 
   return (
     <div className="min-h-screen bg-black">

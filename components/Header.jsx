@@ -195,14 +195,14 @@ export default function Header() {
             
             {/* Navigation Section */}
             <div className="flex items-center gap-6">
-              {/* Circuitooka Dropdown */}
+              {/* Circuito 3GEN Dropdown */}
               <div className="flex items-center">
                 <Link 
-                  href="/circuitooka" 
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka') || pathname?.startsWith('/circuitooka') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  href="/circuito3gen" 
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen') || pathname?.startsWith('/circuito3gen') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                 >
                   <Trophy className="w-4 h-4" />
-                  Circuitooka
+                  Circuito 3GEN
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -217,13 +217,13 @@ export default function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-48" align="start">
                     <DropdownMenuItem asChild>
-                      <Link href="/circuitooka/rankings" className="flex items-center gap-2">
+                      <Link href="/circuito3gen/rankings" className="flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" />
                         Rankings
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/circuitooka/inscripcion" className="flex items-center gap-2">
+                      <Link href="/circuito3gen/inscripcion" className="flex items-center gap-2">
                         <User className="w-4 h-4" />
                         Inscribirme
                       </Link>
@@ -380,14 +380,14 @@ export default function Header() {
                           <span>Perfil</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          router.push("/circuitooka/partidos")
+                          router.push("/circuito3gen/partidos")
                           closeMenu()
                         }}>
                           <PlayCircle className="mr-2 h-4 w-4" />
                           <span>Mis Partidos</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          router.push("/circuitooka/ranking")
+                          router.push("/circuito3gen/ranking")
                           closeMenu()
                         }}>
                           <BarChart3 className="mr-2 h-4 w-4" />
@@ -461,7 +461,7 @@ export default function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => {
-                      router.push("/circuitooka/partidos")
+                      router.push("/circuito3gen/partidos")
                       closeMenu()
                     }}
                     className="text-white hover:bg-gray-800 focus:bg-gray-800"
@@ -471,7 +471,7 @@ export default function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => {
-                      router.push("/circuitooka/ranking")
+                      router.push("/circuito3gen/ranking")
                       closeMenu()
                     }}
                     className="text-white hover:bg-gray-800 focus:bg-gray-800"
@@ -508,28 +508,28 @@ export default function Header() {
         <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-white/10 relative z-[60]">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col gap-4">
-              {/* Circuitooka Section */}
+              {/* Circuito 3GEN Section */}
               <div className="space-y-2">
                 <Link 
-                  href="/circuitooka" 
-                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka') && !pathname?.includes('/circuitooka/') ? 'text-[#E2FF1B]' : 'text-[#E2FF1B]'}`}
+                  href="/circuito3gen" 
+                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen') && !pathname?.includes('/circuito3gen/') ? 'text-[#E2FF1B]' : 'text-[#E2FF1B]'}`}
                   onClick={closeMenu}
                 >
                   <Trophy className="w-3 h-3" />
-                  Circuitooka
+                  Circuito 3GEN
                 </Link>
                 <div className="ml-4 space-y-1">
                   <Link 
-                    href="/circuitooka/rankings" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/circuito3gen/rankings" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <BarChart3 className="w-4 h-4" />
                     Rankings
                   </Link>
                   <Link 
-                    href="/circuitooka/inscripcion" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuitooka/inscripcion') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/circuito3gen/inscripcion" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/inscripcion') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <User className="w-4 h-4" />
