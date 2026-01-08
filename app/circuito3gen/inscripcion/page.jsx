@@ -394,15 +394,6 @@ export default function InscripcionPage() {
       return
     }
 
-    // Validar imagen del jugador
-    if (!imagenJugadorFile) {
-      toast({
-        title: 'Error',
-        description: 'Debes adjuntar una imagen del jugador',
-        variant: 'destructive'
-      })
-      return
-    }
 
     // Verificar si ya está inscripto en alguna división de esta etapa
     if (estaInscriptoEnEtapa()) {
@@ -445,11 +436,14 @@ export default function InscripcionPage() {
         return
       }
 
-      // Subir archivos
-      const [comprobanteData, imagenJugadorData] = await Promise.all([
-        uploadFile(comprobanteFile, 'comprobantes'),
-        uploadFile(imagenJugadorFile, 'imagenes-jugadores')
-      ])
+      // Subir archivo del comprobante
+      const comprobanteData = await uploadFile(comprobanteFile, 'comprobantes')
+
+      // Subir imagen del jugador si existe
+      let imagenJugadorData = null
+      if (imagenJugadorFile) {
+        imagenJugadorData = await uploadFile(imagenJugadorFile, 'imagenes-jugadores')
+      }
 
       const response = await fetch('/api/circuito3gen/inscripciones', {
         method: 'POST',
@@ -463,8 +457,8 @@ export default function InscripcionPage() {
           estado: 'activa',
           comprobante_url: comprobanteData.url,
           comprobante_filename: comprobanteData.filename,
-          imagen_jugador_url: imagenJugadorData.url,
-          imagen_jugador_filename: imagenJugadorData.filename
+          imagen_jugador_url: imagenJugadorData?.url || null,
+          imagen_jugador_filename: imagenJugadorData?.filename || null
         })
       })
 
@@ -690,7 +684,7 @@ export default function InscripcionPage() {
                   {/* Imagen del jugador */}
                   <div>
                     <Label className="text-gray-300 mb-2 block">
-                      Imagen del jugador *
+                      Imagen del jugador
                     </Label>
                     <div
                       onDragOver={handleDragOverImagen}
@@ -855,7 +849,6 @@ export default function InscripcionPage() {
                         !formData.etapa_id || 
                         !formData.division_id || 
                         !comprobanteFile ||
-                        !imagenJugadorFile ||
                         estaInscriptoEnEtapa() ||
                         estaInscriptoEnDivision(formData.division_id) ||
                         (divisionSeleccionada && esDivisionBloqueada(divisionSeleccionada))

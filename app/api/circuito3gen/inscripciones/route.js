@@ -84,14 +84,6 @@ export async function POST(request) {
       )
     }
 
-    // Validar imagen del jugador
-    if (!imagen_jugador_url || !imagen_jugador_filename) {
-      return NextResponse.json(
-        { success: false, error: 'Debes adjuntar una imagen del jugador' },
-        { status: 400 }
-      )
-    }
-
     // Determinar el usuario_id a usar:
     // - Si viene usuario_id en el body, usarlo (admin inscribiendo a otro usuario)
     // - Si no viene, usar el usuario autenticado (auto-inscripción)
