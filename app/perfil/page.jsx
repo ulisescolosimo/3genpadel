@@ -87,7 +87,7 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
   
-  // Estados para Circuitooka
+  // Estados para Circuito 3GEN
   const [inscripcionesCircuitooka, setInscripcionesCircuitooka] = useState([])
   const [loadingInscripcionesCircuitooka, setLoadingInscripcionesCircuitooka] = useState(true)
   const [partidosCircuitooka, setPartidosCircuitooka] = useState([])
@@ -108,7 +108,7 @@ export default function ProfilePage() {
     lado: "none"
   })
 
-  // Función para obtener el nombre del jugador (usada en circuitooka)
+  // Función para obtener el nombre del jugador (usada en Circuito 3GEN)
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
     return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
@@ -283,7 +283,7 @@ export default function ProfilePage() {
     }
   }, [usuario])
 
-  // Función para cargar datos del Circuitooka
+  // Función para cargar datos del Circuito 3GEN
   const fetchCircuitookaData = async () => {
     if (!usuario?.id) return
 
@@ -311,7 +311,7 @@ export default function ProfilePage() {
         .order('fecha_inscripcion', { ascending: false })
 
       if (inscripcionesError) {
-        console.error('Error fetching circuitooka inscripciones:', inscripcionesError)
+        console.error('Error fetching Circuito 3GEN inscripciones:', inscripcionesError)
         setInscripcionesCircuitooka([])
       } else {
         setInscripcionesCircuitooka(inscripcionesData || [])
@@ -326,7 +326,7 @@ export default function ProfilePage() {
       const result = await response.json()
 
       if (!result.success) {
-        console.error('Error fetching circuitooka partidos:', result.error)
+        console.error('Error fetching Circuito 3GEN partidos:', result.error)
         setPartidosCircuitooka([])
       } else {
         // Ordenar: pendientes primero, luego jugados
@@ -382,7 +382,7 @@ export default function ProfilePage() {
       }
 
     } catch (error) {
-      console.error('Error fetching circuitooka data:', error)
+      console.error('Error fetching Circuito 3GEN data:', error)
       setInscripcionesCircuitooka([])
       setPartidosCircuitooka([])
       setRankingCircuitooka(null)
@@ -981,14 +981,14 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-6 sm:space-y-8">
-          {/* Primera fila: Ranking Circuitooka e Información Personal (50/50) */}
+          {/* Primera fila: Ranking Circuito 3GEN e Información Personal (50/50) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            {/* Circuitooka - Ranking */}
+            {/* Circuito 3GEN - Ranking */}
             <Card className="bg-gray-900/50 border-gray-800 border-[#E2FF1B]/30">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                   <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                  Ranking Circuitooka
+                  Ranking Circuito 3GEN
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1007,7 +1007,7 @@ export default function ProfilePage() {
                       className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
                       onClick={() => router.push('/circuito3gen/rankings')}
                     >
-                      Ver Rankings Completos
+                      Rankings Completos
                       <BarChart3 className="w-4 h-4 ml-2" />
                     </Button>
                   </>
@@ -1015,14 +1015,14 @@ export default function ProfilePage() {
                   <div className="text-center py-8">
                     <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                     <p className="text-gray-400 text-sm mb-4">No tienes puntaje global aún</p>
-                    <p className="text-gray-500 text-xs mb-4">Juega partidos en Circuitooka para obtener tu puntaje</p>
+                    <p className="text-gray-500 text-xs mb-4">Juega partidos en Circuito 3GEN para obtener tu puntaje</p>
                     <Button 
                       variant="outline" 
                       size="sm"
                       className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
                       onClick={() => router.push('/circuito3gen/inscripcion')}
                     >
-                      Inscribirme en Circuitooka
+                      Inscribirme en Circuito 3GEN
                     </Button>
                   </div>
                 )}
@@ -1098,14 +1098,14 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Segunda fila: Inscripciones y Partidos Circuitooka (50/50) */}
+          {/* Segunda fila: Inscripciones y Partidos Circuito 3GEN (50/50) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            {/* Circuitooka - Inscripciones */}
+            {/* Circuito 3GEN - Inscripciones */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Inscripciones Circuitooka
+                  Inscripciones Circuito 3GEN
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1176,14 +1176,14 @@ export default function ProfilePage() {
                     ) : (
                       <div className="text-center py-4">
                         <Trophy className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">No tienes inscripciones en Circuitooka</p>
+                        <p className="text-gray-400 text-sm">No tienes inscripciones en Circuito 3GEN</p>
                         <Button 
                           variant="outline" 
                           size="sm"
                           className="mt-2 border-gray-600 text-gray-300 hover:bg-gray-800"
                           onClick={() => router.push('/circuito3gen/inscripcion')}
                         >
-                          Inscribirme en Circuitooka
+                          Inscribirme en Circuito 3GEN
                         </Button>
                       </div>
                     )}
@@ -1192,12 +1192,12 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Circuitooka - Partidos */}
+            {/* Circuito 3GEN - Partidos */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                   <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Partidos Circuitooka
+                  Partidos Circuito 3GEN
                 </CardTitle>
               </CardHeader>
               <CardContent>

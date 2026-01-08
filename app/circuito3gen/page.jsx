@@ -376,7 +376,7 @@ export default function CircuitookaPage() {
           <div className="text-center mt-8">
             <Link href="/circuito3gen/rankings">
               <Button size="lg" variant="outline" className="border-2 border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10">
-                Ver Rankings Completos
+                Rankings Completos
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>

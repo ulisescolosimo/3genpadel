@@ -1177,7 +1177,7 @@ export default function MiRankingPage() {
                     <p className="text-gray-400 mb-4">¿Quieres ver el ranking completo de tu división?</p>
                     <Link href={`/circuito3gen/rankings?etapa=${filtros.etapa_id}&division=${filtros.division_id}`}>
                       <Button variant="outline" className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10">
-                        Ver Rankings Completos
+                        Rankings Completos
                         <BarChart3 className="ml-2 w-4 h-4" />
                       </Button>
                     </Link>

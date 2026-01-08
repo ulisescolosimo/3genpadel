@@ -197,38 +197,28 @@ export default function Header() {
             <div className="flex items-center gap-6">
               {/* Circuito 3GEN Dropdown */}
               <div className="flex items-center">
-                <Link 
-                  href="/circuito3gen" 
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen') || pathname?.startsWith('/circuito3gen') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                <div 
+                  className={`flex items-center gap-2 text-sm font-medium text-white/70 cursor-default ${isActive('/circuito3gen') || pathname?.startsWith('/circuito3gen') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  onClick={(e) => e.preventDefault()}
                 >
                   <Trophy className="w-4 h-4" />
                   Circuito 3GEN
-                </Link>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="p-1 h-auto text-white/70 hover:text-[#E2FF1B]"
-                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 h-auto text-white/70 cursor-not-allowed opacity-50"
+                      disabled
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
                     >
                       <ChevronDown className="w-3 h-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48" align="start">
-                    <DropdownMenuItem asChild>
-                      <Link href="/circuito3gen/rankings" className="flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4" />
-                        Rankings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/circuito3gen/inscripcion" className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Inscribirme
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
                 </DropdownMenu>
               </div>
 
@@ -510,31 +500,25 @@ export default function Header() {
             <div className="flex flex-col gap-4">
               {/* Circuito 3GEN Section */}
               <div className="space-y-2">
-                <Link 
-                  href="/circuito3gen" 
-                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen') && !pathname?.includes('/circuito3gen/') ? 'text-[#E2FF1B]' : 'text-[#E2FF1B]'}`}
-                  onClick={closeMenu}
+                <div 
+                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/70 cursor-default ${isActive('/circuito3gen') && !pathname?.includes('/circuito3gen/') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeMenu();
+                  }}
                 >
                   <Trophy className="w-3 h-3" />
                   Circuito 3GEN
-                </Link>
-                <div className="ml-4 space-y-1">
-                  <Link 
-                    href="/circuito3gen/rankings" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                    onClick={closeMenu}
-                  >
+                </div>
+                <div className="ml-4 space-y-1 opacity-50 pointer-events-none">
+                  <div className={`flex items-center gap-2 text-sm font-medium text-white/70`}>
                     <BarChart3 className="w-4 h-4" />
                     Rankings
-                  </Link>
-                  <Link 
-                    href="/circuito3gen/inscripcion" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/inscripcion') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                    onClick={closeMenu}
-                  >
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm font-medium text-white/70`}>
                     <User className="w-4 h-4" />
                     Inscribirme
-                  </Link>
+                  </div>
                 </div>
               </div>
 
