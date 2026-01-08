@@ -10,6 +10,10 @@ import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { formatArgentineDate, formatArgentineDateTime } from '@/lib/date-utils'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
 import { 
   Edit, 
   Calendar, 
@@ -21,13 +25,11 @@ import {
   Users, 
   TrendingUp,
   User,
-  Settings,
   LogOut,
   BookOpen,
   CheckCircle,
   Clock,
   XCircle,
-  AlertCircle,
   Save,
   Camera,
   Upload,
@@ -36,7 +38,12 @@ import {
   Award,
   CalendarDays,
   Zap,
-  Info
+  Info,
+  PlayCircle,
+  BarChart3,
+  Target,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -74,21 +81,19 @@ export default function ProfilePage() {
   console.log('ProfilePage - authLoading:', authLoading)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [inscripcionesLigas, setInscripcionesLigas] = useState([])
-  const [loadingInscripciones, setLoadingInscripciones] = useState(true)
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
   
-  // Nuevos estados para partidos
-  const [partidos, setPartidos] = useState([])
-  const [loadingPartidos, setLoadingPartidos] = useState(true)
-  
-  // Estados para ranking points
-  const [rankingData, setRankingData] = useState(null)
-  const [loadingRanking, setLoadingRanking] = useState(true)
+  // Estados para Circuito 3GEN
+  const [inscripcionesCircuitooka, setInscripcionesCircuitooka] = useState([])
+  const [loadingInscripcionesCircuitooka, setLoadingInscripcionesCircuitooka] = useState(true)
+  const [partidosCircuitooka, setPartidosCircuitooka] = useState([])
+  const [loadingPartidosCircuitooka, setLoadingPartidosCircuitooka] = useState(true)
+  const [rankingCircuitooka, setRankingCircuitooka] = useState(null)
+  const [loadingRankingCircuitooka, setLoadingRankingCircuitooka] = useState(true)
   
   const router = useRouter()
 
@@ -103,23 +108,10 @@ export default function ProfilePage() {
     lado: "none"
   })
 
-  // Función para formatear fechas de partidos
-  const formatearFecha = (fecha) => {
-    return formatArgentineDateTime(fecha)
-  }
-
-  // Función para obtener el nombre del equipo
-  const getEquipoNombre = (equipo) => {
-    if (!equipo) return 'N/A'
-    const titular1 = equipo.titular_1?.nombre || 'N/A'
-    const titular2 = equipo.titular_2?.nombre || 'N/A'
-    return `${titular1} & ${titular2}`
-  }
-
-  // Función para obtener el nombre de la categoría
-  const getCategoriaNombre = (partido) => {
-    if (!partido.liga_categorias) return 'N/A'
-    return `${partido.liga_categorias.ligas?.nombre || 'N/A'} - ${partido.liga_categorias.categoria}`
+  // Función para obtener el nombre del jugador (usada en Circuito 3GEN)
+  const obtenerNombreJugador = (jugador) => {
+    if (!jugador) return 'N/A'
+    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
   }
 
   // Función para obtener el badge de estado
@@ -130,157 +122,6 @@ export default function ProfilePage() {
       cancelado: 'destructive'
     }
     return <Badge variant={variants[estado]}>{estado}</Badge>
-  }
-
-  // Función para obtener el rol del usuario en el partido
-  const getRolEnPartido = (partido) => {
-    if (!usuario?.id) return null
-    
-    // Verificar si el usuario está en equipo_a
-    if (partido.equipo_a) {
-      if (partido.equipo_a.titular_1?.id === usuario.id) return 'Titular 1'
-      if (partido.equipo_a.titular_2?.id === usuario.id) return 'Titular 2'
-    }
-    
-    // Verificar si el usuario está en equipo_b
-    if (partido.equipo_b) {
-      if (partido.equipo_b.titular_1?.id === usuario.id) return 'Titular 1'
-      if (partido.equipo_b.titular_2?.id === usuario.id) return 'Titular 2'
-    }
-    
-    return null
-  }
-
-  // Función para obtener el equipo del usuario
-  const getEquipoUsuario = (partido) => {
-    if (!usuario?.id) return null
-    
-    if (partido.equipo_a) {
-      if (partido.equipo_a.titular_1?.id === usuario.id || partido.equipo_a.titular_2?.id === usuario.id) {
-        return { equipo: partido.equipo_a, esEquipoA: true }
-      }
-    }
-    
-    if (partido.equipo_b) {
-      if (partido.equipo_b.titular_1?.id === usuario.id || partido.equipo_b.titular_2?.id === usuario.id) {
-        return { equipo: partido.equipo_b, esEquipoA: false }
-      }
-    }
-    
-    return null
-  }
-
-  // Función para obtener el resultado del partido para el usuario
-  const getResultadoPartido = (partido) => {
-    const equipoUsuario = getEquipoUsuario(partido)
-    if (!equipoUsuario) return null
-    
-    if (partido.estado !== 'jugado' || !partido.equipo_ganador_id) return null
-    
-    const esGanador = partido.equipo_ganador_id === equipoUsuario.equipo.id
-    return {
-      resultado: esGanador ? 'victoria' : 'derrota',
-      equipoGanador: partido.equipo_ganador ? getEquipoNombre(partido.equipo_ganador) : 'N/A'
-    }
-  }
-
-  // Función para cargar partidos del usuario
-  const fetchPartidos = async () => {
-    if (!usuario?.id) return
-
-    try {
-      setLoadingPartidos(true)
-
-      // Primero obtener las inscripciones del usuario
-      const { data: inscripcionesData, error: inscripcionesError } = await supabase
-        .from('ligainscripciones')
-        .select('id')
-        .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
-
-      if (inscripcionesError) {
-        console.error('Error fetching inscripciones:', inscripcionesError)
-        setPartidos([])
-        return
-      }
-
-      if (!inscripcionesData || inscripcionesData.length === 0) {
-        setPartidos([])
-        return
-      }
-
-      // Obtener los IDs de las inscripciones
-      const inscripcionIds = inscripcionesData.map(ins => ins.id)
-
-      // Buscar partidos donde el usuario participa
-      const { data: partidosData, error: partidosError } = await supabase
-        .from('liga_partidos')
-        .select(`
-          *,
-          liga_categorias (
-            id,
-            categoria,
-            ligas (
-              id,
-              nombre,
-              fecha_inicio
-            )
-          ),
-          equipo_a:ligainscripciones!liga_partidos_equipo_a_id_fkey (
-            id,
-            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-              id,
-              nombre,
-              apellido
-            ),
-            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-              id,
-              nombre,
-              apellido
-            )
-          ),
-          equipo_b:ligainscripciones!liga_partidos_equipo_b_id_fkey (
-            id,
-            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-              id,
-              nombre,
-              apellido
-            ),
-            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-              id,
-              nombre,
-              apellido
-            )
-          ),
-          equipo_ganador:ligainscripciones!liga_partidos_equipo_ganador_id_fkey (
-            id,
-            titular_1:usuarios!ligainscripciones_titular_1_id_fkey (
-              id,
-              nombre,
-              apellido
-            ),
-            titular_2:usuarios!ligainscripciones_titular_2_id_fkey (
-              id,
-              nombre,
-              apellido
-            )
-          )
-        `)
-        .or(`equipo_a_id.in.(${inscripcionIds.join(',')}),equipo_b_id.in.(${inscripcionIds.join(',')})`)
-        .order('fecha', { ascending: true })
-
-      if (partidosError) {
-        console.error('Error fetching partidos:', partidosError)
-        setPartidos([])
-      } else {
-        setPartidos(partidosData || [])
-      }
-
-    } catch (error) {
-      console.error('Error fetching partidos:', error)
-      setPartidos([])
-    } finally {
-      setLoadingPartidos(false)
-    }
   }
 
   // Cargar datos del usuario
@@ -435,97 +276,120 @@ export default function ProfilePage() {
     }
   }, [user, impersonatedUser, authLoading, router])
 
-  // Cargar partidos cuando el usuario esté disponible
-  useEffect(() => {
-    if (usuario?.id) {
-      fetchPartidos()
-    }
-  }, [usuario])
-
-  // Cargar inscripciones cuando el usuario esté disponible
-  useEffect(() => {
-    if (usuario?.id) {
-      fetchInscripciones()
-    }
-  }, [usuario])
-
   // Cargar datos de ranking cuando el usuario esté disponible
   useEffect(() => {
     if (usuario?.id) {
-      fetchRankingData()
+      fetchCircuitookaData()
     }
   }, [usuario])
 
-  const fetchInscripciones = async () => {
+  // Función para cargar datos del Circuito 3GEN
+  const fetchCircuitookaData = async () => {
     if (!usuario?.id) return
 
     try {
-      setLoadingInscripciones(true)
-
-      const { data: ligasData, error: ligasError } = await supabase
-        .from('ligainscripciones')
+      // Cargar inscripciones con relaciones explícitas
+      setLoadingInscripcionesCircuitooka(true)
+      const { data: inscripcionesData, error: inscripcionesError } = await supabase
+        .from('circuito3gen_inscripciones')
         .select(`
           *,
-          liga_categorias (
+          etapa:circuito3gen_etapas!circuito3gen_inscripciones_etapa_id_fkey (
             id,
-            categoria,
-            ligas (
-              id,
-              nombre,
-              fecha_inicio,
-              estado,
-              descripcion
-            )
+            nombre,
+            estado,
+            fecha_inicio,
+            fecha_fin
+          ),
+          division:circuito3gen_divisiones!circuito3gen_inscripciones_division_id_fkey (
+            id,
+            numero_division,
+            nombre
           )
         `)
-        .or(`titular_1_id.eq.${usuario.id},titular_2_id.eq.${usuario.id},suplente_1_id.eq.${usuario.id},suplente_2_id.eq.${usuario.id}`)
-        .order('created_at', { ascending: false })
-
-      if (ligasError) {
-        console.error('Error fetching ligas inscripciones:', ligasError)
-        setInscripcionesLigas([])
-      } else {
-        setInscripcionesLigas(ligasData || [])
-      }
-
-    } catch (error) {
-      console.error('Error fetching inscripciones:', error)
-      setInscripcionesLigas([])
-    } finally {
-      setLoadingInscripciones(false)
-    }
-  }
-
-  // Función para cargar datos de ranking del usuario
-  const fetchRankingData = async () => {
-    if (!usuario?.id) return
-
-    try {
-      setLoadingRanking(true)
-
-      const { data: rankingData, error: rankingError } = await supabase
-        .from('ranking_jugadores')
-        .select('*')
         .eq('usuario_id', usuario.id)
-        .single()
+        .order('fecha_inscripcion', { ascending: false })
 
-      if (rankingError) {
-        if (rankingError.code === 'PGRST116') {
-          // No hay datos de ranking para este usuario
-          setRankingData(null)
-        } else {
-          console.error('Error fetching ranking data:', rankingError)
-          setRankingData(null)
-        }
+      if (inscripcionesError) {
+        console.error('Error fetching Circuito 3GEN inscripciones:', inscripcionesError)
+        setInscripcionesCircuitooka([])
       } else {
-        setRankingData(rankingData)
+        setInscripcionesCircuitooka(inscripcionesData || [])
+      }
+
+      // Cargar partidos
+      setLoadingPartidosCircuitooka(true)
+      const params = new URLSearchParams()
+      params.append('usuario_id', usuario.id)
+      
+      const response = await fetch(`/api/circuito3gen/partidos?${params.toString()}`)
+      const result = await response.json()
+
+      if (!result.success) {
+        console.error('Error fetching Circuito 3GEN partidos:', result.error)
+        setPartidosCircuitooka([])
+      } else {
+        // Ordenar: pendientes primero, luego jugados
+        const partidosOrdenados = (result.data || []).sort((a, b) => {
+          if (a.estado === 'pendiente' && b.estado !== 'pendiente') return -1
+          if (a.estado !== 'pendiente' && b.estado === 'pendiente') return 1
+          const fechaA = new Date(a.fecha_partido)
+          const fechaB = new Date(b.fecha_partido)
+          return a.estado === 'pendiente' ? fechaA - fechaB : fechaB - fechaA
+        })
+        setPartidosCircuitooka(partidosOrdenados)
+      }
+
+      // Cargar ranking - buscar en todas las inscripciones activas
+      setLoadingRankingCircuitooka(true)
+      
+      // Obtener todas las inscripciones activas del usuario
+      const inscripcionesActivas = (inscripcionesData || []).filter(
+        ins => ins.estado === 'activa'
+      )
+
+      if (inscripcionesActivas.length > 0) {
+        // Intentar obtener ranking de la inscripción más reciente primero
+        // Ordenar por fecha de inscripción descendente
+        const inscripcionesOrdenadas = inscripcionesActivas.sort((a, b) => {
+          const fechaA = new Date(a.fecha_inscripcion || 0)
+          const fechaB = new Date(b.fecha_inscripcion || 0)
+          return fechaB - fechaA
+        })
+
+        // Intentar obtener ranking de cada inscripción activa hasta encontrar una
+        let rankingEncontrado = null
+        for (const inscripcion of inscripcionesOrdenadas) {
+          try {
+            const rankingResponse = await fetch(
+              `/api/circuito3gen/rankings?etapa_id=${inscripcion.etapa_id}&division_id=${inscripcion.division_id}&usuario_id=${usuario.id}`
+            )
+            const rankingResult = await rankingResponse.json()
+
+            if (rankingResult.success && rankingResult.data) {
+              rankingEncontrado = rankingResult.data
+              break // Encontramos un ranking, salir del loop
+            }
+          } catch (error) {
+            console.error(`Error obteniendo ranking para etapa ${inscripcion.etapa_id}, división ${inscripcion.division_id}:`, error)
+            continue // Intentar con la siguiente inscripción
+          }
+        }
+
+        setRankingCircuitooka(rankingEncontrado)
+      } else {
+        setRankingCircuitooka(null)
       }
 
     } catch (error) {
-      console.error('Error fetching ranking data:', error)
-      setRankingData(null)
+      console.error('Error fetching Circuito 3GEN data:', error)
+      setInscripcionesCircuitooka([])
+      setPartidosCircuitooka([])
+      setRankingCircuitooka(null)
     } finally {
-      setLoadingRanking(false)
+      setLoadingInscripcionesCircuitooka(false)
+      setLoadingPartidosCircuitooka(false)
+      setLoadingRankingCircuitooka(false)
     }
   }
 
@@ -724,48 +588,6 @@ export default function ProfilePage() {
       console.error('Error refrescando usuario:', error)
       toast.error('Error al refrescar datos')
     }
-  }
-
-  const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'aprobada': return 'bg-green-500/20 border-green-500/30 text-green-400'
-      case 'rechazada': return 'bg-red-500/20 border-red-500/30 text-red-400'
-      case 'pendiente': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400'
-      default: return 'bg-gray-500/20 border-gray-500/30 text-gray-400'
-    }
-  }
-
-  const getEstadoIcon = (estado) => {
-    switch (estado) {
-      case 'aprobada': return <CheckCircle className="w-4 h-4" />
-      case 'rechazada': return <XCircle className="w-4 h-4" />
-      case 'pendiente': return <Clock className="w-4 h-4" />
-      default: return <Clock className="w-4 h-4" />
-    }
-  }
-
-  const getEstadoText = (estado) => {
-    switch (estado) {
-      case 'aprobada': return 'Aprobada'
-      case 'rechazada': return 'Rechazada'
-      case 'pendiente': return 'Pendiente'
-      default: return estado
-    }
-  }
-
-  // Función para formatear fechas correctamente sin problemas de zona horaria
-  const formatDate = (dateString) => {
-    return formatArgentineDate(dateString)
-  }
-
-  const getRolUsuario = (inscripcion) => {
-    if (!usuario?.id) return 'Jugador'
-    
-    if (inscripcion.titular_1_id === usuario.id) return 'Titular 1'
-    if (inscripcion.titular_2_id === usuario.id) return 'Titular 2'
-    if (inscripcion.suplente_1_id === usuario.id) return 'Suplente 1'
-    if (inscripcion.suplente_2_id === usuario.id) return 'Suplente 2'
-    return 'Jugador'
   }
 
   const getInitials = (name) => {
@@ -1047,15 +869,6 @@ export default function ProfilePage() {
                 </Button>
               </DialogTrigger>
               
-              <Button 
-                onClick={handleSignOut}
-                variant="outline"
-                className="border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 text-sm sm:text-base w-full sm:w-auto"
-              >
-                <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                {impersonatedUser ? 'Salir del Modo Admin' : 'Cerrar Sesión'}
-              </Button>
-              
               <DialogContent className="bg-gray-900 border-gray-800 text-white w-[95vw] max-w-md mx-auto">
                 <DialogHeader>
                   <DialogTitle>Editar Perfil de Jugador</DialogTitle>
@@ -1167,9 +980,56 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Información del Perfil */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Primera fila: Ranking Circuito 3GEN e Información Personal (50/50) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Circuito 3GEN - Ranking */}
+            <Card className="bg-gray-900/50 border-gray-800 border-[#E2FF1B]/30">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                  Ranking Circuito 3GEN
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {usuario.promedio_global !== null && usuario.promedio_global !== undefined ? (
+                  <>
+                    <div className="bg-[#E2FF1B]/10 border-2 border-[#E2FF1B]/50 rounded-lg p-6 text-center">
+                      <p className="text-sm text-white mb-2">Puntaje Global</p>
+                      <p className="text-4xl sm:text-5xl font-bold text-[#E2FF1B] mb-2">
+                        {usuario.promedio_global.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-white">Usado para calcular tu posición en el ranking</p>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      className="w-full border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                      onClick={() => router.push('/circuito3gen/rankings')}
+                    >
+                      Rankings Completos
+                      <BarChart3 className="w-4 h-4 ml-2" />
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 text-sm mb-4">No tienes puntaje global aún</p>
+                    <p className="text-gray-500 text-xs mb-4">Juega partidos en Circuito 3GEN para obtener tu puntaje</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+                      onClick={() => router.push('/circuito3gen/inscripcion')}
+                    >
+                      Inscribirme en Circuito 3GEN
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Información del Perfil */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
@@ -1219,20 +1079,9 @@ export default function ProfilePage() {
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
                     <div>
                       <p className="text-xs sm:text-sm text-gray-400">DNI</p>
-                      {usuario.dni ? (
-                        <p className="text-sm sm:text-base text-white">
-                          {usuario.dni.toString()}
-                        </p>
-                      ) : (
-                        <div className="mt-1 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs">
-                          <div className="flex items-center gap-1 text-red-400">
-                            <AlertCircle className="w-3 h-3" />
-                            <span className="text-red-300">
-                              Debes configurar tu DNI para poder inscribirte en ligas.
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                      <p className="text-sm sm:text-base text-white">
+                        {usuario.dni ? usuario.dni.toString() : 'No especificado'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1247,105 +1096,52 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Ranking Points */}
-            {rankingData && (
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                    <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-                    Ranking
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3">
-                      <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Puntos Totales</p>
-                        <p className="text-lg sm:text-xl text-white font-bold">
-                          {rankingData.puntos || 0}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Categoría</p>
-                        <p className="text-sm sm:text-base text-white">
-                          {rankingData.categoria || 'Sin categoría'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-400">Posición</p>
-                        <p className="text-sm sm:text-base text-white">
-                          {rankingData.posicion || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-[#E2FF1B]/10 border border-[#E2FF1B]/20 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Info className="w-4 h-4 text-[#E2FF1B]" />
-                      <span className="text-sm font-medium text-[#E2FF1B]">Sistema de puntos</span>
-                    </div>
-                    <p className="text-xs text-gray-300">
-                      Los puntos se acumulan según tu rendimiento en los torneos. 
-                      Cuanto más lejos llegues, más puntos obtienes.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Inscripciones Activas */}
+          {/* Segunda fila: Inscripciones y Partidos Circuito 3GEN (50/50) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Circuito 3GEN - Inscripciones */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Inscripciones
+                  Inscripciones Circuito 3GEN
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingInscripciones ? (
+                {loadingInscripcionesCircuitooka ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E2FF1B] mx-auto"></div>
                     <p className="text-gray-400 mt-2 text-sm">Cargando inscripciones...</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {inscripcionesLigas.length > 0 ? (
+                    {inscripcionesCircuitooka.length > 0 ? (
                       <div className="space-y-3">
-                        {inscripcionesLigas.map((inscripcion) => (
+                        {inscripcionesCircuitooka.map((inscripcion) => (
                           <div key={inscripcion.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                   <Trophy className="w-4 h-4 text-[#E2FF1B]" />
                                   <h5 className="text-white font-semibold text-sm sm:text-base">
-                                    {inscripcion.liga_categorias?.ligas?.nombre || 'Liga'}
+                                    {inscripcion.etapa?.nombre || 'Etapa'}
                                   </h5>
                                 </div>
                                 
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
-                                    <BookOpen className="w-3 h-3 text-gray-400" />
+                                    <Target className="w-3 h-3 text-gray-400" />
                                     <span className="text-xs sm:text-sm text-gray-300">
-                                      Categoría: <span className="text-[#E2FF1B] font-medium">{inscripcion.liga_categorias?.categoria || 'N/A'}</span>
+                                      División: <span className="text-[#E2FF1B] font-medium">{inscripcion.division?.nombre || 'N/A'}</span>
                                     </span>
                                   </div>
                                   
-
-                                  
-                                  {inscripcion.liga_categorias?.ligas?.fecha_inicio && (
+                                  {inscripcion.etapa?.fecha_inicio && (
                                     <div className="flex items-center gap-2">
                                       <Calendar className="w-3 h-3 text-gray-400" />
                                       <span className="text-xs sm:text-sm text-gray-300">
-                                        Inicio: {formatDate(inscripcion.liga_categorias.ligas.fecha_inicio)}
+                                        Inicio: {formatArgentineDate(inscripcion.etapa.fecha_inicio)}
                                       </span>
                                     </div>
                                   )}
@@ -1356,16 +1152,20 @@ export default function ProfilePage() {
                                 <Badge 
                                   variant="outline" 
                                   className={`${
-                                    inscripcion.estado === 'aprobada' 
+                                    inscripcion.estado === 'activa' 
                                       ? 'text-green-400 border-green-500/30 bg-green-500/10' 
-                                      : inscripcion.estado === 'rechazada'
+                                      : inscripcion.estado === 'cancelada'
                                       ? 'text-red-400 border-red-500/30 bg-red-500/10'
                                       : 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
                                   }`}
                                 >
                                   <div className="flex items-center gap-1">
-                                    {getEstadoIcon(inscripcion.estado)}
-                                    <span className="text-xs">{getEstadoText(inscripcion.estado)}</span>
+                                    {inscripcion.estado === 'activa' ? (
+                                      <CheckCircle className="w-3 h-3" />
+                                    ) : (
+                                      <Clock className="w-3 h-3" />
+                                    )}
+                                    <span className="text-xs capitalize">{inscripcion.estado}</span>
                                   </div>
                                 </Badge>
                               </div>
@@ -1376,14 +1176,14 @@ export default function ProfilePage() {
                     ) : (
                       <div className="text-center py-4">
                         <Trophy className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">No tienes inscripciones activas en ligas</p>
+                        <p className="text-gray-400 text-sm">No tienes inscripciones en Circuito 3GEN</p>
                         <Button 
                           variant="outline" 
                           size="sm"
                           className="mt-2 border-gray-600 text-gray-300 hover:bg-gray-800"
-                          onClick={() => router.push('/inscripciones/ligas')}
+                          onClick={() => router.push('/circuito3gen/inscripcion')}
                         >
-                          Ver Ligas Disponibles
+                          Inscribirme en Circuito 3GEN
                         </Button>
                       </div>
                     )}
@@ -1392,16 +1192,16 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Partidos */}
+            {/* Circuito 3GEN - Partidos */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Partidos
+                  <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Partidos Circuito 3GEN
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingPartidos ? (
+                {loadingPartidosCircuitooka ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#E2FF1B] mx-auto"></div>
                     <p className="text-gray-400 mt-2 text-sm">Cargando partidos...</p>
@@ -1410,243 +1210,227 @@ export default function ProfilePage() {
                   <Tabs defaultValue="proximos" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 bg-gray-800/50 rounded-lg p-1">
                       <TabsTrigger value="proximos" className="w-full rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white">
-                        Próximos Partidos
+                        Próximos
                       </TabsTrigger>
                       <TabsTrigger value="jugados" className="w-full rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white">
-                        Partidos Jugados
+                        Jugados
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="proximos" className="space-y-4">
-                      {partidos.filter(p => p.estado === 'pendiente').length === 0 ? (
+                      {partidosCircuitooka.filter(p => p.estado === 'pendiente').length === 0 ? (
                         <div className="text-center py-4">
-                          <CalendarDays className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                          <Clock className="w-8 h-8 text-gray-600 mx-auto mb-2" />
                           <p className="text-gray-400 text-sm">No tienes próximos partidos programados.</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                                                     {partidos.filter(p => p.estado === 'pendiente').map((partido) => (
-                             <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
-                               <div className="flex items-start justify-between mb-3">
-                                 <div className="flex-1">
-                                   <div className="flex items-center gap-2 mb-2">
-                                     <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                     <h5 className="text-white font-semibold text-sm sm:text-base">
-                                       {getCategoriaNombre(partido)}
-                                     </h5>
-                                   </div>
-                                   
-                                   <div className="space-y-1.5">
-                                     <div className="flex items-center gap-2">
-                                       <Calendar className="w-3 h-3 text-gray-400" />
-                                       <span className="text-xs sm:text-sm text-gray-300">
-                                         {formatearFecha(partido.fecha)?.fecha} a las {formatearFecha(partido.fecha)?.hora}
-                                       </span>
-                                     </div>
-                                     
-                                     <div className="flex items-center gap-2">
-                                       <Users className="w-3 h-3 text-gray-400" />
-                                       <span className="text-xs sm:text-sm text-gray-300">
-                                         {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
-                                       </span>
-                                     </div>
-                                     
-                                     <div className="flex items-center gap-2">
-                                       <User className="w-3 h-3 text-gray-400" />
-                                       <span className="text-xs sm:text-sm text-gray-300">
-                                         Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
-                                       </span>
-                                     </div>
-                                     
-                                     {partido.cancha && (
-                                       <div className="flex items-center gap-2">
-                                         <MapPin className="w-3 h-3 text-blue-400" />
-                                         <span className="text-xs sm:text-sm text-blue-400">
-                                           Cancha {partido.cancha}
-                                         </span>
-                                       </div>
-                                     )}
-                                   </div>
-                                 </div>
-                                 
-                                 <div className="flex flex-col items-end gap-2">
-                                   <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10">
-                                     <div className="flex items-center gap-1">
-                                       <Clock className="w-3 h-3" />
-                                       <span className="text-xs">Próximo</span>
-                                     </div>
-                                   </Badge>
-                                   
-                                   {partido.ronda && (
-                                     <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-800/50">
-                                       <span className="text-xs">{partido.ronda}</span>
-                                     </Badge>
-                                   )}
-                                 </div>
-                               </div>
-                               
-                               {partido.equipo_ganador_id && (
-                                 <div className="mt-3 pt-3 border-t border-gray-700">
-                                   <div className="flex items-center gap-2">
-                                     <Award className="w-3 h-3 text-yellow-400" />
-                                     <span className="text-xs text-yellow-400">
-                                       Ganador: {getEquipoNombre(partido.equipo_ganador)}
-                                     </span>
-                                   </div>
-                                 </div>
-                               )}
-                             </div>
-                           ))}
+                        <div className="relative w-full">
+                          <Swiper
+                            modules={[Navigation]}
+                            spaceBetween={0}
+                            slidesPerView={1}
+                            navigation={{
+                              nextEl: '.swiper-button-next-proximos',
+                              prevEl: '.swiper-button-prev-proximos',
+                            }}
+                            className="w-full"
+                          >
+                            {partidosCircuitooka.filter(p => p.estado === 'pendiente').map((partido) => {
+                              const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
+                              const companero = esEquipoA 
+                                ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
+                                : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
+                              const oponentes = esEquipoA 
+                                ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
+                                : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
+
+                              return (
+                                <SwiperSlide key={partido.id} className="!h-auto !w-full">
+                                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200 h-full w-full">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Trophy className="w-4 h-4 text-[#E2FF1B] flex-shrink-0" />
+                                          <h5 className="text-white font-semibold text-sm sm:text-base truncate">
+                                            {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                                          </h5>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm text-gray-300">
+                                              {formatArgentineDate(partido.fecha_partido)}
+                                              {partido.horario && ` a las ${partido.horario.substring(0, 5)}`}
+                                            </span>
+                                          </div>
+                                          
+                                          {partido.cancha && (
+                                            <div className="flex items-center gap-2">
+                                              <MapPin className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                              <span className="text-xs sm:text-sm text-blue-400">
+                                                {partido.cancha}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
+                                            <div className="mb-1">
+                                              <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                                            </div>
+                                            <div>
+                                              <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10 flex-shrink-0">
+                                        <div className="flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          <span className="text-xs whitespace-nowrap">Pendiente</span>
+                                        </div>
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </SwiperSlide>
+                              )
+                            })}
+                          </Swiper>
+                          
+                          {/* Controles de navegación personalizados */}
+                          <div className="flex items-center justify-center gap-4 mt-4">
+                            <button 
+                              type="button"
+                              className="swiper-button-prev-proximos p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido anterior"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button 
+                              type="button"
+                              className="swiper-button-next-proximos p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido siguiente"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </TabsContent>
                     <TabsContent value="jugados" className="space-y-4">
-                      {partidos.filter(p => p.estado === 'jugado').length === 0 ? (
+                      {partidosCircuitooka.filter(p => p.estado === 'jugado').length === 0 ? (
                         <div className="text-center py-4">
                           <Award className="w-8 h-8 text-gray-600 mx-auto mb-2" />
                           <p className="text-gray-400 text-sm">No tienes partidos jugados registrados.</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                                                     {partidos.filter(p => p.estado === 'jugado').map((partido) => {
-                             const resultado = getResultadoPartido(partido)
-                             return (
-                               <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200">
-                                 <div className="flex items-start justify-between mb-3">
-                                   <div className="flex-1">
-                                     <div className="flex items-center gap-2 mb-2">
-                                       <Trophy className="w-4 h-4 text-[#E2FF1B]" />
-                                       <h5 className="text-white font-semibold text-sm sm:text-base">
-                                         {getCategoriaNombre(partido)}
-                                       </h5>
-                                     </div>
-                                     
-                                     <div className="space-y-1.5">
-                                       <div className="flex items-center gap-2">
-                                         <Calendar className="w-3 h-3 text-gray-400" />
-                                         <span className="text-xs sm:text-sm text-gray-300">
-                                           {formatearFecha(partido.fecha)?.fecha} a las {formatearFecha(partido.fecha)?.hora}
-                                         </span>
-                                       </div>
-                                       
-                                       <div className="flex items-center gap-2">
-                                         <Users className="w-3 h-3 text-gray-400" />
-                                         <span className="text-xs sm:text-sm text-gray-300">
-                                           {getEquipoNombre(partido.equipo_a)} vs {getEquipoNombre(partido.equipo_b)}
-                                         </span>
-                                       </div>
-                                       
-                                       <div className="flex items-center gap-2">
-                                         <User className="w-3 h-3 text-gray-400" />
-                                         <span className="text-xs sm:text-sm text-gray-300">
-                                           Tu rol: <span className="text-[#E2FF1B] font-medium">{getRolEnPartido(partido)}</span>
-                                         </span>
-                                       </div>
-                                       
-                                       {partido.cancha && (
-                                         <div className="flex items-center gap-2">
-                                           <MapPin className="w-3 h-3 text-blue-400" />
-                                           <span className="text-xs sm:text-sm text-blue-400">
-                                             Cancha {partido.cancha}
-                                           </span>
-                                         </div>
-                                       )}
-                                       
-                                       {partido.resultado && (
-                                         <div className="flex items-center gap-2">
-                                           <Award className="w-3 h-3 text-green-400" />
-                                           <span className="text-xs sm:text-sm text-green-400">
-                                             Resultado: {partido.resultado}
-                                           </span>
-                                         </div>
-                                       )}
-                                     </div>
-                                   </div>
-                                   
-                                   <div className="flex flex-col items-end gap-2">
-                                     <Badge 
-                                       variant="outline" 
-                                       className={`${
-                                         resultado?.resultado === 'victoria' 
-                                           ? 'text-green-400 border-green-500/30 bg-green-500/10' 
-                                           : 'text-red-400 border-red-500/30 bg-red-500/10'
-                                       }`}
-                                     >
-                                       <div className="flex items-center gap-1">
-                                         {resultado?.resultado === 'victoria' ? (
-                                           <Award className="w-3 h-3" />
-                                         ) : (
-                                           <XCircle className="w-3 h-3" />
-                                         )}
-                                         <span className="text-xs">
-                                           {resultado?.resultado === 'victoria' ? 'Victoria' : 'Derrota'}
-                                         </span>
-                                       </div>
-                                     </Badge>
-                                     
-                                     {partido.ronda && (
-                                       <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-800/50">
-                                         <span className="text-xs">{partido.ronda}</span>
-                                       </Badge>
-                                     )}
-                                   </div>
-                                 </div>
-                                 
-                                 {resultado && (
-                                   <div className="mt-3 pt-3 border-t border-gray-700">
-                                     <div className="flex items-center gap-2">
-                                       <Trophy className="w-3 h-3 text-yellow-400" />
-                                       <span className="text-xs text-yellow-400">
-                                         Ganador: {resultado.equipoGanador}
-                                       </span>
-                                     </div>
-                                   </div>
-                                 )}
-                               </div>
-                             )
-                           })}
+                        <div className="relative w-full">
+                          <Swiper
+                            modules={[Navigation]}
+                            spaceBetween={0}
+                            slidesPerView={1}
+                            navigation={{
+                              nextEl: '.swiper-button-next-jugados',
+                              prevEl: '.swiper-button-prev-jugados',
+                            }}
+                            className="w-full"
+                          >
+                            {partidosCircuitooka.filter(p => p.estado === 'jugado').map((partido) => {
+                              const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
+                              const equipoJugador = esEquipoA ? 'A' : 'B'
+                              const gano = partido.equipo_ganador === equipoJugador
+                              const companero = esEquipoA 
+                                ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
+                                : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
+                              const oponentes = esEquipoA 
+                                ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
+                                : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
+
+                              return (
+                                <SwiperSlide key={partido.id} className="!h-auto !w-full">
+                                  <div className={`bg-gray-800/50 rounded-lg p-4 border ${gano ? 'border-green-500/50' : 'border-red-500/50'} hover:bg-gray-800/70 transition-all duration-200 h-full w-full`}>
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Trophy className="w-4 h-4 text-[#E2FF1B] flex-shrink-0" />
+                                          <h5 className="text-white font-semibold text-sm sm:text-base truncate">
+                                            {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                                          </h5>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm text-gray-300">
+                                              {formatArgentineDate(partido.fecha_partido)}
+                                            </span>
+                                          </div>
+                                          
+                                          <div className="pt-2 border-t border-gray-700">
+                                            <div className="text-xs sm:text-sm text-gray-300 mb-2">
+                                              <strong>Resultado:</strong>
+                                            </div>
+                                            <div className="text-sm font-bold text-white mb-1">
+                                              Equipo {equipoJugador}: {equipoJugador === 'A' ? partido.sets_equipo_a : partido.sets_equipo_b} sets
+                                            </div>
+                                            <div className="text-sm font-bold text-gray-400">
+                                              Equipo {equipoJugador === 'A' ? 'B' : 'A'}: {equipoJugador === 'A' ? partido.sets_equipo_b : partido.sets_equipo_a} sets
+                                            </div>
+                                          </div>
+
+                                          <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
+                                            <div className="mb-1">
+                                              <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                                            </div>
+                                            <div>
+                                              <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`${gano ? 'text-green-400 border-green-500/30 bg-green-500/10' : 'text-red-400 border-red-500/30 bg-red-500/10'} flex-shrink-0`}
+                                      >
+                                        <div className="flex items-center gap-1">
+                                          {gano ? (
+                                            <Award className="w-3 h-3" />
+                                          ) : (
+                                            <XCircle className="w-3 h-3" />
+                                          )}
+                                          <span className="text-xs whitespace-nowrap">{gano ? 'Victoria' : 'Derrota'}</span>
+                                        </div>
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </SwiperSlide>
+                              )
+                            })}
+                          </Swiper>
+                          
+                          {/* Controles de navegación personalizados */}
+                          <div className="flex items-center justify-center gap-4 mt-4">
+                            <button 
+                              type="button"
+                              className="swiper-button-prev-jugados p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido anterior"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button 
+                              type="button"
+                              className="swiper-button-next-jugados p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              aria-label="Partido siguiente"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </TabsContent>
                   </Tabs>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card className="bg-gray-900/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Acciones Rápidas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/inscripciones/ligas')}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Ver Ligas
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/academia')}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Ver Academia
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-800"
-                  onClick={() => router.push('/contacto')}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Contacto
-                </Button>
               </CardContent>
             </Card>
           </div>

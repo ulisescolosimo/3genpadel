@@ -146,7 +146,7 @@ export default function Nosotros() {
       specialty: "Entrenamiento Físico"
     }
   ]
-
+  
   return (
     <div className="min-h-screen bg-black">
       {/* Hero Section */}

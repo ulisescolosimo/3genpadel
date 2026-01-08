@@ -49,8 +49,8 @@ export default function AdminLogin() {
         nombre: usuario.nombre || 'Administrador'
       }))
 
-      // 4. Redirigir al dashboard
-      router.push('/admin/dashboard')
+      // 4. Redirigir a circuito3gen
+      router.push('/admin/circuito3gen')
     } catch (err) {
       setError(err.message)
     } finally {

@@ -1,0 +1,1018 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { 
+  calcularRankingCompleto,
+  calcularCuposAscensoDescensoClient,
+  identificarJugadoresAscensoClient,
+  identificarJugadoresDescensoClient,
+  identificarJugadoresPlayoffClient
+} from '@/lib/circuito3gen/rankings-client'
+import {
+  BarChart3,
+  Search,
+  Filter,
+  ArrowLeft,
+  User,
+  Trophy,
+  Target,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  Award,
+  Users,
+  Activity
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
+export default function RankingsPublicosPage() {
+  const searchParams = useSearchParams()
+  const [loading, setLoading] = useState(true)
+  const [rankings, setRankings] = useState([])
+  const [etapas, setEtapas] = useState([])
+  const [divisiones, setDivisiones] = useState([])
+  const [etapaActiva, setEtapaActiva] = useState(null)
+  const [usuarioLogueado, setUsuarioLogueado] = useState(null)
+  const [filtros, setFiltros] = useState({
+    etapa_id: '',
+    division_id: '',
+    busqueda: ''
+  })
+  const [detalleRanking, setDetalleRanking] = useState(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [minimoRequeridoDivision, setMinimoRequeridoDivision] = useState(null)
+  const [datosDivision, setDatosDivision] = useState({
+    jugadores_inscriptos: 0,
+    partidos_jugados: 0
+  })
+  const [zonasAscensoDescenso, setZonasAscensoDescenso] = useState({
+    jugadoresAscenso: [],
+    jugadoresDescenso: [],
+    jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
+  })
+  const [error, setError] = useState(null)
+
+  // Leer query params de la URL al cargar (debe ejecutarse primero)
+  useEffect(() => {
+    const etapaParam = searchParams.get('etapa')
+    const divisionParam = searchParams.get('division')
+    
+    if (etapaParam || divisionParam) {
+      setFiltros(prev => ({
+        ...prev,
+        etapa_id: etapaParam || prev.etapa_id,
+        division_id: divisionParam || prev.division_id,
+        busqueda: prev.busqueda // Mantener búsqueda si existe
+      }))
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    checkAuth()
+    fetchData()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data: usuarioData } = await supabase
+          .from('usuarios')
+          .select('id')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (usuarioData) {
+          setUsuarioLogueado(usuarioData)
+        }
+      }
+    } catch (error) {
+      // No es crítico si no puede obtener el usuario
+      console.error('Error checking auth:', error)
+    }
+  }
+
+  // Estado para almacenar todos los rankings calculados (antes del filtro de búsqueda)
+  const [rankingsCompletos, setRankingsCompletos] = useState([])
+
+  useEffect(() => {
+    if (filtros.etapa_id && filtros.division_id) {
+      fetchRankings()
+    } else {
+      setRankings([])
+      setRankingsCompletos([])
+      setZonasAscensoDescenso({
+        jugadoresAscenso: [],
+        jugadoresDescenso: [],
+        jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
+      })
+      setMinimoRequeridoDivision(null)
+      setDatosDivision({
+        jugadores_inscriptos: 0,
+        partidos_jugados: 0
+      })
+    }
+  }, [filtros.etapa_id, filtros.division_id])
+
+  // Efecto para filtrar por búsqueda cuando cambia el texto de búsqueda
+  useEffect(() => {
+    // Solo aplicar filtro si hay rankings completos cargados
+    if (rankingsCompletos.length === 0) return
+
+    if (filtros.busqueda) {
+      const busquedaLower = filtros.busqueda.toLowerCase()
+      const rankingsFiltrados = rankingsCompletos.filter(ranking => {
+        const nombre = `${ranking.usuario?.nombre || ''} ${ranking.usuario?.apellido || ''}`.toLowerCase()
+        return nombre.includes(busquedaLower)
+      })
+      setRankings(rankingsFiltrados)
+    } else {
+      // Si no hay búsqueda, mostrar todos los rankings
+      setRankings(rankingsCompletos)
+    }
+  }, [filtros.busqueda, rankingsCompletos])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+
+      // Leer query params
+      const etapaParam = searchParams.get('etapa')
+      const divisionParam = searchParams.get('division')
+
+      // Obtener etapa activa
+      const { data: etapa, error: etapaError } = await supabase
+        .from('circuito3gen_etapas')
+        .select('*')
+        .eq('estado', 'activa')
+        .order('fecha_inicio', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (etapaError && etapaError.code !== 'PGRST116') throw etapaError
+      
+      if (etapa) {
+        setEtapaActiva(etapa)
+        // Solo establecer etapa activa si no hay query params
+        if (!etapaParam) {
+          setFiltros(prev => ({ ...prev, etapa_id: etapa.id }))
+        }
+      }
+
+      // Obtener todas las etapas
+      const { data: etapasData, error: etapasError } = await supabase
+        .from('circuito3gen_etapas')
+        .select('*')
+        .order('fecha_inicio', { ascending: false })
+
+      if (etapasError) throw etapasError
+      setEtapas(etapasData || [])
+
+      // Obtener divisiones
+      const { data: divisionesData, error: divisionesError } = await supabase
+        .from('circuito3gen_divisiones')
+        .select('*')
+        .order('numero_division', { ascending: true })
+
+      if (divisionesError) throw divisionesError
+      setDivisiones(divisionesData || [])
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const calcularZonasAscensoDescenso = (rankingsCalculados, configuracion) => {
+    if (!rankingsCalculados || rankingsCalculados.length === 0) {
+      return {
+        jugadoresAscenso: [],
+        jugadoresDescenso: [],
+        jugadoresPlayoff: { playoff_ascenso: [], playoff_descenso: [] }
+      }
+    }
+
+    const jugadoresInscriptos = rankingsCalculados.length
+    const jugadoresPlayoff = configuracion?.jugadores_playoff_por_division || 4
+
+    // Calcular cupos
+    const cupos = calcularCuposAscensoDescensoClient(configuracion, jugadoresInscriptos)
+
+    // Identificar jugadores que ascienden (solo los que cumplen mínimo)
+    const jugadoresAscenso = identificarJugadoresAscensoClient(rankingsCalculados, cupos.cupos_ascenso)
+
+    // Identificar jugadores que descienden (incluye todos, incluso los que no cumplen mínimo)
+    const jugadoresDescenso = identificarJugadoresDescensoClient(
+      rankingsCalculados,
+      jugadoresAscenso,
+      cupos.cupos_descenso
+    )
+
+    // Identificar jugadores para playoff
+    const jugadoresPlayoffData = identificarJugadoresPlayoffClient(
+      rankingsCalculados,
+      jugadoresAscenso,
+      jugadoresDescenso,
+      cupos.cupos_ascenso,
+      jugadoresPlayoff
+    )
+
+    return {
+      jugadoresAscenso,
+      jugadoresDescenso,
+      jugadoresPlayoff: jugadoresPlayoffData
+    }
+  }
+
+  const fetchRankings = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      if (!filtros.etapa_id || !filtros.division_id) {
+        setRankings([])
+        setLoading(false)
+        return
+      }
+
+      console.log('Fetching rankings para:', { etapa_id: filtros.etapa_id, division_id: filtros.division_id })
+
+      // Obtener inscripciones activas
+      const { data: inscripciones, error: errorInscripciones } = await supabase
+        .from('circuito3gen_inscripciones')
+        .select(`
+          usuario_id,
+          usuario:usuarios (
+            id,
+            nombre,
+            apellido,
+            email
+          )
+        `)
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .eq('estado', 'activa')
+
+      if (errorInscripciones) {
+        console.error('Error obteniendo inscripciones:', errorInscripciones)
+        throw errorInscripciones
+      }
+
+      console.log('Inscripciones obtenidas:', inscripciones?.length || 0)
+
+      // Obtener todos los partidos jugados de la división
+      const { data: partidos, error: errorPartidos } = await supabase
+        .from('circuito3gen_partidos')
+        .select('*')
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .eq('estado', 'jugado')
+
+      if (errorPartidos) {
+        console.error('Error obteniendo partidos:', errorPartidos)
+        throw errorPartidos
+      }
+
+      console.log('Partidos obtenidos:', partidos?.length || 0)
+
+      const partidosJugados = partidos?.length || 0
+      const jugadoresInscriptos = inscripciones?.length || 0
+
+      // Calcular rankings en el frontend
+      const rankingsCalculados = calcularRankingCompleto(
+        inscripciones || [],
+        partidos || [],
+        partidosJugados,
+        jugadoresInscriptos
+      )
+
+      console.log('Rankings calculados:', rankingsCalculados?.length || 0)
+
+      // Obtener mínimo requerido del primer ranking
+      const minimoRequerido = rankingsCalculados[0]?.minimo_requerido || 0
+
+      setMinimoRequeridoDivision(minimoRequerido)
+      setDatosDivision({
+        jugadores_inscriptos: jugadoresInscriptos,
+        partidos_jugados: partidosJugados
+      })
+
+      // Guardar rankings completos para el filtro de búsqueda
+      const rankingsParaGuardar = rankingsCalculados || []
+      setRankingsCompletos(rankingsParaGuardar)
+
+      // Aplicar filtro de búsqueda si existe
+      let rankingsFiltrados = rankingsParaGuardar
+      if (filtros.busqueda) {
+        const busquedaLower = filtros.busqueda.toLowerCase()
+        rankingsFiltrados = rankingsParaGuardar.filter(ranking => {
+          const nombre = `${ranking.usuario?.nombre || ''} ${ranking.usuario?.apellido || ''}`.toLowerCase()
+          return nombre.includes(busquedaLower)
+        })
+      }
+
+      console.log('Rankings filtrados:', rankingsFiltrados?.length || 0)
+      setRankings(rankingsFiltrados)
+
+      // Obtener configuración para calcular zonas
+      const { data: configuracion } = await supabase
+        .from('circuito3gen_configuracion')
+        .select('*')
+        .eq('etapa_id', filtros.etapa_id)
+        .eq('division_id', filtros.division_id)
+        .maybeSingle()
+
+      // Si no hay configuración específica, buscar configuración general de la etapa
+      let configFinal = configuracion
+      if (!configFinal) {
+        const { data: configEtapa } = await supabase
+          .from('circuito3gen_configuracion')
+          .select('*')
+          .eq('etapa_id', filtros.etapa_id)
+          .is('division_id', null)
+          .maybeSingle()
+        configFinal = configEtapa
+      }
+
+      // Calcular zonas de ascenso/descenso/playoff en el frontend
+      const zonas = calcularZonasAscensoDescenso(rankingsCalculados, configFinal)
+      setZonasAscensoDescenso(zonas)
+    } catch (error) {
+      console.error('Error fetching rankings:', error)
+      setError(error.message || 'Error al cargar los rankings')
+      setRankings([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerDetalle = (ranking) => {
+    setDetalleRanking(ranking)
+    setIsDialogOpen(true)
+  }
+
+  const obtenerNombreJugador = (usuario) => {
+    if (!usuario) return 'N/A'
+    return `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'N/A'
+  }
+
+  if (loading && rankings.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-6 md:py-12">
+      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 md:mb-8"
+        >
+          <Link href="/circuito3gen">
+            <Button variant="ghost" className="mb-3 md:mb-4 text-gray-400 hover:text-white text-sm md:text-base">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2 md:gap-3">
+            <BarChart3 className="w-8 h-8 md:w-10 md:h-10 text-[#E2FF1B]" />
+            <div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white break-words">Rankings Públicos</h1>
+              <p className="text-gray-300 mt-1 text-sm md:text-base">
+                Consulta los rankings de todas las divisiones
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Filtros */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+                Filtros
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-gray-400 mb-2 block">Etapa</Label>
+                  <Select
+                    value={filtros.etapa_id}
+                    onValueChange={(value) => setFiltros({ ...filtros, etapa_id: value, division_id: '' })}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Seleccionar etapa" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      {etapas.map((etapa) => (
+                        <SelectItem key={etapa.id} value={etapa.id} className="text-white hover:bg-gray-700">
+                          {etapa.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-400 mb-2 block">División</Label>
+                  <Select
+                    value={filtros.division_id}
+                    onValueChange={(value) => setFiltros({ ...filtros, division_id: value })}
+                    disabled={!filtros.etapa_id}
+                  >
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Seleccionar división" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      {divisiones.map((division) => (
+                        <SelectItem key={division.id} value={division.id} className="text-white hover:bg-gray-700">
+                          {division.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-400 mb-2 block">Buscar jugador</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Nombre o email..."
+                      value={filtros.busqueda}
+                      onChange={(e) => setFiltros({ ...filtros, busqueda: e.target.value })}
+                      className="bg-gray-700 border-gray-600 text-white pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Tabla de Rankings */}
+        {error ? (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-400 mb-2">Error al cargar los rankings</p>
+              <p className="text-gray-400 text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        ) : !filtros.etapa_id || !filtros.division_id ? (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400">Selecciona una etapa y una división para ver los rankings</p>
+            </CardContent>
+          </Card>
+        ) : loading ? (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <Spinner />
+              <p className="text-gray-400 mt-4">Cargando rankings...</p>
+            </CardContent>
+          </Card>
+        ) : rankings.length === 0 ? (
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="py-12 text-center">
+              <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400">No hay rankings registrados para esta división</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Leyenda de Zonas */}
+            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm mb-4 md:mb-6">
+              <CardContent className="py-2 md:py-3">
+                <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm">
+                  <span className="text-gray-400 font-semibold w-full md:w-auto mb-1 md:mb-0">Leyenda:</span>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-green-900/20 border-l-4 border-green-500"></div>
+                    <span className="text-gray-300">Ascenso ({zonasAscensoDescenso.jugadoresAscenso.length})</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-900/20 border-l-4 border-yellow-500"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">Playoff Asc. ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.length || 0})</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-900/20 border-l-4 border-yellow-500"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">Playoff Desc. ({zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.length || 0})</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-red-900/20 border-l-4 border-red-500"></div>
+                    <span className="text-gray-300">Descenso ({zonasAscensoDescenso.jugadoresDescenso.length})</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-900/30 opacity-75"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">Inactivo</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+              <CardHeader className="pb-3 md:pb-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <CardTitle className="text-white text-sm sm:text-base md:text-lg lg:text-xl break-words">
+                    {etapas.find(e => e.id === filtros.etapa_id)?.nombre} - {divisiones.find(d => d.id === filtros.division_id)?.nombre}
+                  </CardTitle>
+                  {minimoRequeridoDivision !== null && (
+                    <TooltipProvider delayDuration={0}>
+                      <div className="flex flex-wrap items-center gap-2 md:gap-6 text-xs md:text-sm text-gray-400">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Target className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Mínimo: </span>
+                              <span className="md:hidden">Mín: </span>
+                              <span className="text-white font-semibold">{minimoRequeridoDivision}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                            <p>Número mínimo de partidos requeridos para participar en ascensos y ser considerado activo en el ranking</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Users className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Jugadores: </span>
+                              <span className="md:hidden">Jug: </span>
+                              <span className="text-white font-semibold">{datosDivision.jugadores_inscriptos}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                            <p>Cantidad total de jugadores inscritos en esta división</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Activity className="w-3 h-3 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Partidos: </span>
+                              <span className="md:hidden">Part: </span>
+                              <span className="text-white font-semibold">{datosDivision.partidos_jugados}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                            <p>Cantidad total de partidos jugados en esta división</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Vista Desktop: Tabla */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-800">
+                        <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Pos.</th>
+                        <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Jugador</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">PJ</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">PG</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Ind.</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Gen.</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Prom. Final</th>
+                        <th className="text-center py-3 px-4 text-gray-400 font-semibold text-sm">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rankings.map((ranking, index) => {
+                        const minimo = ranking.minimo_requerido != null ? ranking.minimo_requerido : minimoRequeridoDivision
+                        const partidosJugados = ranking.partidos_jugados || 0
+                        const cumpleMinimo = partidosJugados >= minimo && minimo > 0
+                        
+                        // Determinar en qué zona está el jugador
+                        const esAscenso = zonasAscensoDescenso.jugadoresAscenso.some(j => j.usuario_id === ranking.usuario_id)
+                        const esDescenso = zonasAscensoDescenso.jugadoresDescenso.some(j => j.usuario_id === ranking.usuario_id)
+                        const esPlayoffAscenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.some(j => j.usuario_id === ranking.usuario_id)
+                        const esPlayoffDescenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.some(j => j.usuario_id === ranking.usuario_id)
+                        
+                        // Verificar si es el usuario logueado
+                        const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
+                        
+                        // Determinar clase CSS según la zona
+                        let zonaClass = ''
+                        let zonaTitle = ''
+                        
+                        if (esAscenso) {
+                          zonaClass = 'bg-green-900/20 hover:bg-green-900/30 border-l-4 border-green-500'
+                          zonaTitle = 'Zona de Ascenso'
+                        } else if (esDescenso) {
+                          zonaClass = 'bg-red-900/20 hover:bg-red-900/30 border-l-4 border-red-500'
+                          zonaTitle = 'Zona de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                        } else if (esPlayoffAscenso) {
+                          zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
+                          zonaTitle = 'Zona de Playoff de Ascenso'
+                        } else if (esPlayoffDescenso) {
+                          zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
+                          zonaTitle = 'Zona de Playoff de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                        } else if (!cumpleMinimo) {
+                          zonaClass = 'hover:bg-gray-800/50'
+                          zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                        } else {
+                          zonaClass = 'hover:bg-gray-800/50'
+                        }
+                        
+                        if (esUsuarioLogueado) {
+                          zonaTitle = 'Tú' + (zonaTitle ? ` - ${zonaTitle}` : '')
+                        }
+                        
+                        return (
+                          <tr
+                            key={ranking.id || `inscripcion-${ranking.usuario_id}-${index}`}
+                            className={`border-b border-gray-800 transition-colors cursor-pointer ${zonaClass}`}
+                            title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.' : '')}
+                            onClick={() => handleVerDetalle(ranking)}
+                          >
+                            <td className="py-3 px-4">
+                              {cumpleMinimo && ranking.posicion_ranking ? (
+                                <span className="text-white font-semibold">{ranking.posicion_ranking}</span>
+                              ) : (
+                                <span className="text-gray-500">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <User className={`w-4 h-4 ${esUsuarioLogueado ? 'text-[#E2FF1B]' : 'text-gray-400'}`} />
+                                <div>
+                                  <div className={`font-medium ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
+                                    {obtenerNombreJugador(ranking.usuario)}
+                                    {esUsuarioLogueado && (
+                                      <Badge className="ml-2 bg-[#E2FF1B] text-black text-xs">
+                                        Tú
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-center text-gray-300">
+                              {partidosJugados}
+                            </td>
+                            <td className="py-3 px-4 text-center text-gray-300">
+                              {ranking.partidos_ganados || 0}
+                            </td>
+                            <td className="py-3 px-4 text-center text-gray-300">
+                              {ranking.promedio_individual ? ranking.promedio_individual.toFixed(2) : '0.00'}
+                            </td>
+                            <td className="py-3 px-4 text-center text-gray-300">
+                              {ranking.promedio_general ? ranking.promedio_general.toFixed(2) : '0.00'}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="font-semibold text-white">
+                                {ranking.promedio_final ? ranking.promedio_final.toFixed(2) : '0.00'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {cumpleMinimo ? (
+                                <Badge variant="default" className="bg-green-600 text-white">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Cumple
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-gray-600 text-gray-500 bg-gray-800/50">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  {partidosJugados === 0 ? 'Sin partidos' : 'No cumple'}
+                                </Badge>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Vista Mobile: Tarjetas */}
+                <div className="md:hidden space-y-3">
+                  {rankings.map((ranking, index) => {
+                    const minimo = ranking.minimo_requerido != null ? ranking.minimo_requerido : minimoRequeridoDivision
+                    const partidosJugados = ranking.partidos_jugados || 0
+                    const cumpleMinimo = partidosJugados >= minimo && minimo > 0
+                    
+                    // Determinar en qué zona está el jugador
+                    const esAscenso = zonasAscensoDescenso.jugadoresAscenso.some(j => j.usuario_id === ranking.usuario_id)
+                    const esDescenso = zonasAscensoDescenso.jugadoresDescenso.some(j => j.usuario_id === ranking.usuario_id)
+                    const esPlayoffAscenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.some(j => j.usuario_id === ranking.usuario_id)
+                    const esPlayoffDescenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.some(j => j.usuario_id === ranking.usuario_id)
+                    
+                    // Verificar si es el usuario logueado
+                    const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
+                    
+                    // Determinar clase CSS según la zona
+                    let zonaClass = ''
+                    let zonaTitle = ''
+                    
+                    if (esAscenso) {
+                      zonaClass = 'bg-green-900/20 border-l-4 border-green-500'
+                      zonaTitle = 'Zona de Ascenso'
+                    } else if (esDescenso) {
+                      zonaClass = 'bg-red-900/20 border-l-4 border-red-500'
+                      zonaTitle = 'Zona de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                    } else if (esPlayoffAscenso) {
+                      zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
+                      zonaTitle = 'Zona de Playoff de Ascenso'
+                    } else if (esPlayoffDescenso) {
+                      zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
+                      zonaTitle = 'Zona de Playoff de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                    } else if (!cumpleMinimo) {
+                      zonaClass = 'bg-gray-800/30'
+                      zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                    } else {
+                      zonaClass = 'bg-gray-800/30'
+                    }
+                    
+                    if (esUsuarioLogueado) {
+                      zonaTitle = 'Tú' + (zonaTitle ? ` - ${zonaTitle}` : '')
+                    }
+                    
+                      return (
+                      <div
+                        key={ranking.id || `inscripcion-${ranking.usuario_id}-${index}`}
+                        className={`rounded-lg p-4 border border-gray-700 cursor-pointer ${zonaClass}`}
+                        title={zonaTitle || (!cumpleMinimo ? 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.' : '')}
+                        onClick={() => handleVerDetalle(ranking)}
+                      >
+                        <div className="mb-3">
+                          {/* Primera fila: Posición y Nombre */}
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex-shrink-0">
+                              {cumpleMinimo && ranking.posicion_ranking ? (
+                                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                                  <span className="text-white font-bold text-sm">{ranking.posicion_ranking}</span>
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center">
+                                  <span className="text-gray-500 text-xs">-</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <User className={`w-4 h-4 flex-shrink-0 ${esUsuarioLogueado ? 'text-[#E2FF1B]' : 'text-gray-400'}`} />
+                                <div className={`font-medium truncate ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
+                                  {obtenerNombreJugador(ranking.usuario)}
+                                </div>
+                                {esUsuarioLogueado && (
+                                  <Badge className="bg-[#E2FF1B] text-black text-xs flex-shrink-0 whitespace-nowrap">
+                                    Tú
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Segunda fila: Zona y Estado */}
+                          <div className="flex items-center justify-between gap-2">
+                            {zonaTitle && (
+                              <div className="text-xs text-gray-400 truncate flex-1 min-w-0">
+                                {zonaTitle}
+                              </div>
+                            )}
+                            <div className="flex-shrink-0">
+                              {cumpleMinimo ? (
+                                <Badge variant="default" className="bg-green-600 text-white text-xs whitespace-nowrap">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Cumple
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-gray-600 text-gray-500 bg-gray-800/50 text-xs whitespace-nowrap">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  {partidosJugados === 0 ? 'Sin partidos' : 'No cumple'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Partidos Jugados</div>
+                            <div className="text-white font-semibold">{partidosJugados}</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Partidos Ganados</div>
+                            <div className="text-white font-semibold">{ranking.partidos_ganados || 0}</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Prom. Individual</div>
+                            <div className="text-white font-semibold">
+                              {ranking.promedio_individual ? ranking.promedio_individual.toFixed(2) : '0.00'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-2">
+                            <div className="text-xs text-gray-400 mb-1">Prom. General</div>
+                            <div className="text-white font-semibold">
+                              {ranking.promedio_general ? ranking.promedio_general.toFixed(2) : '0.00'}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2 border-t border-gray-700">
+                          <div className="text-xs text-gray-400 mb-1">Promedio Final</div>
+                          <div className="text-[#E2FF1B] font-bold text-lg">
+                            {ranking.promedio_final ? ranking.promedio_final.toFixed(2) : '0.00'}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* Dialog de Detalle */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-5xl w-[95vw] md:w-[90vw] max-h-[90vh] md:max-h-[85vh] overflow-y-auto p-4 md:p-6">
+            <DialogHeader>
+              <DialogTitle className="text-white">Detalle del Ranking</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Información detallada del cálculo del ranking
+              </DialogDescription>
+            </DialogHeader>
+
+            {detalleRanking && (
+              <div className="space-y-4">
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Jugador
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Nombre:</span>
+                      <span className="text-white">{obtenerNombreJugador(detalleRanking.usuario)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Posición:</span>
+                      <span className="text-white font-semibold">
+                        {detalleRanking.posicion_ranking || 'Sin posición'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Estadísticas de Partidos
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Partidos Jugados:</span>
+                        <span className="text-white">{detalleRanking.partidos_jugados || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Partidos Ganados:</span>
+                        <span className="text-white">{detalleRanking.partidos_ganados || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Diferencia Sets:</span>
+                        <span className={`${(detalleRanking.diferencia_sets || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {detalleRanking.diferencia_sets || 0}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Diferencia Games:</span>
+                        <span className={`${(detalleRanking.diferencia_games || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {detalleRanking.diferencia_games || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      Promedios
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Promedio Individual:</span>
+                        <span className="text-white">
+                          {detalleRanking.promedio_individual ? detalleRanking.promedio_individual.toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Promedio General:</span>
+                        <span className="text-white">
+                          {detalleRanking.promedio_general ? detalleRanking.promedio_general.toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Bonus por Jugar:</span>
+                        <span className="text-green-400">
+                          {detalleRanking.bonus_por_jugar ? detalleRanking.bonus_por_jugar.toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 font-semibold">Promedio Final:</span>
+                        <span className="text-yellow-500 font-semibold">
+                          {detalleRanking.promedio_final ? detalleRanking.promedio_final.toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Mínimo Requerido
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Mínimo de la división:</span>
+                        <span className="text-white font-semibold">
+                          {detalleRanking.minimo_requerido ? Math.ceil(detalleRanking.minimo_requerido) : 0} partido{detalleRanking.minimo_requerido && Math.ceil(detalleRanking.minimo_requerido) !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Partidos jugados:</span>
+                        <span className="text-white font-semibold">
+                          {detalleRanking.partidos_jugados || 0} / {detalleRanking.minimo_requerido ? Math.ceil(detalleRanking.minimo_requerido) : 0}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-700">
+                        <span className="text-gray-400">Estado:</span>
+                        {detalleRanking.cumple_minimo ? (
+                          <Badge variant="default" className="bg-green-600 text-white">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Cumple
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-yellow-600 text-yellow-400 bg-yellow-900/20">
+                            <AlertCircle className="w-3 h-3 mr-1" />
+                            No cumple
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setIsDialogOpen(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                Cerrar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  )
+}
+

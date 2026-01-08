@@ -35,7 +35,7 @@ export default function FloatingWhatsAppButton() {
       {/* Botón flotante */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-50 group block"
+        className="fixed bottom-6 left-6 z-40 group block"
         aria-label="Contactar por WhatsApp"
       >
         <div className="relative">
@@ -49,7 +49,7 @@ export default function FloatingWhatsAppButton() {
       {/* Modal/Dialog mejorado */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300"
           onClick={handleBackdropClick}
         >
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
