@@ -57,7 +57,9 @@ export default function InscripcionPage() {
   const [inscripcionExistente, setInscripcionExistente] = useState(null)
   const [inscripcionesUsuario, setInscripcionesUsuario] = useState([])
   const [comprobanteFile, setComprobanteFile] = useState(null)
+  const [imagenJugadorFile, setImagenJugadorFile] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
+  const [isDragOverImagen, setIsDragOverImagen] = useState(false)
 
   useEffect(() => {
     checkAuth()
@@ -212,12 +214,12 @@ export default function InscripcionPage() {
     )
   }
 
-  // Verificar si una división está bloqueada (División Pro o División 1)
+  // Verificar si una división está bloqueada (solo División Pro)
   const esDivisionBloqueada = (division) => {
     if (!division) return false
     const nombre = division.nombre?.toLowerCase() || ''
-    // Bloquear División Pro y División 1
-    return nombre.includes('pro') || nombre === 'división 1' || division.numero_division === 1
+    // Bloquear solo División Pro
+    return nombre.includes('pro')
   }
 
   // Verificar si el usuario ya está inscripto en alguna división de esta etapa
@@ -255,6 +257,33 @@ export default function InscripcionPage() {
     setComprobanteFile(file)
   }
 
+  const processImagenJugadorFile = (file) => {
+    if (!file) return
+
+    // Validar tamaño (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'El archivo es demasiado grande. Máximo 10MB.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    // Validar tipo de archivo (solo imágenes)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: 'Error',
+        description: 'Formato no válido. Solo se permiten imágenes (JPG, PNG, WEBP).',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setImagenJugadorFile(file)
+  }
+
   const handleFileSelect = (event) => {
     const file = event.target.files[0]
     processComprobanteFile(file)
@@ -280,7 +309,32 @@ export default function InscripcionPage() {
     }
   }
 
-  const uploadFile = async (file) => {
+  const handleFileSelectImagen = (event) => {
+    const file = event.target.files[0]
+    processImagenJugadorFile(file)
+  }
+
+  const handleDragOverImagen = (e) => {
+    e.preventDefault()
+    setIsDragOverImagen(true)
+  }
+
+  const handleDragLeaveImagen = (e) => {
+    e.preventDefault()
+    setIsDragOverImagen(false)
+  }
+
+  const handleDropImagen = (e) => {
+    e.preventDefault()
+    setIsDragOverImagen(false)
+    
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      processImagenJugadorFile(files[0])
+    }
+  }
+
+  const uploadFile = async (file, folder = 'comprobantes') => {
     try {
       // Verificar que hay una sesión activa
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -290,7 +344,7 @@ export default function InscripcionPage() {
 
       const fileExt = file.name.split('.').pop()
       const fileName = `circuito3gen-${Date.now()}.${fileExt}`
-      const filePath = `comprobantes/${fileName}`
+      const filePath = `${folder}/${fileName}`
 
       const { error: uploadError } = await supabase.storage
         .from('circuito3gen-inscripciones')
@@ -340,6 +394,16 @@ export default function InscripcionPage() {
       return
     }
 
+    // Validar imagen del jugador
+    if (!imagenJugadorFile) {
+      toast({
+        title: 'Error',
+        description: 'Debes adjuntar una imagen del jugador',
+        variant: 'destructive'
+      })
+      return
+    }
+
     // Verificar si ya está inscripto en alguna división de esta etapa
     if (estaInscriptoEnEtapa()) {
       toast({
@@ -381,8 +445,11 @@ export default function InscripcionPage() {
         return
       }
 
-      // Subir archivo del comprobante
-      const fileData = await uploadFile(comprobanteFile)
+      // Subir archivos
+      const [comprobanteData, imagenJugadorData] = await Promise.all([
+        uploadFile(comprobanteFile, 'comprobantes'),
+        uploadFile(imagenJugadorFile, 'imagenes-jugadores')
+      ])
 
       const response = await fetch('/api/circuito3gen/inscripciones', {
         method: 'POST',
@@ -394,8 +461,10 @@ export default function InscripcionPage() {
           etapa_id: formData.etapa_id,
           division_id: formData.division_id,
           estado: 'activa',
-          comprobante_url: fileData.url,
-          comprobante_filename: fileData.filename
+          comprobante_url: comprobanteData.url,
+          comprobante_filename: comprobanteData.filename,
+          imagen_jugador_url: imagenJugadorData.url,
+          imagen_jugador_filename: imagenJugadorData.filename
         })
       })
 
@@ -618,6 +687,79 @@ export default function InscripcionPage() {
                     )}
                   </div>
 
+                  {/* Imagen del jugador */}
+                  <div>
+                    <Label className="text-gray-300 mb-2 block">
+                      Imagen del jugador *
+                    </Label>
+                    <div
+                      onDragOver={handleDragOverImagen}
+                      onDragLeave={handleDragLeaveImagen}
+                      onDrop={handleDropImagen}
+                      className={`
+                        border-2 border-dashed rounded-lg p-6 transition-colors
+                        ${isDragOverImagen 
+                          ? 'border-[#E2FF1B] bg-[#E2FF1B]/10' 
+                          : 'border-gray-600 bg-gray-700/30'
+                        }
+                        ${imagenJugadorFile ? 'border-green-500 bg-green-900/10' : ''}
+                      `}
+                    >
+                      {imagenJugadorFile ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-5 h-5 text-green-400" />
+                            <div>
+                              <p className="text-white font-medium">{imagenJugadorFile.name}</p>
+                              <p className="text-gray-400 text-sm">
+                                {(imagenJugadorFile.size / 1024).toFixed(2)} KB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setImagenJugadorFile(null)}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <p className="text-gray-300 mb-1">
+                            Arrastra la imagen aquí o haz clic para seleccionar
+                          </p>
+                          <p className="text-gray-400 text-sm mb-3">
+                            Formatos aceptados: JPG, PNG, WEBP (máx. 10MB)
+                          </p>
+                          <input
+                            type="file"
+                            id="imagen-jugador-upload"
+                            className="hidden"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={handleFileSelectImagen}
+                          />
+                          <label htmlFor="imagen-jugador-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700 cursor-pointer"
+                              asChild
+                            >
+                              <span>Seleccionar imagen</span>
+                            </Button>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Adjunta una foto del jugador para la inscripción.
+                    </p>
+                  </div>
+
                   {/* Comprobante de pago */}
                   <div>
                     <Label className="text-gray-300 mb-2 block">
@@ -713,6 +855,7 @@ export default function InscripcionPage() {
                         !formData.etapa_id || 
                         !formData.division_id || 
                         !comprobanteFile ||
+                        !imagenJugadorFile ||
                         estaInscriptoEnEtapa() ||
                         estaInscriptoEnDivision(formData.division_id) ||
                         (divisionSeleccionada && esDivisionBloqueada(divisionSeleccionada))
@@ -777,7 +920,7 @@ export default function InscripcionPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
-                  <span>Las Divisiones PRO y 1 son exclusivas.</span>
+                  <span>La División PRO es exclusiva. Para inscribirte debes contactar a un administrador.</span>
                 </li>
               </ul>
             </CardContent>

@@ -173,17 +173,17 @@ export default function InscripcionesPage() {
             nombre,
             estado
           ),
-          division:circuito3gen_divisiones!circuito3gen_inscripciones_division_id_fkey (
+          division:circuito3gen_divisiones!circuitooka_inscripciones_division_id_fkey (
             id,
             numero_division,
             nombre
           ),
-          division_solicitada_rel:circuito3gen_divisiones!circuito3gen_inscripciones_division_solicitada_fkey (
+          division_solicitada_rel:circuito3gen_divisiones!circuitooka_inscripciones_division_solicitada_fkey (
             id,
             numero_division,
             nombre
           ),
-          usuario:usuarios!circuito3gen_inscripciones_usuario_id_fkey (
+          usuario:usuarios (
             id,
             nombre,
             apellido,

@@ -66,7 +66,7 @@ export async function POST(request) {
   try {
     const user = await obtenerUsuarioAutenticado(request)
     const body = await request.json()
-    const { etapa_id, division_id, usuario_id, division_solicitada, evaluacion_organizador, fecha_inscripcion, estado, comprobante_url, comprobante_filename } = body
+    const { etapa_id, division_id, usuario_id, division_solicitada, evaluacion_organizador, fecha_inscripcion, estado, comprobante_url, comprobante_filename, imagen_jugador_url, imagen_jugador_filename } = body
 
     // Validaciones
     if (!etapa_id || !division_id) {
@@ -80,6 +80,14 @@ export async function POST(request) {
     if (!comprobante_url || !comprobante_filename) {
       return NextResponse.json(
         { success: false, error: 'Debes adjuntar el comprobante de pago de $50.000' },
+        { status: 400 }
+      )
+    }
+
+    // Validar imagen del jugador
+    if (!imagen_jugador_url || !imagen_jugador_filename) {
+      return NextResponse.json(
+        { success: false, error: 'Debes adjuntar una imagen del jugador' },
         { status: 400 }
       )
     }
@@ -123,7 +131,9 @@ export async function POST(request) {
         estado: estado || 'activa',
         fecha_inscripcion: fecha_inscripcion || new Date().toISOString().split('T')[0],
         comprobante_url: comprobante_url || null,
-        comprobante_filename: comprobante_filename || null
+        comprobante_filename: comprobante_filename || null,
+        imagen_jugador_url: imagen_jugador_url || null,
+        imagen_jugador_filename: imagen_jugador_filename || null
       })
       .select()
       .single()
