@@ -7,7 +7,7 @@
 INSERT INTO circuitooka_divisiones (numero_division, nombre, descripcion, orden)
 VALUES 
     (1, 'División 1', 'División de mayor nivel. Jugadores con mayor experiencia y habilidad.', 1),
-    (2, 'División 2', 'División intermedia-alta. Requiere evaluación del organizador para ingresar.', 2),
+    (2, 'División 2', 'División intermedia-alta.', 2),
     (3, 'División 3', 'División intermedia. Nivel medio de juego.', 3),
     (4, 'División 4', 'División inicial. Para jugadores que comienzan en el circuito.', 4)
 ON CONFLICT (numero_division) DO NOTHING;

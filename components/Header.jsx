@@ -258,7 +258,7 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/sede-olleros/clases-privadas" className="flex items-center gap-2">
+                    <Link href="/sede-olleros/entrenamientos-profesionales" className="flex items-center gap-2">
                       <User className="w-4 h-4" />
                       Clases Privadas
                     </Link>
@@ -562,8 +562,8 @@ export default function Header() {
                     Entrenamientos Grupales
                   </Link>
                   <Link 
-                    href="/sede-olleros/clases-privadas" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-privadas') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/sede-olleros/entrenamientos-profesionales" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/entrenamientos-profesionales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <User className="w-4 h-4" />

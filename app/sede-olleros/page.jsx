@@ -104,7 +104,7 @@ export default function SedeOllerosPage() {
                   </ul>
                 </div>
                 <div className="pt-2">
-                  <Link href="/sede-olleros/clases-grupales">
+                  <Link href="/sede-olleros/entrenamientos-grupales">
                     <Button className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm py-3 font-bold transition-all duration-300 hover:scale-105">
                       Ver Clases Grupales
                     </Button>

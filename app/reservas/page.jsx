@@ -235,7 +235,7 @@ export default function ReservasPage() {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => router.push('/sede-olleros/clases-grupales')}
+              onClick={() => router.push('/sede-olleros/entrenamientos-grupales')}
               className="text-white hover:text-[#E2FF1B] hover:bg-white/10 -ml-2 sm:ml-0"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
