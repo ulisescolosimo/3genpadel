@@ -86,12 +86,33 @@ export default function CircuitookaPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-AR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
+    try {
+      // Parsear la fecha manualmente para evitar problemas de zona horaria
+      // Si es solo fecha (YYYY-MM-DD), crear el objeto Date con componentes locales
+      let date
+      if (typeof dateString === 'string') {
+        if (dateString.includes('T')) {
+          // Si tiene hora, usar directamente (pero podría tener problemas de zona horaria)
+          date = new Date(dateString)
+        } else {
+          // Si es solo fecha YYYY-MM-DD, parsear manualmente para usar zona horaria local
+          const [year, month, day] = dateString.split('-')
+          date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+        }
+      } else {
+        date = new Date(dateString)
+      }
+      
+      return date.toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'America/Argentina/Buenos_Aires'
+      })
+    } catch (error) {
+      console.error('Error formateando fecha:', error)
+      return dateString
+    }
   }
 
   if (loading) {
