@@ -758,7 +758,7 @@ export default function InscripcionPage() {
                   <div>
                     <Label className="text-gray-300 mb-2 block">
                       Comprobante de pago * 
-                      <span className="text-[#E2FF1B] ml-2 font-semibold">($50.000)</span>
+                      <span className="text-[#E2FF1B] ml-2 font-semibold">($50.000 - Alias: 3genpadel)</span>
                     </Label>
                     <div
                       onDragOver={handleDragOver}
@@ -825,6 +825,7 @@ export default function InscripcionPage() {
                     </div>
                     <p className="text-sm text-gray-400 mt-2">
                       El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. 
+                      Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">3genpadel</span>. 
                       Adjuntá el comprobante de transferencia o pago.
                     </p>
                   </div>
@@ -897,7 +898,7 @@ export default function InscripcionPage() {
               <ul className="space-y-2 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
-                  <span>El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. Debés adjuntar el comprobante de pago para completar la inscripción.</span>
+                  <span>El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">3genpadel</span>. Debés adjuntar el comprobante de pago para completar la inscripción.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
