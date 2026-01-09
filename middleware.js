@@ -44,21 +44,11 @@ export async function middleware(req) {
     '/merchandising/mis-pedidos'
   ]
 
-  // Rutas que requieren ser administrador (verificación adicional en layout)
-  const adminRoutes = [
-    '/circuito3gen'
-  ]
-
   // Si la ruta actual requiere autenticación y no hay sesión
   if (protectedRoutes.some(route => req.nextUrl.pathname.startsWith(route)) && !session) {
     const redirectUrl = new URL('/auth/callback', req.url)
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
-  }
-
-  // Si la ruta actual requiere ser admin y no hay sesión, redirigir al home
-  if (adminRoutes.some(route => req.nextUrl.pathname.startsWith(route)) && !session) {
-    return NextResponse.redirect(new URL('/', req.url))
   }
 
   // Si hay una sesión y el usuario intenta acceder a login/registro
@@ -75,7 +65,6 @@ export const config = {
     '/torneos/mis-torneos/:path*',
     '/merchandising/carrito/:path*',
     '/merchandising/mis-pedidos/:path*',
-    '/circuito3gen/:path*',
     '/login',
     '/registro'
   ]

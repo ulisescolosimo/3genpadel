@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Trophy, Users, Clock, MapPin } from "lucide-react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { formatArgentineDateLong } from "@/lib/date-utils";
 import { useTournamentData } from "@/hooks/useTournamentData";
@@ -202,12 +203,14 @@ export default function LiveMatchTicker() {
     <div className="w-full bg-[#E2FF1B] text-black overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="flex items-center py-2">
-          <div className="flex items-center gap-2 mr-4 hidden">
+          <div className="flex items-center gap-2 mr-4">
             <div className="flex items-center gap-1 px-2 py-1 bg-black text-[#E2FF1B] rounded-full">
               <Trophy className="w-4 h-4" />
-              <span className="text-sm font-bold">
-                PARTIDOS
-              </span>
+              <Link href="/circuito3gen/partidos-todos">
+                <span className="text-sm font-bold">
+                  PARTIDOS
+                </span>
+              </Link>
             </div>
           </div>
 

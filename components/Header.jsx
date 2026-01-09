@@ -197,28 +197,38 @@ export default function Header() {
             <div className="flex items-center gap-6">
               {/* Circuito 3GEN Dropdown */}
               <div className="flex items-center">
-                <div 
-                  className={`flex items-center gap-2 text-sm font-medium text-white/70 cursor-default ${isActive('/circuito3gen') || pathname?.startsWith('/circuito3gen') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                  onClick={(e) => e.preventDefault()}
+                <Link 
+                  href="/circuito3gen" 
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen') || pathname?.startsWith('/circuito3gen') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                 >
                   <Trophy className="w-4 h-4" />
                   Circuito 3GEN
-                </div>
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="p-1 h-auto text-white/70 cursor-not-allowed opacity-50"
-                      disabled
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
+                      className="p-1 h-auto text-white/70 hover:text-[#E2FF1B]"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <ChevronDown className="w-3 h-3" />
                     </Button>
                   </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48" align="start">
+                    <DropdownMenuItem asChild>
+                      <Link href="/circuito3gen/rankings" className="flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        Rankings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/circuito3gen/inscripcion" className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Inscribirme
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                 </DropdownMenu>
               </div>
 
@@ -242,15 +252,15 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/sede-olleros/clases-grupales" className="flex items-center gap-2">
+                    <Link href="/sede-olleros/entrenamientos-grupales" className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      Clases Grupales
+                      Entrenamientos Grupales
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/sede-olleros/clases-profesionales" className="flex items-center gap-2">
+                    <Link href="/sede-olleros/clases-privadas" className="flex items-center gap-2">
                       <User className="w-4 h-4" />
-                      Clases Profesionales
+                      Clases Privadas
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -500,25 +510,31 @@ export default function Header() {
             <div className="flex flex-col gap-4">
               {/* Circuito 3GEN Section */}
               <div className="space-y-2">
-                <div 
-                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/70 cursor-default ${isActive('/circuito3gen') && !pathname?.includes('/circuito3gen/') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    closeMenu();
-                  }}
+                <Link 
+                  href="/circuito3gen" 
+                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen') && !pathname?.includes('/circuito3gen/') ? 'text-[#E2FF1B]' : 'text-[#E2FF1B]'}`}
+                  onClick={closeMenu}
                 >
                   <Trophy className="w-3 h-3" />
                   Circuito 3GEN
-                </div>
-                <div className="ml-4 space-y-1 opacity-50 pointer-events-none">
-                  <div className={`flex items-center gap-2 text-sm font-medium text-white/70`}>
+                </Link>
+                <div className="ml-4 space-y-1">
+                  <Link 
+                    href="/circuito3gen/rankings" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/rankings') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
                     <BarChart3 className="w-4 h-4" />
                     Rankings
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm font-medium text-white/70`}>
+                  </Link>
+                  <Link 
+                    href="/circuito3gen/inscripcion" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/inscripcion') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
                     <User className="w-4 h-4" />
                     Inscribirme
-                  </div>
+                  </Link>
                 </div>
               </div>
 
@@ -538,20 +554,20 @@ export default function Header() {
                     Academia
                   </Link>
                   <Link 
-                    href="/sede-olleros/clases-grupales" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-grupales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/sede-olleros/entrenamientos-grupales" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/entrenamientos-grupales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <Users className="w-4 h-4" />
-                    Clases Grupales
+                    Entrenamientos Grupales
                   </Link>
                   <Link 
-                    href="/sede-olleros/clases-profesionales" 
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-profesionales') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    href="/sede-olleros/clases-privadas" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sede-olleros/clases-privadas') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
                     onClick={closeMenu}
                   >
                     <User className="w-4 h-4" />
-                    Clases Profesionales
+                    Clases Privadas
                   </Link>
                 </div>
               </div>
