@@ -2439,7 +2439,7 @@ export default function LigaInscripcionPage() {
             </div>
             
             <p className="text-sm text-gray-400 text-center leading-relaxed px-2">
-              Únete para recibir información sobre horarios, partidos, resultados y más novedades de la liga.
+              Unitepara recibir información sobre horarios, partidos, resultados y más novedades de la liga.
             </p>
           </div>
           

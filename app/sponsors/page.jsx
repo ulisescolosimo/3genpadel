@@ -92,7 +92,7 @@ export default function SponsorsPage() {
                 ¿Querés ser parte de nuestra familia de sponsors?
               </h3>
               <p className="text-gray-400 mb-6 max-w-2xl mx-auto text-center">
-                Únete a las marcas que creen en el crecimiento del padel y quieren formar parte de nuestro proyecto. 
+                Unitea las marcas que creen en el crecimiento del padel y quieren formar parte de nuestro proyecto. 
                 Contactanos para conocer las oportunidades de patrocinio disponibles.
               </p>
               <div className="flex justify-center">

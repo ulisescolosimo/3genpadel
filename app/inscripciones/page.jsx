@@ -16,7 +16,7 @@ export default function InscripcionesPage() {
             <span className="text-[#E2FF1B]">Inscripciones</span>
           </h1>
           <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Únete a nuestras ligas competitivas y mejora tu juego
+            Unitea nuestras ligas competitivas y mejora tu juego
           </p>
         </div>
       </div>

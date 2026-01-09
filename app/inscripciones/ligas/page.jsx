@@ -153,7 +153,7 @@ export default function LigasPage() {
               <span className="text-[#E2FF1B]">Liga</span> Actual
             </h1>
             <p className="text-base sm:text-xl text-gray-300 px-4">
-              Únete a nuestra liga competitiva y mejora tu ranking jugando contra los mejores
+              Unitea nuestra liga competitiva y mejora tu ranking jugando contra los mejores
             </p>
           </div>
         </div>

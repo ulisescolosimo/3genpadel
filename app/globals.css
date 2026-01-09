@@ -747,3 +747,160 @@ input[type="time"]::-moz-calendar-picker-indicator:hover {
     display: none;
   }
 }
+
+/* Responsive adicional para móviles muy pequeños */
+@media (max-width: 375px) {
+  /* Reducir tamaños de fuente en móviles muy pequeños */
+  .text-xs {
+    font-size: 0.7rem;
+    line-height: 1rem;
+  }
+  
+  .text-sm {
+    font-size: 0.8rem;
+    line-height: 1.2rem;
+  }
+  
+  /* Asegurar que los botones sean táctiles */
+  button, a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Mejorar espaciado en cards */
+  .card {
+    padding: 0.75rem;
+  }
+}
+
+/* Optimización de rendimiento para animaciones en móviles */
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Animaciones para fondo animado de pádel - Hero Section */
+@keyframes float0 {
+  0%, 100% {
+    transform: perspective(800px) rotateY(-45deg) rotateX(20deg) translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: perspective(800px) rotateY(-45deg) rotateX(20deg) translateY(-20px) translateX(10px);
+  }
+}
+
+@keyframes float1 {
+  0%, 100% {
+    transform: perspective(800px) rotateY(-45deg) rotateX(20deg) translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: perspective(800px) rotateY(-45deg) rotateX(20deg) translateY(15px) translateX(-15px);
+  }
+}
+
+@keyframes float2 {
+  0%, 100% {
+    transform: perspective(800px) rotateY(-45deg) rotateX(20deg) translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: perspective(800px) rotateY(-45deg) rotateX(20deg) translateY(-25px) translateX(20px);
+  }
+}
+
+@keyframes bouncePadel0 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.2;
+  }
+  25% {
+    transform: translate(100px, -150px) scale(1.1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(200px, 0) scale(0.9);
+    opacity: 0.3;
+  }
+  75% {
+    transform: translate(100px, 150px) scale(1.05);
+    opacity: 0.35;
+  }
+}
+
+@keyframes bouncePadel1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.25;
+  }
+  33% {
+    transform: translate(-120px, -100px) scale(1.15);
+    opacity: 0.45;
+  }
+  66% {
+    transform: translate(-200px, 100px) scale(0.85);
+    opacity: 0.3;
+  }
+}
+
+@keyframes bouncePadel2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.2;
+  }
+  20% {
+    transform: translate(80px, 120px) scale(1.2);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translate(160px, -80px) scale(0.8);
+    opacity: 0.25;
+  }
+  60% {
+    transform: translate(240px, 100px) scale(1.1);
+    opacity: 0.4;
+  }
+  80% {
+    transform: translate(120px, -120px) scale(0.95);
+    opacity: 0.3;
+  }
+}
+
+@keyframes drawPath {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(30px, -40px) scale(1.2);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-20px, -60px) scale(0.8);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(40px, -30px) scale(1.1);
+    opacity: 0.45;
+  }
+}

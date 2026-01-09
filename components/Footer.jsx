@@ -20,7 +20,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-gray-400">
-              La mejor academia de pádel. Únete a nuestra comunidad y mejora tu juego con los mejores profesores.
+              La mejor academia de pádel. Unitea nuestra comunidad y mejora tu juego con los mejores profesores.
             </p>
           </div>
 

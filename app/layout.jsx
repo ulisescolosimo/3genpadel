@@ -26,7 +26,7 @@ export const viewport = {
 
 export const metadata = {
   title: '3gen Padel - Academia de Pádel en Argentina',
-  description: 'Academia de pádel profesional en Argentina. Clases con profesores expertos, torneos, merchandising y formación completa de jugadores. Únete a la mejor academia de pádel.',
+  description: 'Academia de pádel profesional en Argentina. Clases con profesores expertos, torneos, merchandising y formación completa de jugadores. Unitea la mejor academia de pádel.',
   keywords: 'pádel, academia de pádel, clases de pádel, torneos de pádel, profesores de pádel, Argentina, 3gen padel',
   authors: [{ name: '3gen Padel Academy' }],
   creator: '3gen Padel Academy',
@@ -46,7 +46,7 @@ export const metadata = {
     url: 'https://3genpadel.com.ar',
     siteName: '3gen Padel',
     title: '3gen Padel Academy - Academia de Pádel en Argentina',
-    description: 'Academia de pádel profesional en Argentina. Clases con profesores expertos, torneos, merchandising y formación completa de jugadores. Únete a la mejor academia de pádel.',
+    description: 'Academia de pádel profesional en Argentina. Clases con profesores expertos, torneos, merchandising y formación completa de jugadores. Unitea la mejor academia de pádel.',
     images: [
       {
         url: '/images/logo/logo.png',

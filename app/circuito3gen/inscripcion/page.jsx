@@ -388,7 +388,7 @@ export default function InscripcionPage() {
     if (!comprobanteFile) {
       toast({
         title: 'Error',
-        description: 'Debes adjuntar el comprobante de pago de $50.000',
+        description: 'Debés adjuntar el comprobante de pago de $50.000',
         variant: 'destructive'
       })
       return
@@ -530,7 +530,7 @@ export default function InscripcionPage() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">Inscripción a Circuito 3GEN</h1>
           </div>
           <p className="text-gray-300">
-            Únete al circuito más competitivo de pádel. Selecciona tu etapa y división.
+            Uniteal circuito más competitivo de pádel. Selecciona tu etapa y división.
           </p>
         </motion.div>
 
@@ -750,7 +750,7 @@ export default function InscripcionPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-400 mt-2">
-                      Adjunta una foto del jugador para la inscripción.
+                      Adjuntá una foto del jugador para la inscripción.
                     </p>
                   </div>
 
@@ -825,7 +825,7 @@ export default function InscripcionPage() {
                     </div>
                     <p className="text-sm text-gray-400 mt-2">
                       El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. 
-                      Adjunta el comprobante de transferencia o pago.
+                      Adjuntá el comprobante de transferencia o pago.
                     </p>
                   </div>
 
@@ -897,7 +897,7 @@ export default function InscripcionPage() {
               <ul className="space-y-2 text-gray-300 text-sm">
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
-                  <span>El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. Debes adjuntar el comprobante de pago para completar la inscripción.</span>
+                  <span>El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. Debés adjuntar el comprobante de pago para completar la inscripción.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
