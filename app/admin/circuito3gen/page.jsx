@@ -16,7 +16,9 @@ import {
   XCircle,
   ArrowRight,
   RefreshCw,
-  Target
+  Target,
+  Calculator,
+  AlertTriangle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -37,6 +39,7 @@ export default function CircuitookaDashboard() {
   })
   const [etapasActivas, setEtapasActivas] = useState([])
   const [partidosRecientes, setPartidosRecientes] = useState([])
+  const [recalculandoPromedios, setRecalculandoPromedios] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -147,6 +150,66 @@ export default function CircuitookaDashboard() {
       setPartidosRecientes(data || [])
     } catch (error) {
       console.error('Error fetching partidos:', error)
+    }
+  }
+
+  const recalcularPromediosGlobales = async () => {
+    // Confirmar acción
+    if (!confirm('¿Estás seguro de que deseas recalcular los promedios globales de TODOS los jugadores?\n\nEsta acción puede tomar varios minutos dependiendo de la cantidad de jugadores y partidos.\n\nEsta acción se recomienda cuando:\n- Se han corregido resultados de partidos\n- Los promedios no están sincronizados\n- Se necesita una recalculación masiva')) {
+      return
+    }
+
+    try {
+      setRecalculandoPromedios(true)
+      
+      // Obtener token de sesión para autenticación
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.')
+      }
+
+      const response = await fetch('/api/circuito3gen/recalcular-promedios-globales', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({})
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al recalcular promedios')
+      }
+
+      toast({
+        title: 'Éxito',
+        description: result.message || 'Promedios globales recalculados correctamente',
+        variant: 'default'
+      })
+
+      // Mostrar resumen si hay datos
+      if (result.data) {
+        console.log('Resumen del recálculo:', result.data)
+        if (result.data.total_errores > 0) {
+          toast({
+            title: 'Advertencia',
+            description: `Recálculo completado con ${result.data.total_errores} error(es). Revisa la consola para más detalles.`,
+            variant: 'destructive'
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error al recalcular promedios globales:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'Error al recalcular los promedios globales',
+        variant: 'destructive'
+      })
+    } finally {
+      setRecalculandoPromedios(false)
     }
   }
 
@@ -291,6 +354,56 @@ export default function CircuitookaDashboard() {
           </Card>
         </Link>
       </div>
+
+      {/* Herramientas de Mantenimiento */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-blue-500" />
+            Herramientas de Mantenimiento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex-1">
+                <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                  Recalcular Promedios Globales
+                </h3>
+                <p className="text-gray-400 text-sm mb-2">
+                  Recalcula el promedio global de todos los jugadores basándose en todos sus partidos jugados en todo el circuito.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-yellow-400 mb-2">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>Usar cuando se hayan corregido resultados de partidos o los promedios no estén sincronizados</span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Esta acción procesa todos los jugadores que tienen partidos jugados y puede tomar varios minutos.
+                </p>
+              </div>
+              <Button
+                onClick={recalcularPromediosGlobales}
+                disabled={recalculandoPromedios || refreshing}
+                variant="outline"
+                className="ml-4 border-blue-600 text-blue-400 hover:bg-blue-900/20 hover:border-blue-500 disabled:opacity-50"
+              >
+                {recalculandoPromedios ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Recalculando...
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Recalcular Todos
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Etapas Activas */}
       {etapasActivas.length > 0 && (
