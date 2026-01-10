@@ -76,18 +76,19 @@ export async function POST(request) {
       )
     }
 
-    // Validar comprobante de pago
-    if (!comprobante_url || !comprobante_filename) {
+    // Determinar el usuario_id a usar:
+    // - Si viene usuario_id en el body, usarlo (admin inscribiendo a otro usuario)
+    // - Si no viene, usar el usuario autenticado (auto-inscripción)
+    const usuarioId = usuario_id || user?.id
+
+    // Validar comprobante de pago solo para auto-inscripciones (no para inscripciones desde admin)
+    // Si viene usuario_id, significa que un admin está inscribiendo a otro usuario
+    if (!usuario_id && (!comprobante_url || !comprobante_filename)) {
       return NextResponse.json(
         { success: false, error: 'Debes adjuntar el comprobante de pago de $50.000' },
         { status: 400 }
       )
     }
-
-    // Determinar el usuario_id a usar:
-    // - Si viene usuario_id en el body, usarlo (admin inscribiendo a otro usuario)
-    // - Si no viene, usar el usuario autenticado (auto-inscripción)
-    const usuarioId = usuario_id || user?.id
     if (!usuarioId) {
       return NextResponse.json(
         { success: false, error: 'Usuario requerido' },
