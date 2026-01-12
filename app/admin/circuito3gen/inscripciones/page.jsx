@@ -15,7 +15,10 @@ import {
   Edit,
   Trash2,
   Download,
-  User
+  User,
+  FileText,
+  Image as ImageIcon,
+  ExternalLink
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -67,6 +70,8 @@ export default function InscripcionesPage() {
   const [busquedaUsuario, setBusquedaUsuario] = useState('')
   const [mostrarDropdownUsuarios, setMostrarDropdownUsuarios] = useState(false)
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [selectedInscripcion, setSelectedInscripcion] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -400,6 +405,27 @@ export default function InscripcionesPage() {
     a.click()
   }
 
+  const handleViewDetails = (inscripcion) => {
+    setSelectedInscripcion(inscripcion)
+    setIsDetailDialogOpen(true)
+  }
+
+  const handleCloseDetailDialog = () => {
+    setIsDetailDialogOpen(false)
+    setSelectedInscripcion(null)
+  }
+
+  const isImageFile = (url) => {
+    if (!url) return false
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+    return imageExtensions.some(ext => url.toLowerCase().includes(ext))
+  }
+
+  const isPdfFile = (url) => {
+    if (!url) return false
+    return url.toLowerCase().includes('.pdf')
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -538,7 +564,10 @@ export default function InscripcionesPage() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-white font-semibold">
+                      <h3 
+                        className="text-white font-semibold cursor-pointer hover:text-yellow-400 transition-colors"
+                        onClick={() => handleViewDetails(inscripcion)}
+                      >
                         {inscripcion.usuario?.nombre} {inscripcion.usuario?.apellido}
                       </h3>
                       <Badge className={getEstadoBadge(inscripcion.estado)}>
@@ -568,6 +597,15 @@ export default function InscripcionesPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(inscripcion)}
+                      className="text-gray-400 hover:text-blue-400"
+                      title="Ver detalles"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -826,6 +864,230 @@ export default function InscripcionesPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para ver detalles de la inscripción */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-yellow-500" />
+              Detalles de la Inscripción
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Información completa de la inscripción del jugador
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInscripcion && (
+            <div className="space-y-6 py-4">
+              {/* Información del Usuario */}
+              <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-blue-400" />
+                  Información del Jugador
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Nombre completo</p>
+                    <p className="text-white font-medium">
+                      {selectedInscripcion.usuario?.nombre} {selectedInscripcion.usuario?.apellido}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Email</p>
+                    <p className="text-white">{selectedInscripcion.usuario?.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Teléfono</p>
+                    <p className="text-white">{selectedInscripcion.usuario?.telefono || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de la Inscripción */}
+              <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-yellow-400" />
+                  Información de la Inscripción
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Etapa</p>
+                    <p className="text-white font-medium">{selectedInscripcion.etapa?.nombre || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">División Asignada</p>
+                    <p className="text-white">
+                      División {selectedInscripcion.division?.numero_division}
+                    </p>
+                  </div>
+                  {selectedInscripcion.division_solicitada_rel && (
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">División Solicitada</p>
+                      <p className="text-yellow-400">
+                        División {selectedInscripcion.division_solicitada_rel.numero_division} - {selectedInscripcion.division_solicitada_rel.nombre}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Estado</p>
+                    <Badge className={getEstadoBadge(selectedInscripcion.estado)}>
+                      {selectedInscripcion.estado}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Fecha de Inscripción</p>
+                    <p className="text-white">
+                      {new Date(selectedInscripcion.fecha_inscripcion).toLocaleDateString('es-AR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Imagen del Jugador y Comprobante - En fila en desktop */}
+              {(selectedInscripcion.imagen_jugador_url || selectedInscripcion.comprobante_url) ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Imagen del Jugador */}
+                  {selectedInscripcion.imagen_jugador_url && (
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5 text-green-400" />
+                        Imagen del Jugador
+                      </h3>
+                      <div className="flex flex-col items-center gap-4">
+                        {isImageFile(selectedInscripcion.imagen_jugador_url) ? (
+                          <div className="relative">
+                            <img
+                              src={selectedInscripcion.imagen_jugador_url}
+                              alt={`Imagen de ${selectedInscripcion.usuario?.nombre} ${selectedInscripcion.usuario?.apellido}`}
+                              className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-2 border-gray-700"
+                              onError={(e) => {
+                                e.target.style.display = 'none'
+                                e.target.nextSibling.style.display = 'flex'
+                              }}
+                            />
+                            <div className="hidden w-32 h-32 md:w-40 md:h-40 rounded-full bg-gray-700 items-center justify-center text-center p-4">
+                              <p className="text-gray-400 text-xs">No se pudo cargar</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full max-w-xs p-4 bg-gray-700 rounded-lg text-center">
+                            <p className="text-gray-400 mb-2 text-sm">Archivo no es una imagen</p>
+                            <a
+                              href={selectedInscripcion.imagen_jugador_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 flex items-center gap-2 justify-center text-sm"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Ver archivo
+                            </a>
+                          </div>
+                        )}
+                        {selectedInscripcion.imagen_jugador_filename && (
+                          <p className="text-sm text-gray-400 text-center">
+                            {selectedInscripcion.imagen_jugador_filename}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comprobante de Pago */}
+                  {selectedInscripcion.comprobante_url && (
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-purple-400" />
+                        Comprobante de Pago
+                      </h3>
+                      <div className="flex flex-col items-center gap-4">
+                        {isImageFile(selectedInscripcion.comprobante_url) ? (
+                          <div className="relative w-full max-w-md">
+                            <img
+                              src={selectedInscripcion.comprobante_url}
+                              alt="Comprobante de pago"
+                              className="w-full h-auto rounded-lg border border-gray-700"
+                              onError={(e) => {
+                                e.target.style.display = 'none'
+                                e.target.nextSibling.style.display = 'block'
+                              }}
+                            />
+                            <div className="hidden text-center p-4 bg-gray-700 rounded-lg">
+                              <p className="text-gray-400">No se pudo cargar el comprobante</p>
+                            </div>
+                          </div>
+                        ) : isPdfFile(selectedInscripcion.comprobante_url) ? (
+                          <div className="w-full max-w-md p-4 bg-gray-700 rounded-lg text-center">
+                            <FileText className="w-12 h-12 text-purple-400 mx-auto mb-2" />
+                            <p className="text-gray-400 mb-2">Archivo PDF</p>
+                            <a
+                              href={selectedInscripcion.comprobante_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 flex items-center gap-2 justify-center"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Abrir PDF en nueva pestaña
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="w-full max-w-md p-4 bg-gray-700 rounded-lg text-center">
+                            <p className="text-gray-400 mb-2">Archivo adjunto</p>
+                            <a
+                              href={selectedInscripcion.comprobante_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 flex items-center gap-2 justify-center"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Ver archivo
+                            </a>
+                          </div>
+                        )}
+                        {selectedInscripcion.comprobante_filename && (
+                          <p className="text-sm text-gray-400">
+                            Archivo: {selectedInscripcion.comprobante_filename}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 text-center">
+                  <p className="text-gray-400">No hay archivos adjuntos para esta inscripción</p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseDetailDialog}
+              className="border-gray-700 text-gray-300"
+            >
+              Cerrar
+            </Button>
+            {selectedInscripcion && (
+              <Button
+                type="button"
+                onClick={() => {
+                  handleCloseDetailDialog()
+                  handleOpenDialog(selectedInscripcion)
+                }}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

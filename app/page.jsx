@@ -15,6 +15,7 @@ import { EffectFade, Autoplay as SwiperAutoplay, Pagination } from 'swiper/modul
 import 'swiper/css'
 import 'swiper/css/effect-fade'
 import 'swiper/css/pagination'
+import Circuito3GenPopup from '@/components/Circuito3GenPopup'
 
 export default function Home() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -817,6 +818,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <Circuito3GenPopup />
       </div>
     )
 }
