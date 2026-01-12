@@ -383,6 +383,22 @@ export default function InscripcionesPage() {
     return badges[estado] || badges.activa
   }
 
+  const getDivisionLabel = (division) => {
+    if (!division) return 'N/A'
+    // Si tiene nombre y contiene "PRO", usarlo directamente
+    if (division.nombre && division.nombre.includes('PRO')) {
+      return division.nombre
+    }
+    // Mapeo: numero_division 1 = PRO, 2 = División 1, 3 = División 2, 4 = División 3
+    const mapping = {
+      1: 'División PRO',
+      2: 'División 1',
+      3: 'División 2',
+      4: 'División 3'
+    }
+    return mapping[division.numero_division] || `División ${division.numero_division}`
+  }
+
   const exportarInscripciones = () => {
     const csv = [
       ['Nombre', 'Apellido', 'Email', 'Etapa', 'División', 'Estado', 'Fecha Inscripción'].join(','),
@@ -391,7 +407,7 @@ export default function InscripcionesPage() {
         inscripcion.usuario?.apellido || '',
         inscripcion.usuario?.email || '',
         inscripcion.etapa?.nombre || '',
-        `División ${inscripcion.division?.numero_division}`,
+        getDivisionLabel(inscripcion.division),
         inscripcion.estado,
         inscripcion.fecha_inscripcion
       ].join(','))
@@ -504,7 +520,7 @@ export default function InscripcionesPage() {
                   <SelectItem value="all">Todas las divisiones</SelectItem>
                   {divisiones.map((division) => (
                     <SelectItem key={division.id} value={division.id}>
-                      División {division.numero_division}
+                      {getDivisionLabel(division)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -584,7 +600,7 @@ export default function InscripcionesPage() {
                       <span>•</span>
                       <span>{inscripcion.etapa?.nombre}</span>
                       <span>•</span>
-                      <span>División {inscripcion.division?.numero_division}</span>
+                      <span>{getDivisionLabel(inscripcion.division)}</span>
                       <span>•</span>
                       <span>
                         {new Date(inscripcion.fecha_inscripcion).toLocaleDateString()}
@@ -592,7 +608,7 @@ export default function InscripcionesPage() {
                     </div>
                     {inscripcion.division_solicitada_rel && (
                       <p className="mt-1 text-sm text-yellow-400">
-                        División solicitada: División {inscripcion.division_solicitada_rel.numero_division} - {inscripcion.division_solicitada_rel.nombre}
+                        División solicitada: {getDivisionLabel(inscripcion.division_solicitada_rel)}
                       </p>
                     )}
                   </div>
@@ -770,7 +786,7 @@ export default function InscripcionesPage() {
                   <SelectContent className="bg-gray-800 border-gray-700">
                     {divisiones.map((division) => (
                       <SelectItem key={division.id} value={division.id}>
-                        División {division.numero_division} - {division.nombre}
+                        {getDivisionLabel(division)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -791,7 +807,7 @@ export default function InscripcionesPage() {
                     <SelectItem value="all">Ninguna (usar división asignada)</SelectItem>
                     {divisiones.map((division) => (
                       <SelectItem key={division.id} value={division.id}>
-                        División {division.numero_division} - {division.nombre}
+                        {getDivisionLabel(division)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -919,14 +935,14 @@ export default function InscripcionesPage() {
                   <div>
                     <p className="text-sm text-gray-400 mb-1">División Asignada</p>
                     <p className="text-white">
-                      División {selectedInscripcion.division?.numero_division}
+                      {getDivisionLabel(selectedInscripcion.division)}
                     </p>
                   </div>
                   {selectedInscripcion.division_solicitada_rel && (
                     <div>
                       <p className="text-sm text-gray-400 mb-1">División Solicitada</p>
                       <p className="text-yellow-400">
-                        División {selectedInscripcion.division_solicitada_rel.numero_division} - {selectedInscripcion.division_solicitada_rel.nombre}
+                        {getDivisionLabel(selectedInscripcion.division_solicitada_rel)}
                       </p>
                     </div>
                   )}
