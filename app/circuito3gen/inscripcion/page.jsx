@@ -19,7 +19,8 @@ import {
   Lock,
   Upload,
   FileText,
-  X
+  X,
+  MessageCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -39,6 +40,14 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export default function InscripcionPage() {
   const router = useRouter()
@@ -60,6 +69,7 @@ export default function InscripcionPage() {
   const [imagenJugadorFile, setImagenJugadorFile] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isDragOverImagen, setIsDragOverImagen] = useState(false)
+  const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false)
 
   useEffect(() => {
     checkAuth()
@@ -473,10 +483,8 @@ export default function InscripcionPage() {
         description: 'Te has inscrito correctamente al circuito',
       })
 
-      // Redirigir después de un momento
-      setTimeout(() => {
-        router.push('/circuito3gen/partidos')
-      }, 2000)
+      // Mostrar popup de WhatsApp
+      setShowWhatsAppPopup(true)
     } catch (error) {
       console.error('Error al inscribirse:', error)
       toast({
@@ -497,6 +505,23 @@ export default function InscripcionPage() {
       month: 'long',
       year: 'numeric'
     })
+  }
+
+  const handleJoinWhatsApp = () => {
+    window.open('https://chat.whatsapp.com/CAkYEOtMBJgEdsj8qxG0sV', '_blank')
+    setShowWhatsAppPopup(false)
+    // Redirigir después de un momento
+    setTimeout(() => {
+      router.push('/circuito3gen/partidos')
+    }, 500)
+  }
+
+  const handleSkipWhatsApp = () => {
+    setShowWhatsAppPopup(false)
+    // Redirigir después de un momento
+    setTimeout(() => {
+      router.push('/circuito3gen/partidos')
+    }, 500)
   }
 
   if (loading) {
@@ -921,6 +946,41 @@ export default function InscripcionPage() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Popup de WhatsApp */}
+      <Dialog open={showWhatsAppPopup} onOpenChange={setShowWhatsAppPopup}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+                <MessageCircle className="w-8 h-8 text-green-400" />
+              </div>
+            </div>
+            <DialogTitle className="text-xl font-bold text-center text-white">
+              ¡Unite a la comunidad de WhatsApp!
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 text-center pt-2">
+              Unite al grupo del Circuito 3GEN ahora. Recibí todas las novedades, partidos y comunicaciones importantes directamente en tu WhatsApp.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2 pt-4">
+            <Button
+              onClick={handleJoinWhatsApp}
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Unite al grupo
+            </Button>
+            <Button
+              onClick={handleSkipWhatsApp}
+              variant="outline"
+              className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              Después
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
