@@ -15,6 +15,7 @@ export default function ClientLayout({ children }) {
 
   const isAdminRoute = pathname?.startsWith('/admin')
   const isHomePage = pathname === '/'
+  const isCircuito3GenRoute = pathname?.startsWith('/circuito3gen')
 
   if (loading) {
     return (
@@ -39,7 +40,8 @@ export default function ClientLayout({ children }) {
         <>
           <Footer />
           <LiveTournamentNotification />
-          <FloatingWhatsAppButton />
+          {/* No mostrar WhatsApp en rutas de circuito3gen */}
+          {!isCircuito3GenRoute && <FloatingWhatsAppButton />}
         </>
       )}
     </div>

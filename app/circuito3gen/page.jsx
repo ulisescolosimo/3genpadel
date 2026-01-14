@@ -16,12 +16,14 @@ import {
   BarChart3,
   CheckCircle,
   Info,
-  Clock
+  Clock,
+  FileText
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function CircuitookaPage() {
   const [loading, setLoading] = useState(true)
@@ -30,6 +32,7 @@ export default function CircuitookaPage() {
     totalJugadores: 0,
     totalPartidos: 0
   })
+  const [isReglamentoOpen, setIsReglamentoOpen] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -383,22 +386,22 @@ export default function CircuitookaPage() {
               {
                 icon: Target,
                 title: 'Inscribite',
-                description: 'Elegí tu división inicial y unite al circuito'
+                description: 'Elegí tu división inicial y unite al circuito. El proceso es simple y rápido, solo necesitás inscribirte.'
               },
               {
                 icon: PlayCircle,
-                title: 'Jugá Partidos',
-                description: 'Participá en partidos organizados por el circuito'
+                title: 'Jugá partidos cuando quieras',
+                description: 'Participá en partidos organizados por el circuito. No hay obligación de jugar cada fecha.'
               },
               {
                 icon: TrendingUp,
                 title: 'Mejorá tu Ranking',
-                description: 'Ganá partidos y subí en el ranking de tu división'
+                description: 'Ganá partidos y subí en el ranking de tu división. Cada victoria suma puntos y mejora tu posición.'
               },
               {
                 icon: Trophy,
                 title: 'Ascendé',
-                description: 'Los mejores jugadores ascienden de división al finalizar cada etapa'
+                description: 'Los mejores jugadores ascienden de división al finalizar cada etapa. Demostrá tu nivel y subí de categoría.'
               }
             ].map((step, index) => (
               <motion.div
@@ -414,7 +417,7 @@ export default function CircuitookaPage() {
                         <step.icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#E2FF1B]" />
                       </div>
                     </div>
-                    <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white mb-2 break-words px-2">{step.title}</h3>
+                    <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white mb-2 break-words px-2 min-h-[3.5rem] sm:min-h-[4rem] flex items-center justify-center leading-tight">{step.title}</h3>
                     <p className="text-xs sm:text-sm text-gray-400 px-2">{step.description}</p>
                   </CardContent>
                 </Card>
@@ -520,6 +523,57 @@ export default function CircuitookaPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Botón flotante para reglamento */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+        onClick={() => setIsReglamentoOpen(true)}
+        className="fixed bottom-6 right-6 z-40 group block"
+        aria-label="Ver reglamento del torneo"
+      >
+        <div className="relative">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#E2FF1B] to-[#E2FF1B]/60 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative flex items-center justify-center w-14 h-14 bg-black rounded-full border border-gray-800 group-hover:border-[#E2FF1B]/40 transition-all duration-300 hover:scale-105">
+            <FileText className="w-6 h-6 text-[#E2FF1B] group-hover:scale-110 transition-transform duration-300" />
+          </div>
+        </div>
+        <div className="absolute right-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap border border-[#E2FF1B]/30">
+            Ver Reglamento
+          </div>
+        </div>
+      </motion.button>
+
+      {/* Modal del Reglamento */}
+      <Dialog open={isReglamentoOpen} onOpenChange={setIsReglamentoOpen}>
+        <DialogContent className="bg-black/95 backdrop-blur-sm border-white/10 text-white w-[95vw] max-w-6xl mx-auto max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/10">
+            <DialogTitle className="flex items-center gap-2 text-[#E2FF1B] text-lg sm:text-xl">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+              Reglamento del Torneo - Circuito 3GEN
+            </DialogTitle>
+          </DialogHeader>
+          <div className="w-full h-[calc(90vh-100px)] p-6">
+            <iframe
+              src="https://drive.google.com/file/d/1KPsS3R6t2jwLZxJZ6MdxXxbOdditZOP4/preview"
+              className="w-full h-full border-0 rounded-lg"
+              allow="autoplay"
+              title="Reglamento del Torneo Circuito 3GEN"
+            />
+          </div>
+          <div className="px-6 pb-6 pt-4 border-t border-white/10 flex justify-end">
+            <Button
+              onClick={() => setIsReglamentoOpen(false)}
+              variant="outline"
+              className="border-[#E2FF1B] text-[#E2FF1B] hover:bg-[#E2FF1B]/10"
+            >
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
