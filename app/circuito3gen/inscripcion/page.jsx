@@ -555,8 +555,41 @@ export default function InscripcionPage() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">Inscripción a Circuito 3GEN</h1>
           </div>
           <p className="text-gray-300">
-            Uniteal circuito más competitivo de pádel. Selecciona tu etapa y división.
+            Unite al circuito más competitivo de pádel. Selecciona tu etapa y división.
           </p>
+        </motion.div>
+
+        {/* Qué incluye la inscripción */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-6"
+        >
+          <Card className="bg-[#E2FF1B]/10 border-[#E2FF1B]/30 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white text-base sm:text-lg md:text-xl flex items-center gap-2 break-words">
+                <Info className="w-4 h-4 sm:w-5 sm:h-5 text-[#E2FF1B]" />
+                ¿Qué incluye la inscripción?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 text-gray-300">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
+                  <span>Posibilidad de jugar dentro de los 3 meses de duración</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
+                  <span>Kit de bienvenida</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
+                  <span>Seguimiento de progreso en web</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Ya inscripto */}
@@ -783,7 +816,7 @@ export default function InscripcionPage() {
                   <div>
                     <Label className="text-gray-300 mb-2 block">
                       Comprobante de pago * 
-                      <span className="text-[#E2FF1B] ml-2 font-semibold">($50.000 - Alias: 3genpadel)</span>
+                      <span className="text-[#E2FF1B] ml-2 font-semibold">($50.000 por persona - Alias: 3genpadel)</span>
                     </Label>
                     <div
                       onDragOver={handleDragOver}
@@ -849,7 +882,7 @@ export default function InscripcionPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-400 mt-2">
-                      El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. 
+                      El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span> <span className="text-[#E2FF1B] font-semibold">por persona</span>. 
                       Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">3genpadel</span>. 
                       Adjuntá el comprobante de transferencia o pago.
                     </p>
