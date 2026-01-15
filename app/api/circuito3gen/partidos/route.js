@@ -94,6 +94,10 @@ export async function POST(request) {
       jugador_a2_id,
       jugador_b1_id,
       jugador_b2_id,
+      jugador_a1_nombre,
+      jugador_a2_nombre,
+      jugador_b1_nombre,
+      jugador_b2_nombre,
       cancha,
       horario,
       estado = 'pendiente',
@@ -108,9 +112,27 @@ export async function POST(request) {
       )
     }
 
-    if (!jugador_a1_id || !jugador_a2_id || !jugador_b1_id || !jugador_b2_id) {
+    // Validar que cada jugador tenga ID o nombre (no ambos, al menos uno)
+    const validarJugador = (id, nombre, campo) => {
+      if (!id && !nombre) {
+        return `El ${campo} debe tener un ID o un nombre`
+      }
+      if (id && nombre) {
+        return `El ${campo} no puede tener ID y nombre al mismo tiempo`
+      }
+      return null
+    }
+
+    const errores = [
+      validarJugador(jugador_a1_id, jugador_a1_nombre, 'jugador A1'),
+      validarJugador(jugador_a2_id, jugador_a2_nombre, 'jugador A2'),
+      validarJugador(jugador_b1_id, jugador_b1_nombre, 'jugador B1'),
+      validarJugador(jugador_b2_id, jugador_b2_nombre, 'jugador B2')
+    ].filter(Boolean)
+
+    if (errores.length > 0) {
       return NextResponse.json(
-        { success: false, error: 'Todos los jugadores son requeridos' },
+        { success: false, error: errores.join('. ') },
         { status: 400 }
       )
     }
@@ -132,10 +154,14 @@ export async function POST(request) {
         etapa_id,
         division_id,
         fecha_partido,
-        jugador_a1_id,
-        jugador_a2_id,
-        jugador_b1_id,
-        jugador_b2_id,
+        jugador_a1_id: jugador_a1_id || null,
+        jugador_a2_id: jugador_a2_id || null,
+        jugador_b1_id: jugador_b1_id || null,
+        jugador_b2_id: jugador_b2_id || null,
+        jugador_a1_nombre: jugador_a1_nombre || null,
+        jugador_a2_nombre: jugador_a2_nombre || null,
+        jugador_b1_nombre: jugador_b1_nombre || null,
+        jugador_b2_nombre: jugador_b2_nombre || null,
         cancha: cancha || null,
         horario: horario || null,
         estado
@@ -189,11 +215,48 @@ export async function PUT(request) {
     if (cleanedData.cancha === '') cleanedData.cancha = null
     if (cleanedData.horario === '') cleanedData.horario = null
     if (cleanedData.resultado_detallado === '') cleanedData.resultado_detallado = null
+    
+    // Validar jugadores: cada uno debe tener ID o nombre (no ambos, al menos uno)
+    const validarJugador = (id, nombre, campo) => {
+      if (id === '' || id === undefined) id = null
+      if (nombre === '' || nombre === undefined) nombre = null
+      if (!id && !nombre) {
+        return `El ${campo} debe tener un ID o un nombre`
+      }
+      if (id && nombre) {
+        return `El ${campo} no puede tener ID y nombre al mismo tiempo`
+      }
+      return null
+    }
+
+    const errores = [
+      validarJugador(cleanedData.jugador_a1_id, cleanedData.jugador_a1_nombre, 'jugador A1'),
+      validarJugador(cleanedData.jugador_a2_id, cleanedData.jugador_a2_nombre, 'jugador A2'),
+      validarJugador(cleanedData.jugador_b1_id, cleanedData.jugador_b1_nombre, 'jugador B1'),
+      validarJugador(cleanedData.jugador_b2_id, cleanedData.jugador_b2_nombre, 'jugador B2')
+    ].filter(Boolean)
+
+    if (errores.length > 0) {
+      return NextResponse.json(
+        { success: false, error: errores.join('. ') },
+        { status: 400 }
+      )
+    }
+    
+    // Limpiar campos de jugadores: convertir cadenas vacías a null
+    if (cleanedData.jugador_a1_id === '') cleanedData.jugador_a1_id = null
+    if (cleanedData.jugador_a2_id === '') cleanedData.jugador_a2_id = null
+    if (cleanedData.jugador_b1_id === '') cleanedData.jugador_b1_id = null
+    if (cleanedData.jugador_b2_id === '') cleanedData.jugador_b2_id = null
+    if (cleanedData.jugador_a1_nombre === '') cleanedData.jugador_a1_nombre = null
+    if (cleanedData.jugador_a2_nombre === '') cleanedData.jugador_a2_nombre = null
+    if (cleanedData.jugador_b1_nombre === '') cleanedData.jugador_b1_nombre = null
+    if (cleanedData.jugador_b2_nombre === '') cleanedData.jugador_b2_nombre = null
 
     // Obtener partido actual para verificar cambios que afecten el ranking
     const { data: partidoActual } = await supabase
       .from('circuito3gen_partidos')
-      .select('estado, etapa_id, division_id, jugador_a1_id, jugador_a2_id, jugador_b1_id, jugador_b2_id, equipo_ganador, games_equipo_a, games_equipo_b, sets_equipo_a, sets_equipo_b')
+      .select('estado, etapa_id, division_id, jugador_a1_id, jugador_a2_id, jugador_b1_id, jugador_b2_id, jugador_a1_nombre, jugador_a2_nombre, jugador_b1_nombre, jugador_b2_nombre, equipo_ganador, games_equipo_a, games_equipo_b, sets_equipo_a, sets_equipo_b')
       .eq('id', id)
       .single()
 
@@ -233,22 +296,28 @@ export async function PUT(request) {
     // Recalcular rankings si:
     // 1. El estado cambió a "jugado", O
     // 2. El partido ya estaba jugado y hay cambios en los puntajes
+    // IMPORTANTE: Solo actualizar rankings para jugadores registrados (que tienen ID)
     if (estadoCambioAJugado || hayCambiosEnPuntajes) {
       try {
-        // Actualizar rankings por división
+        // Actualizar rankings por división solo para jugadores registrados
         // La función actualizarRankingJugador recalcula todo desde cero basándose en TODOS los partidos,
         // por lo que automáticamente resta los puntos incorrectos y suma los correctos
-        await actualizarRankingJugador(data.jugador_a1_id, data.etapa_id, data.division_id)
-        await actualizarRankingJugador(data.jugador_a2_id, data.etapa_id, data.division_id)
-        await actualizarRankingJugador(data.jugador_b1_id, data.etapa_id, data.division_id)
-        await actualizarRankingJugador(data.jugador_b2_id, data.etapa_id, data.division_id)
-        
-        // Actualizar promedios globales (se actualizan automáticamente en actualizarRankingJugador,
-        // pero lo hacemos explícitamente aquí para asegurar que se actualicen)
-        await actualizarPromedioGlobalJugador(data.jugador_a1_id)
-        await actualizarPromedioGlobalJugador(data.jugador_a2_id)
-        await actualizarPromedioGlobalJugador(data.jugador_b1_id)
-        await actualizarPromedioGlobalJugador(data.jugador_b2_id)
+        if (data.jugador_a1_id) {
+          await actualizarRankingJugador(data.jugador_a1_id, data.etapa_id, data.division_id)
+          await actualizarPromedioGlobalJugador(data.jugador_a1_id)
+        }
+        if (data.jugador_a2_id) {
+          await actualizarRankingJugador(data.jugador_a2_id, data.etapa_id, data.division_id)
+          await actualizarPromedioGlobalJugador(data.jugador_a2_id)
+        }
+        if (data.jugador_b1_id) {
+          await actualizarRankingJugador(data.jugador_b1_id, data.etapa_id, data.division_id)
+          await actualizarPromedioGlobalJugador(data.jugador_b1_id)
+        }
+        if (data.jugador_b2_id) {
+          await actualizarRankingJugador(data.jugador_b2_id, data.etapa_id, data.division_id)
+          await actualizarPromedioGlobalJugador(data.jugador_b2_id)
+        }
       } catch (error) {
         console.error('Error al recalcular rankings:', error)
         // No fallar la actualización del partido si falla el ranking

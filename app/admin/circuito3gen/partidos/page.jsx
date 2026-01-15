@@ -17,7 +17,9 @@ import {
   Calendar,
   MapPin,
   Trophy,
-  Users
+  Users,
+  UserPlus,
+  X
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -65,6 +67,10 @@ export default function PartidosPage() {
     jugador_a2_id: '',
     jugador_b1_id: '',
     jugador_b2_id: '',
+    jugador_a1_nombre: '',
+    jugador_a2_nombre: '',
+    jugador_b1_nombre: '',
+    jugador_b2_nombre: '',
     cancha: '',
     horario: '',
     estado: 'pendiente',
@@ -84,6 +90,12 @@ export default function PartidosPage() {
     a2: null,
     b1: null,
     b2: null
+  })
+  const [modoManual, setModoManual] = useState({
+    a1: false,
+    a2: false,
+    b1: false,
+    b2: false
   })
 
   useEffect(() => {
@@ -161,7 +173,7 @@ export default function PartidosPage() {
 
       let partidosFiltrados = result.data || []
 
-      // Filtro de búsqueda por nombre de jugador
+      // Filtro de búsqueda por nombre de jugador (incluye nombres manuales)
       if (filtros.busqueda) {
         const busquedaLower = filtros.busqueda.toLowerCase()
         partidosFiltrados = partidosFiltrados.filter(partido => {
@@ -173,7 +185,11 @@ export default function PartidosPage() {
             partido.jugador_b1?.nombre,
             partido.jugador_b1?.apellido,
             partido.jugador_b2?.nombre,
-            partido.jugador_b2?.apellido
+            partido.jugador_b2?.apellido,
+            partido.jugador_a1_nombre,
+            partido.jugador_a2_nombre,
+            partido.jugador_b1_nombre,
+            partido.jugador_b2_nombre
           ].filter(Boolean).join(' ').toLowerCase()
           return nombres.includes(busquedaLower)
         })
@@ -271,22 +287,77 @@ export default function PartidosPage() {
   }
 
   const seleccionarJugador = (jugador, campo) => {
-    setFormData({ ...formData, [campo]: jugador.id })
-    setJugadoresPartido({ ...jugadoresPartido, [campo === 'jugador_a1_id' ? 'a1' : campo === 'jugador_a2_id' ? 'a2' : campo === 'jugador_b1_id' ? 'b1' : 'b2']: jugador })
+    const key = campo === 'jugador_a1_id' ? 'a1' : campo === 'jugador_a2_id' ? 'a2' : campo === 'jugador_b1_id' ? 'b1' : 'b2'
+    const nombreCampo = campo.replace('_id', '_nombre')
+    
+    // Limpiar nombre manual y establecer ID
+    setFormData({ 
+      ...formData, 
+      [campo]: jugador.id,
+      [nombreCampo]: '' // Limpiar nombre manual
+    })
+    setJugadoresPartido({ ...jugadoresPartido, [key]: jugador })
+    setModoManual({ ...modoManual, [key]: false }) // Volver a modo búsqueda
     setBusquedaJugador('')
     setJugadoresDisponibles([])
     setCampoJugadorActivo(null)
   }
 
   const obtenerNombreJugadorInput = (campo) => {
-    if (campoJugadorActivo === campo) {
+    const key = campo === 'jugador_a1_id' ? 'a1' : campo === 'jugador_a2_id' ? 'a2' : campo === 'jugador_b1_id' ? 'b1' : 'b2'
+    const nombreCampo = campo.replace('_id', '_nombre')
+    
+    // Si está en modo manual y el campo está activo, mostrar búsqueda
+    if (campoJugadorActivo === campo && modoManual[key]) {
       return busquedaJugador
     }
-    const key = campo === 'jugador_a1_id' ? 'a1' : campo === 'jugador_a2_id' ? 'a2' : campo === 'jugador_b1_id' ? 'b1' : 'b2'
+    
+    // Si está en modo manual y hay nombre manual, mostrarlo
+    if (modoManual[key] && formData[nombreCampo]) {
+      return formData[nombreCampo]
+    }
+    
+    // Si está en modo búsqueda y el campo está activo, mostrar búsqueda
+    if (campoJugadorActivo === campo && !modoManual[key]) {
+      return busquedaJugador
+    }
+    
+    // Si hay jugador seleccionado, mostrar su nombre
     if (jugadoresPartido[key]) {
       return `${jugadoresPartido[key].nombre} ${jugadoresPartido[key].apellido}`
     }
+    
     return ''
+  }
+  
+  const alternarModoManual = (campo) => {
+    const key = campo === 'jugador_a1_id' ? 'a1' : campo === 'jugador_a2_id' ? 'a2' : campo === 'jugador_b1_id' ? 'b1' : 'b2'
+    const nuevoModo = !modoManual[key]
+    
+    setModoManual({ ...modoManual, [key]: nuevoModo })
+    
+    // Limpiar datos cuando se cambia de modo
+    if (nuevoModo) {
+      // Cambiar a modo manual: limpiar ID y nombre de jugador
+      const idCampo = campo
+      const nombreCampo = campo.replace('_id', '_nombre')
+      setFormData({
+        ...formData,
+        [idCampo]: '',
+        [nombreCampo]: ''
+      })
+      setJugadoresPartido({ ...jugadoresPartido, [key]: null })
+    } else {
+      // Cambiar a modo búsqueda: limpiar nombre manual
+      const nombreCampo = campo.replace('_id', '_nombre')
+      setFormData({
+        ...formData,
+        [nombreCampo]: ''
+      })
+    }
+    
+    setBusquedaJugador('')
+    setJugadoresDisponibles([])
   }
 
   const handleOpenDialog = (partido = null) => {
@@ -297,6 +368,14 @@ export default function PartidosPage() {
         a2: partido.jugador_a2,
         b1: partido.jugador_b1,
         b2: partido.jugador_b2
+      })
+      
+      // Determinar modo manual basado en si hay nombre pero no ID
+      setModoManual({
+        a1: !partido.jugador_a1_id && !!partido.jugador_a1_nombre,
+        a2: !partido.jugador_a2_id && !!partido.jugador_a2_nombre,
+        b1: !partido.jugador_b1_id && !!partido.jugador_b1_nombre,
+        b2: !partido.jugador_b2_id && !!partido.jugador_b2_nombre
       })
       
       // Parsear resultado_detallado si existe, o crear sets vacíos
@@ -313,10 +392,14 @@ export default function PartidosPage() {
         etapa_id: partido.etapa_id,
         division_id: partido.division_id,
         fecha_partido: partido.fecha_partido,
-        jugador_a1_id: partido.jugador_a1_id,
-        jugador_a2_id: partido.jugador_a2_id,
-        jugador_b1_id: partido.jugador_b1_id,
-        jugador_b2_id: partido.jugador_b2_id,
+        jugador_a1_id: partido.jugador_a1_id || '',
+        jugador_a2_id: partido.jugador_a2_id || '',
+        jugador_b1_id: partido.jugador_b1_id || '',
+        jugador_b2_id: partido.jugador_b2_id || '',
+        jugador_a1_nombre: partido.jugador_a1_nombre || '',
+        jugador_a2_nombre: partido.jugador_a2_nombre || '',
+        jugador_b1_nombre: partido.jugador_b1_nombre || '',
+        jugador_b2_nombre: partido.jugador_b2_nombre || '',
         cancha: partido.cancha || '',
         horario: partido.horario || '',
         estado: partido.estado,
@@ -335,6 +418,12 @@ export default function PartidosPage() {
         b1: null,
         b2: null
       })
+      setModoManual({
+        a1: false,
+        a2: false,
+        b1: false,
+        b2: false
+      })
       setFormData({
         etapa_id: '',
         division_id: '',
@@ -343,6 +432,10 @@ export default function PartidosPage() {
         jugador_a2_id: '',
         jugador_b1_id: '',
         jugador_b2_id: '',
+        jugador_a1_nombre: '',
+        jugador_a2_nombre: '',
+        jugador_b1_nombre: '',
+        jugador_b2_nombre: '',
         cancha: '',
         horario: '',
         estado: 'pendiente',
@@ -368,6 +461,10 @@ export default function PartidosPage() {
       jugador_a2_id: '',
       jugador_b1_id: '',
       jugador_b2_id: '',
+      jugador_a1_nombre: '',
+      jugador_a2_nombre: '',
+      jugador_b1_nombre: '',
+      jugador_b2_nombre: '',
       cancha: '',
       horario: '',
       estado: 'pendiente',
@@ -386,6 +483,12 @@ export default function PartidosPage() {
       a2: null,
       b1: null,
       b2: null
+    })
+    setModoManual({
+      a1: false,
+      a2: false,
+      b1: false,
+      b2: false
     })
   }
 
@@ -599,7 +702,8 @@ export default function PartidosPage() {
     )
   }
 
-  const obtenerJugadorNombre = (jugador) => {
+  const obtenerJugadorNombre = (jugador, nombreManual) => {
+    if (nombreManual) return nombreManual
     if (!jugador) return 'N/A'
     return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
   }
@@ -786,11 +890,17 @@ export default function PartidosPage() {
                         <div className="space-y-2 text-sm">
                           <div className="text-gray-300">
                             <User className="w-3 h-3 inline mr-1" />
-                            {obtenerJugadorNombre(partido.jugador_a1)}
+                            {obtenerJugadorNombre(partido.jugador_a1, partido.jugador_a1_nombre)}
+                            {partido.jugador_a1_nombre && (
+                              <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
+                            )}
                           </div>
                           <div className="text-gray-300">
                             <User className="w-3 h-3 inline mr-1" />
-                            {obtenerJugadorNombre(partido.jugador_a2)}
+                            {obtenerJugadorNombre(partido.jugador_a2, partido.jugador_a2_nombre)}
+                            {partido.jugador_a2_nombre && (
+                              <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -807,11 +917,17 @@ export default function PartidosPage() {
                         <div className="space-y-2 text-sm">
                           <div className="text-gray-300">
                             <User className="w-3 h-3 inline mr-1" />
-                            {obtenerJugadorNombre(partido.jugador_b1)}
+                            {obtenerJugadorNombre(partido.jugador_b1, partido.jugador_b1_nombre)}
+                            {partido.jugador_b1_nombre && (
+                              <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
+                            )}
                           </div>
                           <div className="text-gray-300">
                             <User className="w-3 h-3 inline mr-1" />
-                            {obtenerJugadorNombre(partido.jugador_b2)}
+                            {obtenerJugadorNombre(partido.jugador_b2, partido.jugador_b2_nombre)}
+                            {partido.jugador_b2_nombre && (
+                              <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1068,94 +1184,172 @@ export default function PartidosPage() {
                     
                     {/* Jugador A1 */}
                     <div className="mb-4">
-                      <Label className="text-gray-400 mb-2 block">Jugador 1 *</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-gray-400">Jugador 1 *</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => alternarModoManual('jugador_a1_id')}
+                          className="text-xs text-gray-400 hover:text-white h-6 px-2"
+                        >
+                          {modoManual.a1 ? (
+                            <>
+                              <Search className="w-3 h-3 mr-1" />
+                              Buscar
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-3 h-3 mr-1" />
+                              Nombre manual
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                          placeholder="Buscar jugador..."
-                          value={obtenerNombreJugadorInput('jugador_a1_id')}
-                          onChange={(e) => {
-                            setBusquedaJugador(e.target.value)
-                            setCampoJugadorActivo('jugador_a1_id')
-                            if (e.target.value.length >= 2) {
-                              buscarJugadores(e.target.value, formData.division_id, 'jugador_a1_id')
-                            } else {
-                              setJugadoresDisponibles([])
-                            }
-                          }}
-                          onFocus={() => {
-                            setCampoJugadorActivo('jugador_a1_id')
-                            if (jugadoresPartido.a1) {
-                              setBusquedaJugador(`${jugadoresPartido.a1.nombre} ${jugadoresPartido.a1.apellido}`)
-                            } else {
-                              setBusquedaJugador('')
-                            }
-                          }}
-                          className="bg-gray-800 border-gray-700 text-white pl-10"
-                          required
-                        />
-                        {campoJugadorActivo === 'jugador_a1_id' && jugadoresDisponibles.length > 0 && (
-                          <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {jugadoresDisponibles.map((jugador) => (
-                              <div
-                                key={jugador.id}
-                                onClick={() => seleccionarJugador(jugador, 'jugador_a1_id')}
-                                className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
-                              >
-                                <div className="font-medium text-white">
-                                  {jugador.nombre} {jugador.apellido}
-                                </div>
-                                <div className="text-sm text-gray-400">{jugador.email}</div>
+                        {modoManual.a1 ? (
+                          <>
+                            <Input
+                              placeholder="Ingresar nombre del jugador..."
+                              value={formData.jugador_a1_nombre}
+                              onChange={(e) => {
+                                setFormData({ ...formData, jugador_a1_nombre: e.target.value })
+                                setCampoJugadorActivo('jugador_a1_id')
+                              }}
+                              onFocus={() => setCampoJugadorActivo('jugador_a1_id')}
+                              className="bg-gray-800 border-gray-700 text-white"
+                              required
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                              placeholder="Buscar jugador..."
+                              value={obtenerNombreJugadorInput('jugador_a1_id')}
+                              onChange={(e) => {
+                                setBusquedaJugador(e.target.value)
+                                setCampoJugadorActivo('jugador_a1_id')
+                                if (e.target.value.length >= 2) {
+                                  buscarJugadores(e.target.value, formData.division_id, 'jugador_a1_id')
+                                } else {
+                                  setJugadoresDisponibles([])
+                                }
+                              }}
+                              onFocus={() => {
+                                setCampoJugadorActivo('jugador_a1_id')
+                                if (jugadoresPartido.a1) {
+                                  setBusquedaJugador(`${jugadoresPartido.a1.nombre} ${jugadoresPartido.a1.apellido}`)
+                                } else {
+                                  setBusquedaJugador('')
+                                }
+                              }}
+                              className="bg-gray-800 border-gray-700 text-white pl-10"
+                              required
+                            />
+                            {campoJugadorActivo === 'jugador_a1_id' && jugadoresDisponibles.length > 0 && (
+                              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {jugadoresDisponibles.map((jugador) => (
+                                  <div
+                                    key={jugador.id}
+                                    onClick={() => seleccionarJugador(jugador, 'jugador_a1_id')}
+                                    className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
+                                  >
+                                    <div className="font-medium text-white">
+                                      {jugador.nombre} {jugador.apellido}
+                                    </div>
+                                    <div className="text-sm text-gray-400">{jugador.email}</div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
 
                     {/* Jugador A2 */}
                     <div>
-                      <Label className="text-gray-400 mb-2 block">Jugador 2 *</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-gray-400">Jugador 2 *</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => alternarModoManual('jugador_a2_id')}
+                          className="text-xs text-gray-400 hover:text-white h-6 px-2"
+                        >
+                          {modoManual.a2 ? (
+                            <>
+                              <Search className="w-3 h-3 mr-1" />
+                              Buscar
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-3 h-3 mr-1" />
+                              Nombre manual
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                          placeholder="Buscar jugador..."
-                          value={obtenerNombreJugadorInput('jugador_a2_id')}
-                          onChange={(e) => {
-                            setBusquedaJugador(e.target.value)
-                            setCampoJugadorActivo('jugador_a2_id')
-                            if (e.target.value.length >= 2) {
-                              buscarJugadores(e.target.value, formData.division_id, 'jugador_a2_id')
-                            } else {
-                              setJugadoresDisponibles([])
-                            }
-                          }}
-                          onFocus={() => {
-                            setCampoJugadorActivo('jugador_a2_id')
-                            if (jugadoresPartido.a2) {
-                              setBusquedaJugador(`${jugadoresPartido.a2.nombre} ${jugadoresPartido.a2.apellido}`)
-                            } else {
-                              setBusquedaJugador('')
-                            }
-                          }}
-                          className="bg-gray-800 border-gray-700 text-white pl-10"
-                          required
-                        />
-                        {campoJugadorActivo === 'jugador_a2_id' && jugadoresDisponibles.length > 0 && (
-                          <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {jugadoresDisponibles.map((jugador) => (
-                              <div
-                                key={jugador.id}
-                                onClick={() => seleccionarJugador(jugador, 'jugador_a2_id')}
-                                className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
-                              >
-                                <div className="font-medium text-white">
-                                  {jugador.nombre} {jugador.apellido}
-                                </div>
-                                <div className="text-sm text-gray-400">{jugador.email}</div>
+                        {modoManual.a2 ? (
+                          <>
+                            <Input
+                              placeholder="Ingresar nombre del jugador..."
+                              value={formData.jugador_a2_nombre}
+                              onChange={(e) => {
+                                setFormData({ ...formData, jugador_a2_nombre: e.target.value })
+                                setCampoJugadorActivo('jugador_a2_id')
+                              }}
+                              onFocus={() => setCampoJugadorActivo('jugador_a2_id')}
+                              className="bg-gray-800 border-gray-700 text-white"
+                              required
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                              placeholder="Buscar jugador..."
+                              value={obtenerNombreJugadorInput('jugador_a2_id')}
+                              onChange={(e) => {
+                                setBusquedaJugador(e.target.value)
+                                setCampoJugadorActivo('jugador_a2_id')
+                                if (e.target.value.length >= 2) {
+                                  buscarJugadores(e.target.value, formData.division_id, 'jugador_a2_id')
+                                } else {
+                                  setJugadoresDisponibles([])
+                                }
+                              }}
+                              onFocus={() => {
+                                setCampoJugadorActivo('jugador_a2_id')
+                                if (jugadoresPartido.a2) {
+                                  setBusquedaJugador(`${jugadoresPartido.a2.nombre} ${jugadoresPartido.a2.apellido}`)
+                                } else {
+                                  setBusquedaJugador('')
+                                }
+                              }}
+                              className="bg-gray-800 border-gray-700 text-white pl-10"
+                              required
+                            />
+                            {campoJugadorActivo === 'jugador_a2_id' && jugadoresDisponibles.length > 0 && (
+                              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {jugadoresDisponibles.map((jugador) => (
+                                  <div
+                                    key={jugador.id}
+                                    onClick={() => seleccionarJugador(jugador, 'jugador_a2_id')}
+                                    className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
+                                  >
+                                    <div className="font-medium text-white">
+                                      {jugador.nombre} {jugador.apellido}
+                                    </div>
+                                    <div className="text-sm text-gray-400">{jugador.email}</div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -1172,94 +1366,172 @@ export default function PartidosPage() {
                     
                     {/* Jugador B1 */}
                     <div className="mb-4">
-                      <Label className="text-gray-400 mb-2 block">Jugador 1 *</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-gray-400">Jugador 1 *</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => alternarModoManual('jugador_b1_id')}
+                          className="text-xs text-gray-400 hover:text-white h-6 px-2"
+                        >
+                          {modoManual.b1 ? (
+                            <>
+                              <Search className="w-3 h-3 mr-1" />
+                              Buscar
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-3 h-3 mr-1" />
+                              Nombre manual
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                          placeholder="Buscar jugador..."
-                          value={obtenerNombreJugadorInput('jugador_b1_id')}
-                          onChange={(e) => {
-                            setBusquedaJugador(e.target.value)
-                            setCampoJugadorActivo('jugador_b1_id')
-                            if (e.target.value.length >= 2) {
-                              buscarJugadores(e.target.value, formData.division_id, 'jugador_b1_id')
-                            } else {
-                              setJugadoresDisponibles([])
-                            }
-                          }}
-                          onFocus={() => {
-                            setCampoJugadorActivo('jugador_b1_id')
-                            if (jugadoresPartido.b1) {
-                              setBusquedaJugador(`${jugadoresPartido.b1.nombre} ${jugadoresPartido.b1.apellido}`)
-                            } else {
-                              setBusquedaJugador('')
-                            }
-                          }}
-                          className="bg-gray-800 border-gray-700 text-white pl-10"
-                          required
-                        />
-                        {campoJugadorActivo === 'jugador_b1_id' && jugadoresDisponibles.length > 0 && (
-                          <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {jugadoresDisponibles.map((jugador) => (
-                              <div
-                                key={jugador.id}
-                                onClick={() => seleccionarJugador(jugador, 'jugador_b1_id')}
-                                className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
-                              >
-                                <div className="font-medium text-white">
-                                  {jugador.nombre} {jugador.apellido}
-                                </div>
-                                <div className="text-sm text-gray-400">{jugador.email}</div>
+                        {modoManual.b1 ? (
+                          <>
+                            <Input
+                              placeholder="Ingresar nombre del jugador..."
+                              value={formData.jugador_b1_nombre}
+                              onChange={(e) => {
+                                setFormData({ ...formData, jugador_b1_nombre: e.target.value })
+                                setCampoJugadorActivo('jugador_b1_id')
+                              }}
+                              onFocus={() => setCampoJugadorActivo('jugador_b1_id')}
+                              className="bg-gray-800 border-gray-700 text-white"
+                              required
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                              placeholder="Buscar jugador..."
+                              value={obtenerNombreJugadorInput('jugador_b1_id')}
+                              onChange={(e) => {
+                                setBusquedaJugador(e.target.value)
+                                setCampoJugadorActivo('jugador_b1_id')
+                                if (e.target.value.length >= 2) {
+                                  buscarJugadores(e.target.value, formData.division_id, 'jugador_b1_id')
+                                } else {
+                                  setJugadoresDisponibles([])
+                                }
+                              }}
+                              onFocus={() => {
+                                setCampoJugadorActivo('jugador_b1_id')
+                                if (jugadoresPartido.b1) {
+                                  setBusquedaJugador(`${jugadoresPartido.b1.nombre} ${jugadoresPartido.b1.apellido}`)
+                                } else {
+                                  setBusquedaJugador('')
+                                }
+                              }}
+                              className="bg-gray-800 border-gray-700 text-white pl-10"
+                              required
+                            />
+                            {campoJugadorActivo === 'jugador_b1_id' && jugadoresDisponibles.length > 0 && (
+                              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {jugadoresDisponibles.map((jugador) => (
+                                  <div
+                                    key={jugador.id}
+                                    onClick={() => seleccionarJugador(jugador, 'jugador_b1_id')}
+                                    className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
+                                  >
+                                    <div className="font-medium text-white">
+                                      {jugador.nombre} {jugador.apellido}
+                                    </div>
+                                    <div className="text-sm text-gray-400">{jugador.email}</div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
 
                     {/* Jugador B2 */}
                     <div>
-                      <Label className="text-gray-400 mb-2 block">Jugador 2 *</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-gray-400">Jugador 2 *</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => alternarModoManual('jugador_b2_id')}
+                          className="text-xs text-gray-400 hover:text-white h-6 px-2"
+                        >
+                          {modoManual.b2 ? (
+                            <>
+                              <Search className="w-3 h-3 mr-1" />
+                              Buscar
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-3 h-3 mr-1" />
+                              Nombre manual
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                          placeholder="Buscar jugador..."
-                          value={obtenerNombreJugadorInput('jugador_b2_id')}
-                          onChange={(e) => {
-                            setBusquedaJugador(e.target.value)
-                            setCampoJugadorActivo('jugador_b2_id')
-                            if (e.target.value.length >= 2) {
-                              buscarJugadores(e.target.value, formData.division_id, 'jugador_b2_id')
-                            } else {
-                              setJugadoresDisponibles([])
-                            }
-                          }}
-                          onFocus={() => {
-                            setCampoJugadorActivo('jugador_b2_id')
-                            if (jugadoresPartido.b2) {
-                              setBusquedaJugador(`${jugadoresPartido.b2.nombre} ${jugadoresPartido.b2.apellido}`)
-                            } else {
-                              setBusquedaJugador('')
-                            }
-                          }}
-                          className="bg-gray-800 border-gray-700 text-white pl-10"
-                          required
-                        />
-                        {campoJugadorActivo === 'jugador_b2_id' && jugadoresDisponibles.length > 0 && (
-                          <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {jugadoresDisponibles.map((jugador) => (
-                              <div
-                                key={jugador.id}
-                                onClick={() => seleccionarJugador(jugador, 'jugador_b2_id')}
-                                className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
-                              >
-                                <div className="font-medium text-white">
-                                  {jugador.nombre} {jugador.apellido}
-                                </div>
-                                <div className="text-sm text-gray-400">{jugador.email}</div>
+                        {modoManual.b2 ? (
+                          <>
+                            <Input
+                              placeholder="Ingresar nombre del jugador..."
+                              value={formData.jugador_b2_nombre}
+                              onChange={(e) => {
+                                setFormData({ ...formData, jugador_b2_nombre: e.target.value })
+                                setCampoJugadorActivo('jugador_b2_id')
+                              }}
+                              onFocus={() => setCampoJugadorActivo('jugador_b2_id')}
+                              className="bg-gray-800 border-gray-700 text-white"
+                              required
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                              placeholder="Buscar jugador..."
+                              value={obtenerNombreJugadorInput('jugador_b2_id')}
+                              onChange={(e) => {
+                                setBusquedaJugador(e.target.value)
+                                setCampoJugadorActivo('jugador_b2_id')
+                                if (e.target.value.length >= 2) {
+                                  buscarJugadores(e.target.value, formData.division_id, 'jugador_b2_id')
+                                } else {
+                                  setJugadoresDisponibles([])
+                                }
+                              }}
+                              onFocus={() => {
+                                setCampoJugadorActivo('jugador_b2_id')
+                                if (jugadoresPartido.b2) {
+                                  setBusquedaJugador(`${jugadoresPartido.b2.nombre} ${jugadoresPartido.b2.apellido}`)
+                                } else {
+                                  setBusquedaJugador('')
+                                }
+                              }}
+                              className="bg-gray-800 border-gray-700 text-white pl-10"
+                              required
+                            />
+                            {campoJugadorActivo === 'jugador_b2_id' && jugadoresDisponibles.length > 0 && (
+                              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {jugadoresDisponibles.map((jugador) => (
+                                  <div
+                                    key={jugador.id}
+                                    onClick={() => seleccionarJugador(jugador, 'jugador_b2_id')}
+                                    className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
+                                  >
+                                    <div className="font-medium text-white">
+                                      {jugador.nombre} {jugador.apellido}
+                                    </div>
+                                    <div className="text-sm text-gray-400">{jugador.email}</div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
