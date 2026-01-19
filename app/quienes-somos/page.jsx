@@ -105,6 +105,20 @@ export default function Nosotros() {
       ],
       category: "coach",
       specialty: "Desarrollo Inicial/Medio"
+    },
+    {
+      name: "Fernando Mazzoletti",
+      role: "Coach",
+      image: "/images/profesores/Marcelo_GYM.jpg",
+      bio: "Más de 3 años de experiencia como entrenador de pádel en distintas sedes y clubes sociales deportivos.",
+      achievements: [
+        "Más de 3 años de experiencia como entrenador de pádel",
+        "Enfoque en el desarrollo práctico y táctico de los jugadores",
+        "Jugador AJPP (Asociación de Jugadores de Pádel Profesional)",
+        "Especialista en desarrollo de principiantes, intermedios y avanzados, enfocado en la parte práctica de juego"
+      ],
+      category: "coach",
+      specialty: "Desarrollo Práctico"
     }
   ]
 
@@ -133,15 +147,6 @@ export default function Nosotros() {
         "Antropometrista y preparador físico",
         "Rutinas aplicadas al pádel enfocadas en fuerza y resistencia"
       ],
-      category: "physical-trainer",
-      specialty: "Entrenamiento Físico"
-    },
-    {
-      name: "Marcelo Maciñeiras",
-      role: "Entrenador de GYM",
-      image: "/images/profesores/placeholder.png",
-      bio: "",
-      achievements: [],
       category: "physical-trainer",
       specialty: "Entrenamiento Físico"
     }
@@ -417,8 +422,8 @@ export default function Nosotros() {
                   </div>
                 )}
 
-                {/* Pablo Martín y Marcelo Maciñeiras - Grid de 2 columnas */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Pablo Martín - Grid de 1 columna */}
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 max-w-2xl mx-auto">
                   {physicalTrainer.slice(1).map((trainer, index) => (
                     <Card 
                       key={index + 1}
