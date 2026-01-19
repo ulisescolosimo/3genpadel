@@ -135,7 +135,8 @@ export default function RankingsPage() {
     }
 
     const jugadoresInscriptos = rankingsCalculados.length
-    const jugadoresPlayoff = configuracion?.jugadores_playoff_por_division || 4
+    // Los repechajes SIEMPRE son 2, no por porcentaje ni configuración
+    const jugadoresPlayoff = 2
 
     // Calcular cupos
     const cupos = calcularCuposAscensoDescensoClient(configuracion, jugadoresInscriptos)

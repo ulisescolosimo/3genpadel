@@ -34,18 +34,13 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/inscripciones" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
-                  Ligas
+                <Link href="/circuito3gen" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
+                  Circuito 3GEN
                 </Link>
               </li>
               <li>
                 <Link href="/academia" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
                   Academia
-                </Link>
-              </li>
-              <li>
-                <Link href="/rankings" className="text-gray-400 hover:text-[#E2FF1B] transition-colors">
-                  Rankings
                 </Link>
               </li>
               <li>

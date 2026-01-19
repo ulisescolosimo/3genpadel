@@ -64,6 +64,7 @@ export default function InscripcionesPage() {
     division_solicitada: '',
     evaluacion_organizador: false,
     estado: 'activa',
+    estado_pareja: '',
     fecha_inscripcion: new Date().toISOString().split('T')[0]
   })
   const [usuariosDisponibles, setUsuariosDisponibles] = useState([])
@@ -250,6 +251,7 @@ export default function InscripcionesPage() {
         division_solicitada: inscripcion.division_solicitada || '',
         evaluacion_organizador: inscripcion.evaluacion_organizador || false,
         estado: inscripcion.estado,
+        estado_pareja: inscripcion.estado_pareja || '',
         fecha_inscripcion: inscripcion.fecha_inscripcion || new Date().toISOString().split('T')[0]
       })
     } else {
@@ -263,6 +265,7 @@ export default function InscripcionesPage() {
         division_solicitada: '',
         evaluacion_organizador: false,
         estado: 'activa',
+        estado_pareja: '',
         fecha_inscripcion: new Date().toISOString().split('T')[0]
       })
     }
@@ -300,6 +303,9 @@ export default function InscripcionesPage() {
         ...formData,
         division_solicitada: formData.division_solicitada && formData.division_solicitada !== 'all' 
           ? formData.division_solicitada 
+          : null,
+        estado_pareja: formData.estado_pareja && formData.estado_pareja !== 'all' 
+          ? formData.estado_pareja 
           : null
       }
       
@@ -397,6 +403,26 @@ export default function InscripcionesPage() {
       4: 'División 3'
     }
     return mapping[division.numero_division] || `División ${division.numero_division}`
+  }
+
+  const getEstadoParejaLabel = (estadoPareja) => {
+    if (!estadoPareja) return 'No especificado'
+    const labels = {
+      tiene_pareja: 'Ya tiene pareja',
+      necesita_pareja: 'Necesita pareja'
+    }
+    return labels[estadoPareja] || estadoPareja
+  }
+
+  const getEstadoParejaBadge = (estadoPareja) => {
+    if (!estadoPareja) {
+      return 'bg-gray-500/20 text-gray-400 border-gray-500/50'
+    }
+    const badges = {
+      tiene_pareja: 'bg-green-500/20 text-green-400 border-green-500/50',
+      necesita_pareja: 'bg-blue-500/20 text-blue-400 border-blue-500/50'
+    }
+    return badges[estadoPareja] || 'bg-gray-500/20 text-gray-400 border-gray-500/50'
   }
 
   const exportarInscripciones = () => {
@@ -594,6 +620,9 @@ export default function InscripcionesPage() {
                           Requiere evaluación
                         </Badge>
                       )}
+                      <Badge className={getEstadoParejaBadge(inscripcion.estado_pareja)}>
+                        {getEstadoParejaLabel(inscripcion.estado_pareja)}
+                      </Badge>
                     </div>
                     <div className="mt-2 flex items-center gap-4 text-sm text-gray-400">
                       <span>{inscripcion.usuario?.email}</span>
@@ -817,6 +846,27 @@ export default function InscripcionesPage() {
                 </p>
               </div>
 
+              {/* Estado de Pareja */}
+              <div>
+                <Label htmlFor="estado_pareja">Estado de Pareja</Label>
+                <Select
+                  value={formData.estado_pareja || 'all'}
+                  onValueChange={(value) => setFormData({ ...formData, estado_pareja: value === 'all' ? '' : value })}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="No especificado" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="all">No especificado</SelectItem>
+                    <SelectItem value="tiene_pareja">Ya tiene pareja</SelectItem>
+                    <SelectItem value="necesita_pareja">Necesita pareja</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Indica si el jugador ya tiene pareja o necesita que la organización le asigne una
+                </p>
+              </div>
+
               {/* Fecha de Inscripción */}
               <div>
                 <Label htmlFor="fecha_inscripcion">Fecha de Inscripción</Label>
@@ -950,6 +1000,12 @@ export default function InscripcionesPage() {
                     <p className="text-sm text-gray-400 mb-1">Estado</p>
                     <Badge className={getEstadoBadge(selectedInscripcion.estado)}>
                       {selectedInscripcion.estado}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Estado de Pareja</p>
+                    <Badge className={getEstadoParejaBadge(selectedInscripcion.estado_pareja)}>
+                      {getEstadoParejaLabel(selectedInscripcion.estado_pareja)}
                     </Badge>
                   </div>
                   <div>
