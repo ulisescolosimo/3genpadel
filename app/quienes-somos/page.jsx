@@ -63,7 +63,7 @@ export default function Nosotros() {
       category: "coach",
       specialty: "Preparación Mental"
     },
-    {
+/*     {
       name: "Alec Baltaián",
       role: "Coach",
       image: "/images/profesores/alec.jpg",
@@ -76,7 +76,7 @@ export default function Nosotros() {
       ],
       category: "coach",
       specialty: "Técnica y Táctica"
-    },
+    }, */
     {
       name: "Martín Barrena",
       role: "Coach",

@@ -60,7 +60,8 @@ export default function InscripcionPage() {
   const [formData, setFormData] = useState({
     etapa_id: '',
     division_id: '',
-    division_solicitada: ''
+    division_solicitada: '',
+    estado_pareja: ''
   })
   const [yaInscripto, setYaInscripto] = useState(false)
   const [inscripcionExistente, setInscripcionExistente] = useState(null)
@@ -465,6 +466,7 @@ export default function InscripcionPage() {
           etapa_id: formData.etapa_id,
           division_id: formData.division_id,
           estado: 'activa',
+          estado_pareja: formData.estado_pareja || null,
           comprobante_url: comprobanteData.url,
           comprobante_filename: comprobanteData.filename,
           imagen_jugador_url: imagenJugadorData?.url || null,
@@ -657,6 +659,32 @@ export default function InscripcionPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Estado de pareja */}
+                  <div>
+                    <Label className="text-gray-300 mb-2 block">
+                      Estado de pareja
+                    </Label>
+                    <Select
+                      value={formData.estado_pareja}
+                      onValueChange={(value) => setFormData({ ...formData, estado_pareja: value })}
+                    >
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue placeholder="Seleccionar estado de pareja (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="tiene_pareja" className="text-white hover:bg-gray-700">
+                          Ya tengo pareja
+                        </SelectItem>
+                        <SelectItem value="necesita_pareja" className="text-white hover:bg-gray-700">
+                          Necesito que la organización me provea una pareja
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Indicá si ya tenés pareja o necesitás que la organización te asigne una.
+                    </p>
                   </div>
 
                   {/* División */}

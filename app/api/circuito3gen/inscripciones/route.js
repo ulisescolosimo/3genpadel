@@ -66,7 +66,7 @@ export async function POST(request) {
   try {
     const user = await obtenerUsuarioAutenticado(request)
     const body = await request.json()
-    const { etapa_id, division_id, usuario_id, division_solicitada, evaluacion_organizador, fecha_inscripcion, estado, comprobante_url, comprobante_filename, imagen_jugador_url, imagen_jugador_filename } = body
+    const { etapa_id, division_id, usuario_id, division_solicitada, evaluacion_organizador, fecha_inscripcion, estado, estado_pareja, comprobante_url, comprobante_filename, imagen_jugador_url, imagen_jugador_filename } = body
 
     // Validaciones
     if (!etapa_id || !division_id) {
@@ -122,6 +122,7 @@ export async function POST(request) {
         division_solicitada: division_solicitada || null,
         evaluacion_organizador: evaluacion_organizador || false,
         estado: estado || 'activa',
+        estado_pareja: estado_pareja || null,
         fecha_inscripcion: fecha_inscripcion || new Date().toISOString().split('T')[0],
         comprobante_url: comprobante_url || null,
         comprobante_filename: comprobante_filename || null,
