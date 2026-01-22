@@ -238,7 +238,7 @@ export default function CircuitookaDashboard() {
     setUsuarioCreado(null)
 
     // Validaciones
-    if (!formData.email || !formData.nombre || !formData.apellido || !formData.dni) {
+    if (!formData.email || !formData.nombre || !formData.apellido || !formData.dni || !formData.password) {
       setErrorRegistro('Por favor completa todos los campos requeridos.')
       return
     }
@@ -250,8 +250,8 @@ export default function CircuitookaDashboard() {
       return
     }
 
-    // Si se proporciona password, validar que tenga al menos 6 caracteres
-    if (formData.password && formData.password.length < 6) {
+    // Validar que la contraseña tenga al menos 6 caracteres
+    if (formData.password.length < 6) {
       setErrorRegistro('La contraseña debe tener al menos 6 caracteres.')
       return
     }
@@ -269,7 +269,7 @@ export default function CircuitookaDashboard() {
           nombre: formData.nombre.trim(),
           apellido: formData.apellido.trim(),
           dni: formData.dni.trim(),
-          password: formData.password || undefined // Si está vacío, no enviar para que se genere una
+          password: formData.password
         })
       })
 
@@ -531,7 +531,7 @@ export default function CircuitookaDashboard() {
 
             <div className="space-y-2">
               <Label htmlFor="admin-password" className="text-gray-300">
-                Contraseña (opcional)
+                Contraseña *
               </Label>
               <div className="relative">
                 <Input
@@ -540,7 +540,9 @@ export default function CircuitookaDashboard() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="bg-gray-800 border-gray-700 text-white pr-10"
-                  placeholder="Dejar vacío para generar automáticamente"
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                  minLength={6}
                 />
                 <Button
                   type="button"
@@ -557,7 +559,7 @@ export default function CircuitookaDashboard() {
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                Si no se proporciona una contraseña, se generará una automáticamente. Mínimo 6 caracteres si se especifica.
+                La contraseña debe tener al menos 6 caracteres.
               </p>
             </div>
 
@@ -582,11 +584,6 @@ export default function CircuitookaDashboard() {
                     <p className="text-sm">
                       <strong>Email:</strong> {usuarioCreado.email}
                     </p>
-                    {usuarioCreado.tempPassword && (
-                      <p className="text-sm font-semibold mt-2">
-                        Contraseña temporal: <span className="bg-gray-800 px-2 py-1 rounded font-mono">{usuarioCreado.tempPassword}</span>
-                      </p>
-                    )}
                     {usuarioCreado.cuenta_activada && (
                       <p className="text-sm text-green-300 mt-1">✓ Cuenta activada</p>
                     )}
@@ -597,7 +594,7 @@ export default function CircuitookaDashboard() {
 
             <Button
               type="submit"
-              disabled={registrandoUsuario}
+              disabled={registrandoUsuario || !formData.email || !formData.nombre || !formData.apellido || !formData.dni || !formData.password}
               className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
               {registrandoUsuario ? (
