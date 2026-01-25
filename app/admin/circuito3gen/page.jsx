@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   UserPlus,
   Eye,
-  EyeOff
+  EyeOff,
+  KeyRound
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -59,6 +60,18 @@ export default function CircuitookaDashboard() {
   const [showPassword, setShowPassword] = useState(false)
   const [errorRegistro, setErrorRegistro] = useState('')
   const [usuarioCreado, setUsuarioCreado] = useState(null)
+  
+  // Estados para cambio de contraseña
+  const [cambiandoPassword, setCambiandoPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    email: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [errorPassword, setErrorPassword] = useState('')
+  const [passwordCambiada, setPasswordCambiada] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -313,6 +326,87 @@ export default function CircuitookaDashboard() {
       })
     } finally {
       setRegistrandoUsuario(false)
+    }
+  }
+
+  const handleCambiarPassword = async (e) => {
+    e.preventDefault()
+    setErrorPassword('')
+    setPasswordCambiada(null)
+
+    // Validaciones
+    if (!passwordData.email || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setErrorPassword('Por favor completa todos los campos.')
+      return
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(passwordData.email.trim())) {
+      setErrorPassword('Por favor ingresa un email válido.')
+      return
+    }
+
+    // Validar que la contraseña tenga al menos 6 caracteres
+    if (passwordData.newPassword.length < 6) {
+      setErrorPassword('La contraseña debe tener al menos 6 caracteres.')
+      return
+    }
+
+    // Validar que las contraseñas coincidan
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setErrorPassword('Las contraseñas no coinciden.')
+      return
+    }
+
+    try {
+      setCambiandoPassword(true)
+
+      const response = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: passwordData.email.toLowerCase().trim(),
+          newPassword: passwordData.newPassword
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cambiar la contraseña')
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Error desconocido al cambiar la contraseña')
+      }
+
+      toast({
+        title: '¡Contraseña actualizada exitosamente!',
+        description: `La contraseña del usuario ${data.user.email} ha sido actualizada correctamente.`,
+        variant: 'default'
+      })
+
+      setPasswordCambiada(data.user)
+
+      // Limpiar formulario
+      setPasswordData({
+        email: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+    } catch (error) {
+      console.error('Error al cambiar contraseña:', error)
+      setErrorPassword(error.message || 'Error al cambiar la contraseña. Inténtalo de nuevo.')
+      toast({
+        title: 'Error',
+        description: error.message || 'Error al cambiar la contraseña',
+        variant: 'destructive'
+      })
+    } finally {
+      setCambiandoPassword(false)
     }
   }
 
@@ -606,6 +700,133 @@ export default function CircuitookaDashboard() {
                 <>
                   <UserPlus className="w-4 h-4 mr-2" />
                   Registrar Usuario
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Cambiar Contraseña de Usuario */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <KeyRound className="w-5 h-5 text-blue-500" />
+            Cambiar Contraseña de Usuario
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCambiarPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-email-password" className="text-gray-300">Email del Usuario *</Label>
+              <Input
+                id="admin-email-password"
+                type="email"
+                value={passwordData.email}
+                onChange={(e) => setPasswordData({ ...passwordData, email: e.target.value })}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="usuario@email.com"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="admin-new-password" className="text-gray-300">Nueva Contraseña *</Label>
+                <div className="relative">
+                  <Input
+                    id="admin-new-password"
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white pr-10"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minLength={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-confirm-password" className="text-gray-300">Confirmar Contraseña *</Label>
+                <div className="relative">
+                  <Input
+                    id="admin-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white pr-10"
+                    placeholder="Repite la contraseña"
+                    required
+                    minLength={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {errorPassword && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{errorPassword}</AlertDescription>
+              </Alert>
+            )}
+
+            {passwordCambiada && (
+              <Alert className="bg-blue-900/20 border-blue-500/50">
+                <CheckCircle className="h-4 w-4 text-blue-400" />
+                <AlertDescription className="text-blue-400">
+                  <div className="space-y-1">
+                    <p className="font-semibold">Contraseña actualizada exitosamente</p>
+                    <p className="text-sm">
+                      <strong>Usuario:</strong> {passwordCambiada.nombre} {passwordCambiada.apellido}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Email:</strong> {passwordCambiada.email}
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button
+              type="submit"
+              disabled={cambiandoPassword || !passwordData.email || !passwordData.newPassword || !passwordData.confirmPassword}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {cambiandoPassword ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Cambiando...
+                </>
+              ) : (
+                <>
+                  <KeyRound className="w-4 h-4 mr-2" />
+                  Cambiar Contraseña
                 </>
               )}
             </Button>
