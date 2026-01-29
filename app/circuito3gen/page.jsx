@@ -242,6 +242,9 @@ export default function CircuitookaPage() {
             <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-4">
               El circuito de pádel más competitivo de la región. Competí, mejorá y ascendé de división.
             </p>
+            <p className="text-sm sm:text-base text-[#E2FF1B] font-semibold max-w-2xl mx-auto px-4">
+              Por el momento, esta edición del circuito se juega en categoría masculina.
+            </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center pt-2 sm:pt-4 px-4">
               <Link href="/circuito3gen/inscripcion" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base">

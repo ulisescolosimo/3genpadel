@@ -559,6 +559,9 @@ export default function InscripcionPage() {
           <p className="text-gray-300">
             Unite al circuito más competitivo de pádel. Selecciona tu etapa y división.
           </p>
+          <p className="text-[#E2FF1B] font-semibold mt-2">
+            Por el momento, esta edición del circuito se juega en categoría masculina.
+          </p>
         </motion.div>
 
         {/* Qué incluye la inscripción */}
@@ -985,6 +988,13 @@ export default function InscripcionPage() {
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
                   <span>El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">3genpadel</span>. Debés adjuntar el comprobante de pago para completar la inscripción.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
+                  <span>
+                    Por el momento, esta edición del circuito se juega en{' '}
+                    <span className="text-[#E2FF1B] font-semibold">categoría masculina</span>.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
