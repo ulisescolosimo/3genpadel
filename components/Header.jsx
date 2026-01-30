@@ -228,6 +228,12 @@ export default function Header() {
                         Inscribirme
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/circuito3gen/partidos-todos" className="flex items-center gap-2">
+                        <PlayCircle className="w-4 h-4" />
+                        Partidos
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -534,6 +540,14 @@ export default function Header() {
                   >
                     <User className="w-4 h-4" />
                     Inscribirme
+                  </Link>
+                  <Link 
+                    href="/circuito3gen/partidos-todos" 
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/circuito3gen/partidos-todos') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                    onClick={closeMenu}
+                  >
+                    <PlayCircle className="w-4 h-4" />
+                    Partidos
                   </Link>
                 </div>
               </div>

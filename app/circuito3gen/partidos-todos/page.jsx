@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import Link from 'next/link'
 
-export default function PartidosCircuitookaPage() {
+export default function PartidosCircuito3GenPage() {
   const { toast } = useToast()
   const [partidos, setPartidos] = useState([])
   const [etapas, setEtapas] = useState([])
@@ -230,6 +230,8 @@ export default function PartidosCircuitookaPage() {
     return groups
   }, {})
 
+  const tieneFiltrosActivos = filterEtapa !== 'all' || filterDivision !== 'all' || filterEstado !== 'all' || searchTerm !== '' || selectedDate !== null
+
   const limpiarFiltros = () => {
     setFilterEtapa('all')
     setFilterDivision('all')
@@ -258,15 +260,15 @@ export default function PartidosCircuitookaPage() {
           <Link href="/circuito3gen">
             <Button variant="ghost" className="mb-4 text-gray-400 hover:text-white">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver a Circuitooka
+              Volver a Circuito 3GEN
             </Button>
           </Link>
           <div className="text-center">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
-              <span className="text-[#E2FF1B]">Partidos</span> Circuitooka
+              <span className="text-[#E2FF1B]">Partidos</span> Circuito 3GEN
             </h1>
             <p className="text-gray-300 text-sm sm:text-lg max-w-2xl mx-auto mb-4 px-4">
-              Todos los partidos del circuito Circuitooka
+              Todos los partidos del circuito Circuito 3GEN
             </p>
           </div>
         </div>
@@ -381,14 +383,18 @@ export default function PartidosCircuitookaPage() {
               No hay partidos programados
             </h3>
             <p className="text-gray-500 text-sm sm:text-base mb-6">
-              {searchTerm || selectedDate ? 'No se encontraron partidos con los filtros y búsqueda seleccionados' : 'No se encontraron partidos con los filtros seleccionados'}
+              {tieneFiltrosActivos 
+                ? (searchTerm || selectedDate ? 'No se encontraron partidos con los filtros y búsqueda seleccionados' : 'No se encontraron partidos con los filtros seleccionados')
+                : 'No hay partidos en este momento'}
             </p>
-            <Button 
-              onClick={limpiarFiltros} 
-              className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/80 font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#E2FF1B]/20"
-            >
-              Limpiar filtros
-            </Button>
+            {tieneFiltrosActivos && (
+              <Button 
+                onClick={limpiarFiltros} 
+                className="bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/80 font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#E2FF1B]/20"
+              >
+                Limpiar filtros
+              </Button>
+            )}
           </div>
         ) : (
           // Vista de Lista
