@@ -99,6 +99,7 @@ export async function POST(request) {
       jugador_b1_nombre,
       jugador_b2_nombre,
       cancha,
+      lugar,
       horario,
       estado = 'pendiente',
       es_sistema = false // Si es true, no requiere admin
@@ -163,6 +164,7 @@ export async function POST(request) {
         jugador_b1_nombre: jugador_b1_nombre || null,
         jugador_b2_nombre: jugador_b2_nombre || null,
         cancha: cancha || null,
+        lugar: lugar || null,
         horario: horario || null,
         estado
       })
@@ -213,6 +215,7 @@ export async function PUT(request) {
     
     // Otros campos opcionales
     if (cleanedData.cancha === '') cleanedData.cancha = null
+    if (cleanedData.lugar === '') cleanedData.lugar = null
     if (cleanedData.horario === '') cleanedData.horario = null
     if (cleanedData.resultado_detallado === '') cleanedData.resultado_detallado = null
     

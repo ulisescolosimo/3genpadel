@@ -72,6 +72,7 @@ export default function PartidosPage() {
     jugador_b1_nombre: '',
     jugador_b2_nombre: '',
     cancha: '',
+    lugar: '',
     horario: '',
     estado: 'pendiente',
     equipo_ganador: '',
@@ -401,6 +402,7 @@ export default function PartidosPage() {
         jugador_b1_nombre: partido.jugador_b1_nombre || '',
         jugador_b2_nombre: partido.jugador_b2_nombre || '',
         cancha: partido.cancha || '',
+        lugar: partido.lugar || '',
         horario: partido.horario || '',
         estado: partido.estado,
         equipo_ganador: partido.equipo_ganador || '',
@@ -437,6 +439,7 @@ export default function PartidosPage() {
         jugador_b1_nombre: '',
         jugador_b2_nombre: '',
         cancha: '',
+        lugar: '',
         horario: '',
         estado: 'pendiente',
         equipo_ganador: '',
@@ -659,7 +662,7 @@ export default function PartidosPage() {
   }
 
   const exportarCSV = () => {
-    const headers = ['Fecha', 'Etapa', 'División', 'Equipo A (Jugador 1)', 'Equipo A (Jugador 2)', 'Equipo B (Jugador 1)', 'Equipo B (Jugador 2)', 'Estado', 'Ganador', 'Sets A', 'Sets B', 'Cancha', 'Horario']
+    const headers = ['Fecha', 'Etapa', 'División', 'Equipo A (Jugador 1)', 'Equipo A (Jugador 2)', 'Equipo B (Jugador 1)', 'Equipo B (Jugador 2)', 'Estado', 'Ganador', 'Sets A', 'Sets B', 'Lugar', 'Cancha', 'Horario']
     const rows = partidos.map(p => [
       p.fecha_partido,
       p.etapa?.nombre || '',
@@ -672,6 +675,7 @@ export default function PartidosPage() {
       p.equipo_ganador || '',
       p.sets_equipo_a || 0,
       p.sets_equipo_b || 0,
+      p.lugar === 'la_normanda' ? 'La normanda (Delgado 864)' : p.lugar === 'adr' ? 'ADR (Olleros 1515)' : '',
       p.cancha || '',
       p.horario || ''
     ])
@@ -869,10 +873,14 @@ export default function PartidosPage() {
                           {partido.horario}
                         </span>
                       )}
-                      {partido.cancha && (
+                      {(partido.lugar || partido.cancha) && (
                         <span className="text-gray-400 text-sm flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
-                          {partido.cancha}
+                          {[
+                            partido.lugar === 'la_normanda' && 'La normanda (Delgado 864)',
+                            partido.lugar === 'adr' && 'ADR (Olleros 1515)',
+                            partido.cancha && `Cancha ${partido.cancha}`
+                          ].filter(Boolean).join(' - ')}
                         </span>
                       )}
                     </div>
@@ -1145,6 +1153,23 @@ export default function PartidosPage() {
                     <SelectItem value="jugado" className="text-white hover:bg-gray-700">Jugado</SelectItem>
                     <SelectItem value="cancelado" className="text-white hover:bg-gray-700">Cancelado</SelectItem>
                     <SelectItem value="WO" className="text-white hover:bg-gray-700">WO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-gray-400 mb-2 block">Lugar</Label>
+                <Select
+                  value={formData.lugar || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, lugar: value === 'none' ? '' : value })}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="Seleccionar lugar" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="none" className="text-white hover:bg-gray-700">Sin especificar</SelectItem>
+                    <SelectItem value="la_normanda" className="text-white hover:bg-gray-700">La normanda (Delgado 864)</SelectItem>
+                    <SelectItem value="adr" className="text-white hover:bg-gray-700">ADR (Olleros 1515)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

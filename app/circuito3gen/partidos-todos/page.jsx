@@ -494,11 +494,17 @@ export default function PartidosCircuito3GenPage() {
                                 </div>
                               </div>
 
-                              {/* Cancha */}
-                              {partido.cancha && (
+                              {/* Lugar y Cancha */}
+                              {(partido.lugar || partido.cancha) && (
                                 <div className="flex items-center justify-center mt-4 gap-1 text-[#E2FC1D]">
                                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                                  <span className="font-medium text-xs sm:text-sm">Cancha {partido.cancha}</span>
+                                  <span className="font-medium text-xs sm:text-sm">
+                                    {[
+                                      partido.lugar === 'la_normanda' && 'La normanda (Delgado 864)',
+                                      partido.lugar === 'adr' && 'ADR (Olleros 1515)',
+                                      partido.cancha && `Cancha ${partido.cancha}`
+                                    ].filter(Boolean).join(' - ')}
+                                  </span>
                                 </div>
                               )}
 
