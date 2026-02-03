@@ -245,6 +245,19 @@ export default function CircuitookaPage() {
             <p className="text-sm sm:text-base text-[#E2FF1B] font-semibold max-w-2xl mx-auto px-4">
               Por el momento, esta edición del circuito se juega en categoría masculina.
             </p>
+            <div className="mt-4 mx-auto max-w-2xl px-4">
+              <div className="flex items-start gap-3 rounded-lg border border-gray-600 bg-gray-800/50 p-4 text-left backdrop-blur-sm">
+                <Calendar className="w-6 h-6 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-white font-semibold text-sm sm:text-base">
+                    Importante sobre días y horarios
+                  </p>
+                  <p className="text-gray-300 text-sm sm:text-base mt-1">
+                    Dentro de una fecha los días y horarios de juego <span className="font-bold text-[#E2FF1B]">no se pueden elegir</span>, los definirá la organización.
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center pt-2 sm:pt-4 px-4">
               <Link href="/circuito3gen/inscripcion" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-sm sm:text-base">
@@ -393,8 +406,8 @@ export default function CircuitookaPage() {
               },
               {
                 icon: PlayCircle,
-                title: 'Jugá partidos cuando quieras',
-                description: 'Participá en partidos organizados por el circuito. No hay obligación de jugar cada fecha.'
+                title: 'Jugá partidos organizados',
+                description: 'Participá en partidos organizados por el circuito. Los días y horarios los define la organización; no se pueden elegir.'
               },
               {
                 icon: TrendingUp,

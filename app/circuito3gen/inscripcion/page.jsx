@@ -564,6 +564,30 @@ export default function InscripcionPage() {
           </p>
         </motion.div>
 
+        {/* Aviso importante: días y horarios */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.02 }}
+          className="mb-6"
+        >
+          <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <Calendar className="w-5 h-5 text-[#E2FF1B] flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-white font-semibold text-base">
+                    Importante: días y horarios de juego
+                  </p>
+                  <p className="text-gray-300 text-sm mt-2">
+                    Dentro de una fecha los días y horarios de juego <span className="font-bold text-[#E2FF1B]">no se pueden elegir</span>, los definirá la organización.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Qué incluye la inscripción */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -985,6 +1009,12 @@ export default function InscripcionPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-gray-300 text-sm">
+                <li className="flex items-start gap-2">
+                  <Calendar className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
+                  <span>
+                    <span className="font-bold text-[#E2FF1B]">Días y horarios:</span> Dentro de una fecha los días y horarios de juego <span className="font-bold">no se pueden elegir</span>, los definirá la organización.
+                  </span>
+                </li>
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-[#E2FF1B] mt-0.5 flex-shrink-0" />
                   <span>El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span>. Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">3genpadel</span>. Debés adjuntar el comprobante de pago para completar la inscripción.</span>
