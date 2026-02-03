@@ -406,7 +406,7 @@ export default function CircuitookaPage() {
               },
               {
                 icon: PlayCircle,
-                title: 'Jugá partidos organizados',
+                title: 'Jugá partidos la fecha que quieras',
                 description: 'Participá en partidos organizados por el circuito. Los días y horarios los define la organización; no se pueden elegir.'
               },
               {
