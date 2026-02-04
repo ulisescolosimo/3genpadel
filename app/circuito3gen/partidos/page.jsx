@@ -39,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatPartidoDateTimeArgentina } from '@/lib/date-utils'
 
 export default function MisPartidosPage() {
   const router = useRouter()
@@ -130,18 +131,17 @@ export default function MisPartidosPage() {
 
       if (!result.success) throw new Error(result.error)
 
-      // Ordenar: pendientes primero (por fecha), luego jugados
+      // Ordenar: pendientes primero (por fecha+horario Argentina), luego jugados
       const partidosOrdenados = (result.data || []).sort((a, b) => {
         if (a.estado === 'pendiente' && b.estado !== 'pendiente') return -1
         if (a.estado !== 'pendiente' && b.estado === 'pendiente') return 1
-        if (a.estado === 'pendiente' && b.estado === 'pendiente') {
-          const fechaA = new Date(a.fecha_partido)
-          const fechaB = new Date(b.fecha_partido)
-          return fechaA - fechaB
+        // Comparar por fecha (YYYY-MM-DD) y horario para evitar problemas de zona horaria
+        const cmpFecha = (a.fecha_partido || '').localeCompare(b.fecha_partido || '')
+        if (cmpFecha !== 0) {
+          return a.estado === 'pendiente' ? cmpFecha : -cmpFecha
         }
-        const fechaA = new Date(a.fecha_partido)
-        const fechaB = new Date(b.fecha_partido)
-        return fechaB - fechaA
+        const cmpHorario = (a.horario || '').localeCompare(b.horario || '')
+        return a.estado === 'pendiente' ? cmpHorario : -cmpHorario
       })
 
       setPartidos(partidosOrdenados)
@@ -157,19 +157,14 @@ export default function MisPartidosPage() {
     }
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-AR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-  }
-
-  const formatTime = (timeString) => {
-    if (!timeString) return ''
-    return timeString.substring(0, 5) // HH:MM
+  // Obtiene el nombre del jugador desde el objeto usuario (join) o desde jugador_X_nombre
+  const obtenerNombreJugadorEnPartido = (partido, slot) => {
+    const jugador = partido?.[slot]
+    const nombreBackup = partido?.[`${slot}_nombre`]
+    if (jugador && (jugador.nombre || jugador.apellido)) {
+      return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+    }
+    return nombreBackup || 'N/A'
   }
 
   const obtenerNombreJugador = (jugador) => {
@@ -184,30 +179,35 @@ export default function MisPartidosPage() {
     return esEquipoA ? 'A' : 'B'
   }
 
-  const obtenerCompanero = (partido) => {
-    if (!usuario || !partido) return null
+  const obtenerNombreCompanero = (partido) => {
+    if (!usuario || !partido) return 'N/A'
 
     const esEquipoA = partido.jugador_a1_id === usuario.id || partido.jugador_a2_id === usuario.id
-    
     if (esEquipoA) {
-      if (partido.jugador_a1_id === usuario.id) return partido.jugador_a2
-      return partido.jugador_a1
-    } else {
-      if (partido.jugador_b1_id === usuario.id) return partido.jugador_b2
-      return partido.jugador_b1
+      return partido.jugador_a1_id === usuario.id
+        ? obtenerNombreJugadorEnPartido(partido, 'jugador_a2')
+        : obtenerNombreJugadorEnPartido(partido, 'jugador_a1')
     }
+    return partido.jugador_b1_id === usuario.id
+      ? obtenerNombreJugadorEnPartido(partido, 'jugador_b2')
+      : obtenerNombreJugadorEnPartido(partido, 'jugador_b1')
   }
 
-  const obtenerOponentes = (partido) => {
+  const obtenerNombresOponentes = (partido) => {
     if (!partido) return []
 
     const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
-    
     if (esEquipoA) {
-      return [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
-    } else {
-      return [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
+      return [obtenerNombreJugadorEnPartido(partido, 'jugador_b1'), obtenerNombreJugadorEnPartido(partido, 'jugador_b2')]
     }
+    return [obtenerNombreJugadorEnPartido(partido, 'jugador_a1'), obtenerNombreJugadorEnPartido(partido, 'jugador_a2')]
+  }
+
+  const formatearLugar = (lugar) => {
+    if (!lugar) return null
+    if (lugar === 'la_normanda') return 'La normanda (Delgado 864)'
+    if (lugar === 'adr') return 'ADR (Olleros 1515)'
+    return lugar.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   }
 
   const handleVerDetalle = (partido) => {
@@ -353,11 +353,7 @@ export default function MisPartidosPage() {
               Próximos Partidos ({partidosPendientes.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {partidosPendientes.map((partido) => {
-                const companero = obtenerCompanero(partido)
-                const oponentes = obtenerOponentes(partido)
-                
-                return (
+              {partidosPendientes.map((partido) => (
                   <Card key={partido.id} className="bg-gray-800/50 border-gray-700 backdrop-blur-sm hover:border-[#E2FF1B]/50 transition-colors">
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -373,26 +369,24 @@ export default function MisPartidosPage() {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Calendar className="w-4 h-4" />
-                          <span>{formatDate(partido.fecha_partido)}</span>
+                          <span>{formatPartidoDateTimeArgentina(partido.fecha_partido, partido.horario)}</span>
                         </div>
-                        {partido.horario && (
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <Clock className="w-4 h-4" />
-                            <span>{formatTime(partido.horario)}</span>
-                          </div>
-                        )}
-                        {partido.cancha && (
+                        {(partido.lugar || partido.cancha) && (
                           <div className="flex items-center gap-2 text-sm text-gray-400">
                             <MapPin className="w-4 h-4" />
-                            <span>{partido.cancha}</span>
+                            <span>
+                              {formatearLugar(partido.lugar)}
+                              {partido.lugar && partido.cancha && ' · '}
+                              {partido.cancha && `Cancha: ${partido.cancha}`}
+                            </span>
                           </div>
                         )}
                         <div className="pt-2 border-t border-gray-700">
                           <div className="text-sm text-gray-300 mb-1">
-                            <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                            <strong>Tu pareja:</strong> {obtenerNombreCompanero(partido)}
                           </div>
                           <div className="text-sm text-gray-300">
-                            <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                            <strong>Oponentes:</strong> {obtenerNombresOponentes(partido).filter(Boolean).join(' / ') || 'Por definir'}
                           </div>
                         </div>
                         <Button
@@ -405,8 +399,7 @@ export default function MisPartidosPage() {
                       </div>
                     </CardContent>
                   </Card>
-                )
-              })}
+              ))}
             </div>
           </motion.div>
         )}
@@ -427,9 +420,7 @@ export default function MisPartidosPage() {
               {partidosJugados.map((partido) => {
                 const equipoJugador = obtenerEquipoJugador(partido)
                 const gano = partido.equipo_ganador === equipoJugador
-                const companero = obtenerCompanero(partido)
-                const oponentes = obtenerOponentes(partido)
-                
+
                 return (
                   <Card key={partido.id} className={`bg-gray-800/50 border-gray-700 backdrop-blur-sm ${gano ? 'border-green-500/50' : 'border-red-500/50'}`}>
                     <CardHeader>
@@ -446,8 +437,18 @@ export default function MisPartidosPage() {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Calendar className="w-4 h-4" />
-                          <span>{formatDate(partido.fecha_partido)}</span>
+                          <span>{formatPartidoDateTimeArgentina(partido.fecha_partido, partido.horario)}</span>
                         </div>
+                        {(partido.lugar || partido.cancha) && (
+                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <MapPin className="w-4 h-4" />
+                            <span>
+                              {formatearLugar(partido.lugar)}
+                              {partido.lugar && partido.cancha && ' · '}
+                              {partido.cancha && `Cancha: ${partido.cancha}`}
+                            </span>
+                          </div>
+                        )}
                         <div className="pt-2 border-t border-gray-700">
                           <div className="text-sm text-gray-300 mb-2">
                             <strong>Resultado:</strong>
@@ -461,10 +462,10 @@ export default function MisPartidosPage() {
                         </div>
                         <div className="pt-2 border-t border-gray-700 text-sm text-gray-300">
                           <div className="mb-1">
-                            <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
+                            <strong>Tu pareja:</strong> {obtenerNombreCompanero(partido)}
                           </div>
                           <div>
-                            <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
+                            <strong>Oponentes:</strong> {obtenerNombresOponentes(partido).filter(Boolean).join(' / ') || 'Por definir'}
                           </div>
                         </div>
                         <Button
@@ -528,13 +529,13 @@ export default function MisPartidosPage() {
                       <span className="text-white ml-2">{partidoSeleccionado.etapa?.nombre}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Fecha:</span>
-                      <span className="text-white ml-2">{formatDate(partidoSeleccionado.fecha_partido)}</span>
+                      <span className="text-gray-400">Fecha y hora:</span>
+                      <span className="text-white ml-2">{formatPartidoDateTimeArgentina(partidoSeleccionado.fecha_partido, partidoSeleccionado.horario)}</span>
                     </div>
-                    {partidoSeleccionado.horario && (
+                    {formatearLugar(partidoSeleccionado.lugar) && (
                       <div>
-                        <span className="text-gray-400">Hora:</span>
-                        <span className="text-white ml-2">{formatTime(partidoSeleccionado.horario)}</span>
+                        <span className="text-gray-400">Sede:</span>
+                        <span className="text-white ml-2">{formatearLugar(partidoSeleccionado.lugar)}</span>
                       </div>
                     )}
                     {partidoSeleccionado.cancha && (
@@ -565,15 +566,15 @@ export default function MisPartidosPage() {
                     <div>
                       <h4 className="text-gray-400 text-sm mb-2">Equipo A</h4>
                       <div className="space-y-1 text-sm">
-                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_a1)}</div>
-                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_a2)}</div>
+                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_a1')}</div>
+                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_a2')}</div>
                       </div>
                     </div>
                     <div>
                       <h4 className="text-gray-400 text-sm mb-2">Equipo B</h4>
                       <div className="space-y-1 text-sm">
-                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_b1)}</div>
-                        <div className="text-white">{obtenerNombreJugador(partidoSeleccionado.jugador_b2)}</div>
+                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_b1')}</div>
+                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_b2')}</div>
                       </div>
                     </div>
                   </div>

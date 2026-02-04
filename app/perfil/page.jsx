@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { formatArgentineDate, formatArgentineDateTime } from '@/lib/date-utils'
+import { formatArgentineDate, formatArgentineDateTime, formatPartidoDateTimeArgentina } from '@/lib/date-utils'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
@@ -1259,8 +1259,7 @@ export default function ProfilePage() {
                                           <div className="flex items-center gap-2">
                                             <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                             <span className="text-xs sm:text-sm text-gray-300">
-                                              {formatArgentineDate(partido.fecha_partido)}
-                                              {partido.horario && ` a las ${partido.horario.substring(0, 5)}`}
+                                              {formatPartidoDateTimeArgentina(partido.fecha_partido, partido.horario)}
                                             </span>
                                           </div>
                                           
@@ -1362,7 +1361,7 @@ export default function ProfilePage() {
                                           <div className="flex items-center gap-2">
                                             <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                             <span className="text-xs sm:text-sm text-gray-300">
-                                              {formatArgentineDate(partido.fecha_partido)}
+                                              {formatPartidoDateTimeArgentina(partido.fecha_partido, partido.horario)}
                                             </span>
                                           </div>
                                           
