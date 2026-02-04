@@ -42,6 +42,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import * as XLSX from 'xlsx'
 
 export default function InscripcionesPage() {
   const { toast } = useToast()
@@ -194,7 +195,8 @@ export default function InscripcionesPage() {
             nombre,
             apellido,
             email,
-            telefono
+            telefono,
+            avatar_url
           )
         `)
         .order('fecha_inscripcion', { ascending: false })
@@ -426,25 +428,41 @@ export default function InscripcionesPage() {
   }
 
   const exportarInscripciones = () => {
-    const csv = [
-      ['Nombre', 'Apellido', 'Email', 'Etapa', 'División', 'Estado', 'Fecha Inscripción'].join(','),
-      ...inscripciones.map(inscripcion => [
-        inscripcion.usuario?.nombre || '',
-        inscripcion.usuario?.apellido || '',
-        inscripcion.usuario?.email || '',
-        inscripcion.etapa?.nombre || '',
+    const headers = ['Nombre', 'Apellido', 'Email', 'Etapa', 'División', 'Estado', 'Fecha Inscripción', 'Imagen/Avatar URL']
+    const rows = inscripciones.map(inscripcion => {
+      const imagenUrl = inscripcion.imagen_jugador_url || inscripcion.usuario?.avatar_url || ''
+      return [
+        inscripcion.usuario?.nombre ?? '',
+        inscripcion.usuario?.apellido ?? '',
+        inscripcion.usuario?.email ?? '',
+        inscripcion.etapa?.nombre ?? '',
         getDivisionLabel(inscripcion.division),
-        inscripcion.estado,
-        inscripcion.fecha_inscripcion
-      ].join(','))
-    ].join('\n')
+        inscripcion.estado ?? '',
+        inscripcion.fecha_inscripcion ?? '',
+        imagenUrl
+      ]
+    })
 
-    const blob = new Blob([csv], { type: 'text/csv' })
+    const wsData = [headers, ...rows]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Ajustar ancho de columnas para mejor legibilidad
+    ws['!cols'] = [
+      { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 15 },
+      { wch: 12 }, { wch: 18 }, { wch: 60 }
+    ]
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Inscripciones')
+
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `inscripciones_${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `inscripciones_${new Date().toISOString().split('T')[0]}.xlsx`
     a.click()
+    window.URL.revokeObjectURL(url)
   }
 
   const handleViewDetails = (inscripcion) => {
