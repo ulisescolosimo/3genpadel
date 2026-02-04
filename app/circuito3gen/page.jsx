@@ -573,7 +573,7 @@ export default function CircuitookaPage() {
           </DialogHeader>
           <div className="w-full h-[calc(90vh-100px)] p-6">
             <iframe
-              src="https://docs.google.com/document/d/19rsYwaIIPRY9cMZZIquQWITYD-IQDgl00N_yGtlSLkk/preview"
+              src="https://docs.google.com/document/d/e/2PACX-1vRjd1e46GV93JbALewLnwMU5Aas_XOrx1CNXFxiNb7r8HZEk7EmyEc37ii2HKidsDXNRGWdV55n9D8p/pub"
               className="w-full h-full border-0 rounded-lg"
               allow="autoplay"
               title="Reglamento del Torneo Circuito 3GEN"
