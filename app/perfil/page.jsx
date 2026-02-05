@@ -68,6 +68,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/components/AuthProvider'
+import { formatNombreJugador } from '@/lib/utils'
 import { toast } from 'sonner'
 
 export default function ProfilePage() {
@@ -108,10 +109,11 @@ export default function ProfilePage() {
     lado: "none"
   })
 
-  // Función para obtener el nombre del jugador (usada en Circuito 3GEN)
+  // Función para obtener el nombre del jugador (usada en Circuito 3GEN), formateado a título
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
-    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
+    const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
   // Función para obtener el badge de estado

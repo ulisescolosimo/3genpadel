@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { formatNombreJugador } from '@/lib/utils'
 
 export default function SorteosPage() {
   const { toast } = useToast()
@@ -287,7 +288,9 @@ export default function SorteosPage() {
 
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
-    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || jugador.email || 'N/A'
+    const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+    if (raw) return formatNombreJugador(raw) || 'N/A'
+    return jugador.email || 'N/A'
   }
 
   const obtenerNombrePareja = (pareja) => {

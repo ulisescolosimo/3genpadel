@@ -43,6 +43,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { formatNombreJugador } from '@/lib/utils'
 
 export default function PartidosPage() {
   const { toast } = useToast()
@@ -707,9 +708,8 @@ export default function PartidosPage() {
   }
 
   const obtenerJugadorNombre = (jugador, nombreManual) => {
-    if (nombreManual) return nombreManual
-    if (!jugador) return 'N/A'
-    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
+    const raw = nombreManual || (jugador ? `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() : '')
+    return formatNombreJugador(raw) || 'N/A'
   }
 
   if (loading && partidos.length === 0) {

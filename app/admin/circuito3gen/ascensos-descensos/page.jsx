@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatNombreJugador } from '@/lib/utils'
 
 export default function AscensosDescensosPage() {
   const { toast } = useToast()
@@ -198,7 +199,8 @@ export default function AscensosDescensosPage() {
 
   const obtenerNombreJugador = (usuario) => {
     if (!usuario) return 'N/A'
-    return `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'N/A'
+    const raw = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
   if (loading) {

@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { calcularRankingCompleto } from '@/lib/circuito3gen/rankings-client'
+import { formatNombreJugador } from '@/lib/utils'
 
 export default function MiRankingPage() {
   const router = useRouter()
@@ -321,7 +322,8 @@ export default function MiRankingPage() {
 
   const obtenerNombreJugador = (usuario) => {
     if (!usuario) return 'N/A'
-    return `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'N/A'
+    const raw = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
   // Componente de gráfico de torta simple

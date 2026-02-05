@@ -39,7 +39,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { formatPartidoDateTimeArgentina } from '@/lib/date-utils'
+import { formatPartidoDateTimeArgentina, formatPartidoDateTimeShort } from '@/lib/date-utils'
+import { formatNombreJugador } from '@/lib/utils'
 
 export default function MisPartidosPage() {
   const router = useRouter()
@@ -162,14 +163,16 @@ export default function MisPartidosPage() {
     const jugador = partido?.[slot]
     const nombreBackup = partido?.[`${slot}_nombre`]
     if (jugador && (jugador.nombre || jugador.apellido)) {
-      return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+      const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+      return formatNombreJugador(raw) || 'N/A'
     }
-    return nombreBackup || 'N/A'
+    return formatNombreJugador(nombreBackup || '') || 'N/A'
   }
 
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
-    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
+    const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
   const obtenerEquipoJugador = (partido) => {
@@ -504,49 +507,27 @@ export default function MisPartidosPage() {
 
         {/* Dialog de Detalle */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-3xl w-[95vw] max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-white">Detalle del Partido</DialogTitle>
-              <DialogDescription className="text-gray-400">
-                Información completa del partido
-              </DialogDescription>
-            </DialogHeader>
-
+          <DialogContent className="bg-gray-900/95 border-gray-700/80 text-white max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto p-0 gap-0 backdrop-blur-xl">
             {partidoSeleccionado && (
-              <div className="space-y-4">
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                    <Trophy className="w-4 h-4" />
-                    Información General
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">División:</span>
-                      <span className="text-white ml-2">{partidoSeleccionado.division?.nombre}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Etapa:</span>
-                      <span className="text-white ml-2">{partidoSeleccionado.etapa?.nombre}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Fecha y hora:</span>
-                      <span className="text-white ml-2">{formatPartidoDateTimeArgentina(partidoSeleccionado.fecha_partido, partidoSeleccionado.horario)}</span>
-                    </div>
-                    {formatearLugar(partidoSeleccionado.lugar) && (
+              <>
+                {/* Header destacado */}
+                <div className="relative overflow-hidden rounded-t-lg bg-gradient-to-br from-gray-800 to-gray-900 border-b border-gray-700/80 px-6 pt-6 pb-5 pr-14">
+                  <div className="absolute inset-0 bg-[#E2FF1B]/5" />
+                  <div className="relative">
+                    <div className="flex items-start justify-between gap-4">
                       <div>
-                        <span className="text-gray-400">Sede:</span>
-                        <span className="text-white ml-2">{formatearLugar(partidoSeleccionado.lugar)}</span>
+                        <h2 className="text-xl font-bold text-white">
+                          {partidoSeleccionado.division?.nombre || `División ${partidoSeleccionado.division?.numero_division}`}
+                        </h2>
+                        <p className="text-[#E2FF1B] font-medium mt-1 flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {formatPartidoDateTimeShort(partidoSeleccionado.fecha_partido, partidoSeleccionado.horario)}
+                        </p>
+                        {partidoSeleccionado.etapa?.nombre && (
+                          <p className="text-gray-400 text-sm mt-1">{partidoSeleccionado.etapa.nombre}</p>
+                        )}
                       </div>
-                    )}
-                    {partidoSeleccionado.cancha && (
-                      <div>
-                        <span className="text-gray-400">Cancha:</span>
-                        <span className="text-white ml-2">{partidoSeleccionado.cancha}</span>
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-gray-400">Estado:</span>
-                      <Badge className={`ml-2 ${
+                      <Badge className={`shrink-0 ${
                         partidoSeleccionado.estado === 'jugado' ? 'bg-green-500/20 text-green-400 border-green-500/50' :
                         partidoSeleccionado.estado === 'pendiente' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' :
                         'bg-red-500/20 text-red-400 border-red-500/50'
@@ -554,68 +535,95 @@ export default function MisPartidosPage() {
                         {partidoSeleccionado.estado}
                       </Badge>
                     </div>
+                    {(formatearLugar(partidoSeleccionado.lugar) || partidoSeleccionado.cancha) && (
+                      <div className="flex items-center gap-2 mt-3 text-sm text-gray-400">
+                        <MapPin className="w-4 h-4 shrink-0" />
+                        <span>
+                          {formatearLugar(partidoSeleccionado.lugar)}
+                          {partidoSeleccionado.lugar && partidoSeleccionado.cancha && ' · '}
+                          {partidoSeleccionado.cancha && `Cancha ${partidoSeleccionado.cancha}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Jugadores
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-gray-400 text-sm mb-2">Equipo A</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_a1')}</div>
-                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_a2')}</div>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-gray-400 text-sm mb-2">Equipo B</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_b1')}</div>
-                        <div className="text-white">{obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_b2')}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {partidoSeleccionado.estado === 'jugado' && (
-                  <div className="bg-gray-800/50 rounded-lg p-4">
-                    <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                      <Trophy className="w-4 h-4" />
-                      Resultado
+                {/* Contenido */}
+                <div className="p-6 space-y-5">
+                  {/* Jugadores */}
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5" />
+                      Jugadores
                     </h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Equipo A:</span>
-                        <span className="text-white font-bold">{partidoSeleccionado.sets_equipo_a || 0} sets</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Equipo B:</span>
-                        <span className="text-white font-bold">{partidoSeleccionado.sets_equipo_b || 0} sets</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      {(['A', 'B']).map((equipo) => {
+                        const esMiEquipo = obtenerEquipoJugador(partidoSeleccionado) === equipo
+                        const jugadores = equipo === 'A'
+                          ? [obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_a1'), obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_a2')]
+                          : [obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_b1'), obtenerNombreJugadorEnPartido(partidoSeleccionado, 'jugador_b2')]
+                        return (
+                          <div
+                            key={equipo}
+                            className={`rounded-lg p-3 border ${
+                              esMiEquipo ? 'bg-[#E2FF1B]/10 border-[#E2FF1B]/30' : 'bg-gray-800/50 border-gray-700/80'
+                            }`}
+                          >
+                            <div className="text-xs font-medium text-gray-500 mb-1.5">
+                              Equipo {equipo} {esMiEquipo && <span className="text-[#E2FF1B]">· Tu equipo</span>}
+                            </div>
+                            <div className="space-y-0.5 text-sm text-white">
+                              {jugadores.map((nombre, i) => (
+                                <div key={i}>{nombre}</div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Resultado (si jugado) */}
+                  {partidoSeleccionado.estado === 'jugado' && (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+                        <Trophy className="w-3.5 h-3.5" />
+                        Resultado
+                      </h3>
+                      <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-lg bg-gray-800/50 border border-gray-700/80">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-white">Equipo A</div>
+                          <div className="text-3xl font-bold text-[#E2FF1B] mt-0.5">{partidoSeleccionado.sets_equipo_a || 0}</div>
+                          <div className="text-xs text-gray-500">sets</div>
+                        </div>
+                        <div className="text-2xl font-bold text-gray-600">—</div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-white">Equipo B</div>
+                          <div className="text-3xl font-bold text-[#E2FF1B] mt-0.5">{partidoSeleccionado.sets_equipo_b || 0}</div>
+                          <div className="text-xs text-gray-500">sets</div>
+                        </div>
                       </div>
                       {partidoSeleccionado.equipo_ganador && (
-                        <div className="pt-2 border-t border-gray-700">
-                          <span className="text-gray-400">Ganador: </span>
-                          <span className="text-green-400 font-bold">Equipo {partidoSeleccionado.equipo_ganador}</span>
-                        </div>
+                        <p className="text-center text-sm text-green-400 mt-2 font-medium">
+                          Ganador: Equipo {partidoSeleccionado.equipo_ganador}
+                        </p>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
 
-            <div className="flex justify-end pt-4">
-              <Button
-                variant="ghost"
-                onClick={() => setIsDialogOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                Cerrar
-              </Button>
-            </div>
+                {/* Footer */}
+                <div className="px-6 pb-6 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  >
+                    Cerrar
+                  </Button>
+                </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       </div>

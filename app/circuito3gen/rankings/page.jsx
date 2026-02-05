@@ -48,6 +48,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatNombreJugador } from '@/lib/utils'
 import {
   Tooltip,
   TooltipContent,
@@ -384,7 +385,8 @@ export default function RankingsPublicosPage() {
 
   const obtenerNombreJugador = (usuario) => {
     if (!usuario) return 'N/A'
-    return `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'N/A'
+    const raw = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
   if (loading && rankings.length === 0) {

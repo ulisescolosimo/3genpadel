@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { cn, formatNombreJugador } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import Link from 'next/link'
 
@@ -80,23 +80,21 @@ export default function PartidosCircuito3GenPage() {
     }
   }
 
-  // Función para obtener nombre completo del jugador
+  // Función para obtener nombre completo del jugador (nombre + apellido), formateado a título
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
-    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
+    const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
-  // Función para obtener nombre abreviado (solo apellido)
-  const getNombreAbreviado = (jugador) => {
-    if (!jugador) return 'N/A'
-    const apellido = jugador.apellido || 'N/A'
-    if (apellido === 'N/A') return apellido
-    
-    return apellido
-      .toLowerCase()
-      .split(' ')
-      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
-      .join(' ')
+  // Obtiene el nombre del jugador desde el objeto usuario (join) o desde jugador_X_nombre
+  const obtenerNombreJugadorEnPartido = (partido, slot) => {
+    const jugador = partido?.[slot]
+    const nombreBackup = partido?.[`${slot}_nombre`]
+    if (jugador && (jugador.nombre || jugador.apellido)) {
+      return obtenerNombreJugador(jugador)
+    }
+    return formatNombreJugador(nombreBackup || '') || 'N/A'
   }
 
   // Función para buscar en el texto del partido
@@ -454,10 +452,10 @@ export default function PartidosCircuito3GenPage() {
                                   <div className="space-y-2">
                                     <div className="flex flex-col gap-1">
                                       <span className="font-bold text-sm sm:text-base text-white">
-                                        {getNombreAbreviado(partido.jugador_a1)}
+                                        {obtenerNombreJugadorEnPartido(partido, 'jugador_a1')}
                                       </span>
                                       <span className="font-bold text-sm sm:text-base text-white">
-                                        {getNombreAbreviado(partido.jugador_a2)}
+                                        {obtenerNombreJugadorEnPartido(partido, 'jugador_a2')}
                                       </span>
                                     </div>
                                     <div className="text-xs text-gray-400">
@@ -481,10 +479,10 @@ export default function PartidosCircuito3GenPage() {
                                   <div className="space-y-2">
                                     <div className="flex flex-col gap-1">
                                       <span className="font-bold text-sm sm:text-base text-white">
-                                        {getNombreAbreviado(partido.jugador_b1)}
+                                        {obtenerNombreJugadorEnPartido(partido, 'jugador_b1')}
                                       </span>
                                       <span className="font-bold text-sm sm:text-base text-white">
-                                        {getNombreAbreviado(partido.jugador_b2)}
+                                        {obtenerNombreJugadorEnPartido(partido, 'jugador_b2')}
                                       </span>
                                     </div>
                                     <div className="text-xs text-gray-400">

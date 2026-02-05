@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { cn, formatNombreJugador } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import Link from 'next/link'
 
@@ -80,23 +80,19 @@ export default function PartidosCircuitookaPage() {
     }
   }
 
-  // Función para obtener nombre completo del jugador
+  // Función para obtener nombre completo del jugador, formateado a título
   const obtenerNombreJugador = (jugador) => {
     if (!jugador) return 'N/A'
-    return `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim() || 'N/A'
+    const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
+    return formatNombreJugador(raw) || 'N/A'
   }
 
-  // Función para obtener nombre abreviado (solo apellido)
+  // Función para obtener nombre abreviado (solo apellido), formateado a título
   const getNombreAbreviado = (jugador) => {
     if (!jugador) return 'N/A'
     const apellido = jugador.apellido || 'N/A'
     if (apellido === 'N/A') return apellido
-    
-    return apellido
-      .toLowerCase()
-      .split(' ')
-      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
-      .join(' ')
+    return formatNombreJugador(apellido)
   }
 
   // Función para buscar en el texto del partido
