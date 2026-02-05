@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { formatNombreJugador } from '@/lib/utils'
+import { getTodayArgentina, formatArgentineDateShort, parseDateForInput } from '@/lib/date-utils'
 
 export default function PartidosPage() {
   const { toast } = useToast()
@@ -63,7 +64,7 @@ export default function PartidosPage() {
   const [formData, setFormData] = useState({
     etapa_id: '',
     division_id: '',
-    fecha_partido: new Date().toISOString().split('T')[0],
+    fecha_partido: getTodayArgentina(),
     jugador_a1_id: '',
     jugador_a2_id: '',
     jugador_b1_id: '',
@@ -393,7 +394,7 @@ export default function PartidosPage() {
       setFormData({
         etapa_id: partido.etapa_id,
         division_id: partido.division_id,
-        fecha_partido: partido.fecha_partido,
+        fecha_partido: parseDateForInput(partido.fecha_partido),
         jugador_a1_id: partido.jugador_a1_id || '',
         jugador_a2_id: partido.jugador_a2_id || '',
         jugador_b1_id: partido.jugador_b1_id || '',
@@ -430,7 +431,7 @@ export default function PartidosPage() {
       setFormData({
         etapa_id: '',
         division_id: '',
-        fecha_partido: new Date().toISOString().split('T')[0],
+        fecha_partido: getTodayArgentina(),
         jugador_a1_id: '',
         jugador_a2_id: '',
         jugador_b1_id: '',
@@ -460,7 +461,7 @@ export default function PartidosPage() {
     setFormData({
       etapa_id: '',
       division_id: '',
-      fecha_partido: new Date().toISOString().split('T')[0],
+      fecha_partido: getTodayArgentina(),
       jugador_a1_id: '',
       jugador_a2_id: '',
       jugador_b1_id: '',
@@ -665,7 +666,7 @@ export default function PartidosPage() {
   const exportarCSV = () => {
     const headers = ['Fecha', 'Etapa', 'División', 'Equipo A (Jugador 1)', 'Equipo A (Jugador 2)', 'Equipo B (Jugador 1)', 'Equipo B (Jugador 2)', 'Estado', 'Ganador', 'Sets A', 'Sets B', 'Lugar', 'Cancha', 'Horario']
     const rows = partidos.map(p => [
-      p.fecha_partido,
+      parseDateForInput(p.fecha_partido),
       p.etapa?.nombre || '',
       p.division?.nombre || '',
       `${p.jugador_a1?.nombre || ''} ${p.jugador_a1?.apellido || ''}`,
@@ -686,7 +687,7 @@ export default function PartidosPage() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `partidos_${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `partidos_${getTodayArgentina()}.csv`
     a.click()
   }
 
@@ -864,7 +865,7 @@ export default function PartidosPage() {
                       {partido.fecha_partido && (
                         <span className="text-gray-400 text-sm flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {new Date(partido.fecha_partido).toLocaleDateString('es-AR')}
+                          {formatArgentineDateShort(partido.fecha_partido)}
                         </span>
                       )}
                       {partido.horario && (

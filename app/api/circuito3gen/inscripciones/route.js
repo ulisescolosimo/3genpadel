@@ -26,9 +26,11 @@ export async function GET(request) {
         etapa:circuito3gen_etapas (
           id,
           nombre,
-          estado
+          estado,
+          fecha_inicio,
+          fecha_fin
         ),
-        division:circuito3gen_divisiones (
+        division:circuito3gen_divisiones!circuitooka_inscripciones_division_id_fkey (
           id,
           numero_division,
           nombre

@@ -7,9 +7,10 @@ export const revalidate = 0
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { formatArgentineDate, formatArgentineDateTime, formatPartidoDateTimeArgentina } from '@/lib/date-utils'
+import { formatArgentineDate, formatArgentineDateTime, formatPartidoDateTimeArgentina, formatPartidoDateTimeShort } from '@/lib/date-utils'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
@@ -95,7 +96,6 @@ export default function ProfilePage() {
   const [loadingPartidosCircuitooka, setLoadingPartidosCircuitooka] = useState(true)
   const [rankingCircuitooka, setRankingCircuitooka] = useState(null)
   const [loadingRankingCircuitooka, setLoadingRankingCircuitooka] = useState(true)
-  
   const router = useRouter()
 
   // Formulario de edición
@@ -114,6 +114,51 @@ export default function ProfilePage() {
     if (!jugador) return 'N/A'
     const raw = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim()
     return formatNombreJugador(raw) || 'N/A'
+  }
+
+  // Obtiene el nombre del jugador desde el objeto usuario (join) o desde jugador_X_nombre
+  const obtenerNombreJugadorEnPartido = (partido, slot) => {
+    const jugador = partido?.[slot]
+    const nombreBackup = partido?.[`${slot}_nombre`]
+    if (jugador && (jugador.nombre || jugador.apellido)) {
+      return obtenerNombreJugador(jugador)
+    }
+    return formatNombreJugador(nombreBackup || '') || 'N/A'
+  }
+
+  const obtenerNombreCompanero = (partido) => {
+    if (!usuario || !partido) return 'N/A'
+    const esEquipoA = partido.jugador_a1_id === usuario.id || partido.jugador_a2_id === usuario.id
+    if (esEquipoA) {
+      return partido.jugador_a1_id === usuario.id
+        ? obtenerNombreJugadorEnPartido(partido, 'jugador_a2')
+        : obtenerNombreJugadorEnPartido(partido, 'jugador_a1')
+    }
+    return partido.jugador_b1_id === usuario.id
+      ? obtenerNombreJugadorEnPartido(partido, 'jugador_b2')
+      : obtenerNombreJugadorEnPartido(partido, 'jugador_b1')
+  }
+
+  const obtenerNombresOponentes = (partido) => {
+    if (!partido) return []
+    const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
+    if (esEquipoA) {
+      return [obtenerNombreJugadorEnPartido(partido, 'jugador_b1'), obtenerNombreJugadorEnPartido(partido, 'jugador_b2')]
+    }
+    return [obtenerNombreJugadorEnPartido(partido, 'jugador_a1'), obtenerNombreJugadorEnPartido(partido, 'jugador_a2')]
+  }
+
+  const formatearLugar = (lugar) => {
+    if (!lugar) return null
+    if (lugar === 'la_normanda') return 'La normanda (Delgado 864)'
+    if (lugar === 'adr') return 'ADR (Olleros 1515)'
+    return lugar.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  }
+
+  const obtenerEquipoJugador = (partido) => {
+    if (!usuario || !partido) return null
+    const esEquipoA = partido.jugador_a1_id === usuario.id || partido.jugador_a2_id === usuario.id
+    return esEquipoA ? 'A' : 'B'
   }
 
   // Función para obtener el badge de estado
@@ -290,33 +335,22 @@ export default function ProfilePage() {
     if (!usuario?.id) return
 
     try {
-      // Cargar inscripciones con relaciones explícitas
+      // Cargar inscripciones vía API (bypasea RLS, funciona con impersonación)
       setLoadingInscripcionesCircuitooka(true)
-      const { data: inscripcionesData, error: inscripcionesError } = await supabase
-        .from('circuito3gen_inscripciones')
-        .select(`
-          *,
-          etapa:circuito3gen_etapas!circuito3gen_inscripciones_etapa_id_fkey (
-            id,
-            nombre,
-            estado,
-            fecha_inicio,
-            fecha_fin
-          ),
-          division:circuito3gen_divisiones!circuito3gen_inscripciones_division_id_fkey (
-            id,
-            numero_division,
-            nombre
-          )
-        `)
-        .eq('usuario_id', usuario.id)
-        .order('fecha_inscripcion', { ascending: false })
-
-      if (inscripcionesError) {
+      let inscripcionesData = []
+      try {
+        const inscripcionesResponse = await fetch(`/api/circuito3gen/inscripciones?usuario_id=${usuario.id}`)
+        const inscripcionesResult = await inscripcionesResponse.json()
+        if (inscripcionesResult.success && Array.isArray(inscripcionesResult.data)) {
+          inscripcionesData = inscripcionesResult.data
+          setInscripcionesCircuitooka(inscripcionesData)
+        } else {
+          console.error('Error fetching Circuito 3GEN inscripciones:', inscripcionesResult.error)
+          setInscripcionesCircuitooka([])
+        }
+      } catch (inscripcionesError) {
         console.error('Error fetching Circuito 3GEN inscripciones:', inscripcionesError)
         setInscripcionesCircuitooka([])
-      } else {
-        setInscripcionesCircuitooka(inscripcionesData || [])
       }
 
       // Cargar partidos
@@ -1197,10 +1231,19 @@ export default function ProfilePage() {
             {/* Circuito 3GEN - Partidos */}
             <Card className="bg-gray-900/50 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
-                  <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Partidos Circuito 3GEN
-                </CardTitle>
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                    <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                    Partidos Circuito 3GEN
+                  </CardTitle>
+                  {partidosCircuitooka.length > 0 && (
+                    <Link href="/circuito3gen/partidos">
+                      <Button variant="ghost" size="sm" className="text-[#E2FF1B] hover:bg-[#E2FF1B]/10 text-xs">
+                        Ver todos
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingPartidosCircuitooka ? (
@@ -1236,70 +1279,78 @@ export default function ProfilePage() {
                             }}
                             className="w-full"
                           >
-                            {partidosCircuitooka.filter(p => p.estado === 'pendiente').map((partido) => {
-                              const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
-                              const companero = esEquipoA 
-                                ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
-                                : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
-                              const oponentes = esEquipoA 
-                                ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
-                                : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
-
-                              return (
-                                <SwiperSlide key={partido.id} className="!h-auto !w-full">
-                                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:bg-gray-800/70 transition-all duration-200 h-full w-full">
-                                    <div className="flex items-start justify-between gap-3">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <Trophy className="w-4 h-4 text-[#E2FF1B] flex-shrink-0" />
-                                          <h5 className="text-white font-semibold text-sm sm:text-base truncate">
-                                            {partido.division?.nombre || `División ${partido.division?.numero_division}`}
-                                          </h5>
-                                        </div>
-                                        
-                                        <div className="space-y-1.5">
-                                          <div className="flex items-center gap-2">
-                                            <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                            <span className="text-xs sm:text-sm text-gray-300">
-                                              {formatPartidoDateTimeArgentina(partido.fecha_partido, partido.horario)}
-                                            </span>
-                                          </div>
-                                          
-                                          {partido.cancha && (
-                                            <div className="flex items-center gap-2">
-                                              <MapPin className="w-3 h-3 text-blue-400 flex-shrink-0" />
-                                              <span className="text-xs sm:text-sm text-blue-400">
-                                                {partido.cancha}
-                                              </span>
-                                            </div>
-                                          )}
-
-                                          <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
-                                            <div className="mb-1">
-                                              <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
-                                            </div>
-                                            <div>
-                                              <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
-                                            </div>
-                                          </div>
-                                        </div>
+                            {partidosCircuitooka.filter(p => p.estado === 'pendiente').map((partido) => (
+                              <SwiperSlide key={partido.id} className="!h-auto !w-full">
+                                <div className="rounded-xl overflow-hidden border border-[#E2FF1B]/30 bg-gradient-to-b from-gray-800/80 to-gray-900/80 hover:border-[#E2FF1B]/50 transition-all duration-200">
+                                  {/* Header */}
+                                  <div className="px-4 py-3 bg-[#E2FF1B]/10 border-b border-[#E2FF1B]/20">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div>
+                                        <h5 className="text-white font-bold text-base">
+                                          {partido.division?.nombre || `División ${partido.division?.numero_division}`}
+                                        </h5>
+                                        {partido.etapa?.nombre && (
+                                          <p className="text-gray-400 text-xs mt-0.5">{partido.etapa.nombre}</p>
+                                        )}
                                       </div>
-                                      
-                                      <Badge variant="outline" className="text-[#E2FF1B] border-[#E2FF1B]/30 bg-[#E2FF1B]/10 flex-shrink-0">
-                                        <div className="flex items-center gap-1">
-                                          <Clock className="w-3 h-3" />
-                                          <span className="text-xs whitespace-nowrap">Pendiente</span>
-                                        </div>
+                                      <Badge className="bg-[#E2FF1B]/20 text-[#E2FF1B] border-[#E2FF1B]/40 shrink-0">
+                                        <Clock className="w-3 h-3 mr-1" />
+                                        Pendiente
                                       </Badge>
                                     </div>
+                                    <div className="flex items-center gap-2 mt-2 text-[#E2FF1B]">
+                                      <Calendar className="w-4 h-4 shrink-0" />
+                                      <span className="font-semibold text-sm">
+                                        {formatPartidoDateTimeShort(partido.fecha_partido, partido.horario)}
+                                      </span>
+                                    </div>
+                                    {(partido.lugar || partido.cancha) && (
+                                      <div className="flex items-center gap-2 mt-1.5 text-gray-400 text-sm">
+                                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                        <span>
+                                          {formatearLugar(partido.lugar)}
+                                          {partido.lugar && partido.cancha && ' · '}
+                                          {partido.cancha && `Cancha ${partido.cancha}`}
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
-                                </SwiperSlide>
-                              )
-                            })}
+
+                                  {/* Jugadores */}
+                                  <div className="p-4 space-y-3">
+                                    <div className="grid grid-cols-2 gap-3">
+                                      {(['A', 'B']).map((equipo) => {
+                                        const esMiEquipo = obtenerEquipoJugador(partido) === equipo
+                                        const jugadores = equipo === 'A'
+                                          ? [obtenerNombreJugadorEnPartido(partido, 'jugador_a1'), obtenerNombreJugadorEnPartido(partido, 'jugador_a2')]
+                                          : [obtenerNombreJugadorEnPartido(partido, 'jugador_b1'), obtenerNombreJugadorEnPartido(partido, 'jugador_b2')]
+                                        return (
+                                          <div
+                                            key={equipo}
+                                            className={`rounded-lg p-3 border ${
+                                              esMiEquipo ? 'bg-[#E2FF1B]/10 border-[#E2FF1B]/40' : 'bg-gray-800/40 border-gray-700/80'
+                                            }`}
+                                          >
+                                            <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+                                              Equipo {equipo} {esMiEquipo && <span className="text-[#E2FF1B]">· Tu equipo</span>}
+                                            </div>
+                                            <div className="space-y-0.5 text-sm text-white font-medium">
+                                              {jugadores.map((nombre, i) => (
+                                                <div key={i} className="truncate">{nombre}</div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              </SwiperSlide>
+                            ))}
                           </Swiper>
                           
-                          {/* Controles de navegación personalizados */}
-                          <div className="flex items-center justify-center gap-4 mt-4">
+                          <div className="flex flex-col items-center gap-4 mt-4">
+                            <div className="flex items-center justify-center gap-4">
                             <button 
                               type="button"
                               className="swiper-button-prev-proximos p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1314,6 +1365,12 @@ export default function ProfilePage() {
                             >
                               <ChevronRight className="w-5 h-5" />
                             </button>
+                            </div>
+                            <Link href="/circuito3gen/partidos">
+                              <Button variant="outline" size="sm" className="border-[#E2FF1B]/50 text-[#E2FF1B] hover:bg-[#E2FF1B]/10 text-xs">
+                                Ver todos mis partidos
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       )}
@@ -1337,72 +1394,85 @@ export default function ProfilePage() {
                             className="w-full"
                           >
                             {partidosCircuitooka.filter(p => p.estado === 'jugado').map((partido) => {
-                              const esEquipoA = partido.jugador_a1_id === usuario?.id || partido.jugador_a2_id === usuario?.id
-                              const equipoJugador = esEquipoA ? 'A' : 'B'
+                              const equipoJugador = obtenerEquipoJugador(partido)
                               const gano = partido.equipo_ganador === equipoJugador
-                              const companero = esEquipoA 
-                                ? (partido.jugador_a1_id === usuario?.id ? partido.jugador_a2 : partido.jugador_a1)
-                                : (partido.jugador_b1_id === usuario?.id ? partido.jugador_b2 : partido.jugador_b1)
-                              const oponentes = esEquipoA 
-                                ? [partido.jugador_b1, partido.jugador_b2].filter(Boolean)
-                                : [partido.jugador_a1, partido.jugador_a2].filter(Boolean)
-
                               return (
                                 <SwiperSlide key={partido.id} className="!h-auto !w-full">
-                                  <div className={`bg-gray-800/50 rounded-lg p-4 border ${gano ? 'border-green-500/50' : 'border-red-500/50'} hover:bg-gray-800/70 transition-all duration-200 h-full w-full`}>
-                                    <div className="flex items-start justify-between gap-3">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <Trophy className="w-4 h-4 text-[#E2FF1B] flex-shrink-0" />
-                                          <h5 className="text-white font-semibold text-sm sm:text-base truncate">
+                                  <div className="rounded-xl overflow-hidden border border-[#E2FF1B]/30 bg-gradient-to-b from-gray-800/80 to-gray-900/80 hover:border-[#E2FF1B]/50 transition-all duration-200">
+                                    {/* Header */}
+                                    <div className="px-4 py-3 bg-[#E2FF1B]/10 border-b border-[#E2FF1B]/20">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                          <h5 className="text-white font-bold text-base">
                                             {partido.division?.nombre || `División ${partido.division?.numero_division}`}
                                           </h5>
+                                          {partido.etapa?.nombre && (
+                                            <p className="text-gray-400 text-xs mt-0.5">{partido.etapa.nombre}</p>
+                                          )}
                                         </div>
-                                        
-                                        <div className="space-y-1.5">
-                                          <div className="flex items-center gap-2">
-                                            <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                            <span className="text-xs sm:text-sm text-gray-300">
-                                              {formatPartidoDateTimeArgentina(partido.fecha_partido, partido.horario)}
-                                            </span>
-                                          </div>
-                                          
-                                          <div className="pt-2 border-t border-gray-700">
-                                            <div className="text-xs sm:text-sm text-gray-300 mb-2">
-                                              <strong>Resultado:</strong>
-                                            </div>
-                                            <div className="text-sm font-bold text-white mb-1">
-                                              Equipo {equipoJugador}: {equipoJugador === 'A' ? partido.sets_equipo_a : partido.sets_equipo_b} sets
-                                            </div>
-                                            <div className="text-sm font-bold text-gray-400">
-                                              Equipo {equipoJugador === 'A' ? 'B' : 'A'}: {equipoJugador === 'A' ? partido.sets_equipo_b : partido.sets_equipo_a} sets
-                                            </div>
-                                          </div>
+                                        <Badge className="shrink-0 bg-[#E2FF1B]/20 text-[#E2FF1B] border-[#E2FF1B]/40">
+                                          {gano ? <Award className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
+                                          {gano ? 'Victoria' : 'Derrota'}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex items-center gap-2 mt-2 text-[#E2FF1B] text-sm font-semibold">
+                                        <Calendar className="w-4 h-4 shrink-0" />
+                                        <span>{formatPartidoDateTimeShort(partido.fecha_partido, partido.horario)}</span>
+                                      </div>
+                                      {(partido.lugar || partido.cancha) && (
+                                        <div className="flex items-center gap-2 mt-1.5 text-gray-400 text-xs">
+                                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                          <span>
+                                            {formatearLugar(partido.lugar)}
+                                            {partido.lugar && partido.cancha && ' · '}
+                                            {partido.cancha && `Cancha ${partido.cancha}`}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
 
-                                          <div className="pt-2 border-t border-gray-700 text-xs sm:text-sm text-gray-300">
-                                            <div className="mb-1">
-                                              <strong>Tu pareja:</strong> {obtenerNombreJugador(companero)}
-                                            </div>
-                                            <div>
-                                              <strong>Oponentes:</strong> {oponentes.map(o => obtenerNombreJugador(o)).join(' / ')}
-                                            </div>
-                                          </div>
+                                    {/* Resultado */}
+                                    <div className="px-4 py-2 bg-gray-800/30 border-b border-gray-700/50">
+                                      <div className="flex items-center justify-center gap-4">
+                                        <div className="text-center">
+                                          <div className="text-[10px] text-gray-500 uppercase">Equipo A</div>
+                                          <div className="text-lg font-bold text-[#E2FF1B]">{partido.sets_equipo_a || 0}</div>
+                                        </div>
+                                        <span className="text-gray-600 font-bold">—</span>
+                                        <div className="text-center">
+                                          <div className="text-[10px] text-gray-500 uppercase">Equipo B</div>
+                                          <div className="text-lg font-bold text-[#E2FF1B]">{partido.sets_equipo_b || 0}</div>
                                         </div>
                                       </div>
-                                      
-                                      <Badge 
-                                        variant="outline" 
-                                        className={`${gano ? 'text-green-400 border-green-500/30 bg-green-500/10' : 'text-red-400 border-red-500/30 bg-red-500/10'} flex-shrink-0`}
-                                      >
-                                        <div className="flex items-center gap-1">
-                                          {gano ? (
-                                            <Award className="w-3 h-3" />
-                                          ) : (
-                                            <XCircle className="w-3 h-3" />
-                                          )}
-                                          <span className="text-xs whitespace-nowrap">{gano ? 'Victoria' : 'Derrota'}</span>
-                                        </div>
-                                      </Badge>
+                                    </div>
+
+                                    {/* Jugadores */}
+                                    <div className="p-4 space-y-3">
+                                      <div className="grid grid-cols-2 gap-3">
+                                        {(['A', 'B']).map((equipo) => {
+                                          const esMiEquipo = obtenerEquipoJugador(partido) === equipo
+                                          const jugadores = equipo === 'A'
+                                            ? [obtenerNombreJugadorEnPartido(partido, 'jugador_a1'), obtenerNombreJugadorEnPartido(partido, 'jugador_a2')]
+                                            : [obtenerNombreJugadorEnPartido(partido, 'jugador_b1'), obtenerNombreJugadorEnPartido(partido, 'jugador_b2')]
+                                          return (
+                                            <div
+                                              key={equipo}
+                                              className={`rounded-lg p-3 border ${
+                                                esMiEquipo ? 'bg-[#E2FF1B]/10 border-[#E2FF1B]/40' : 'bg-gray-800/40 border-gray-700/80'
+                                              }`}
+                                            >
+                                              <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+                                                Equipo {equipo} {esMiEquipo && <span className="text-[#E2FF1B]">· Tu equipo</span>}
+                                              </div>
+                                              <div className="space-y-0.5 text-sm text-white font-medium">
+                                                {jugadores.map((nombre, i) => (
+                                                  <div key={i} className="truncate">{nombre}</div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
                                     </div>
                                   </div>
                                 </SwiperSlide>
@@ -1410,8 +1480,8 @@ export default function ProfilePage() {
                             })}
                           </Swiper>
                           
-                          {/* Controles de navegación personalizados */}
-                          <div className="flex items-center justify-center gap-4 mt-4">
+                          <div className="flex flex-col items-center gap-4 mt-4">
+                            <div className="flex items-center justify-center gap-4">
                             <button 
                               type="button"
                               className="swiper-button-prev-jugados p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1426,6 +1496,12 @@ export default function ProfilePage() {
                             >
                               <ChevronRight className="w-5 h-5" />
                             </button>
+                            </div>
+                            <Link href="/circuito3gen/partidos">
+                              <Button variant="outline" size="sm" className="border-[#E2FF1B]/50 text-[#E2FF1B] hover:bg-[#E2FF1B]/10 text-xs">
+                                Ver todos mis partidos
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       )}
