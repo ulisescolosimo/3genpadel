@@ -148,7 +148,7 @@ export default function MiRankingPage() {
               id,
               nombre
             ),
-            division:circuito3gen_divisiones!circuito3gen_inscripciones_division_id_fkey (
+            division:circuito3gen_divisiones!circuitooka_inscripciones_division_id_fkey (
               id,
               numero_division,
               nombre
@@ -159,7 +159,20 @@ export default function MiRankingPage() {
           .order('fecha_inscripcion', { ascending: false })
 
         if (inscripcionesError) throw inscripcionesError
-        setInscripciones(inscripcionesData || [])
+        const inscripcionesList = inscripcionesData || []
+        setInscripciones(inscripcionesList)
+
+        // Auto-aplicar filtro: buscar la división en la que está inscrito para la etapa activa
+        if (etapa && inscripcionesList.length > 0) {
+          const inscripcionEtapaActiva = inscripcionesList.find(i => i.etapa_id === etapa.id)
+          if (inscripcionEtapaActiva?.division_id) {
+            setFiltros(prev => ({
+              ...prev,
+              etapa_id: etapa.id,
+              division_id: inscripcionEtapaActiva.division_id
+            }))
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching data:', error)
