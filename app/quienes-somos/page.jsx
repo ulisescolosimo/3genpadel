@@ -137,7 +137,7 @@ export default function Nosotros() {
       specialty: "Entrenamiento Físico"
     },
     {
-      name: "Fernando Mazzoletti",
+      name: "Marcelo Maciñeiras",
       role: "Entrenador de GYM",
       image: "/images/profesores/Marcelo_GYM.jpg",
       bio: "Más de 3 años de experiencia como entrenador de gimnasio en distintas sedes y clubes sociales deportivos.",
