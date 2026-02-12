@@ -26,6 +26,10 @@ export default function SedeOllerosPage() {
     'ebef0cdf-cfee-49af-bc78-d7a2f5078534.JPG',
     'f18dfe07-fc7f-4d38-bed4-a508b7c92b2b.JPG',
     'IMG_8842.jpg',
+    '1000528683.jpg',
+    '1000528684.jpg',
+    '1000528686.jpg',
+    '1000528687.jpg',
   ]
 
   const nextImage = () => {
