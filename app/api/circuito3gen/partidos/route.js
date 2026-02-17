@@ -102,7 +102,8 @@ export async function POST(request) {
       lugar,
       horario,
       estado = 'pendiente',
-      es_sistema = false // Si es true, no requiere admin
+      es_sistema = false, // Si es true, no requiere admin
+      wo_jugador_ids = []
     } = body
 
     // Validaciones
@@ -138,6 +139,17 @@ export async function POST(request) {
       )
     }
 
+    // Validar wo_jugador_ids: solo IDs de jugadores del partido
+    const jugadoresPartido = [jugador_a1_id, jugador_a2_id, jugador_b1_id, jugador_b2_id].filter(Boolean)
+    const woIdsArray = Array.isArray(wo_jugador_ids) ? wo_jugador_ids : []
+    const woIdsInvalidos = woIdsArray.filter(id => !jugadoresPartido.includes(id))
+    if (woIdsInvalidos.length > 0) {
+      return NextResponse.json(
+        { success: false, error: 'wo_jugador_ids solo puede contener IDs de jugadores del partido' },
+        { status: 400 }
+      )
+    }
+
     // Verificar permisos (solo admin puede crear manualmente, sistema puede crear automáticamente)
     if (!es_sistema) {
       const esAdminUser = await verificarAdmin(request)
@@ -166,7 +178,8 @@ export async function POST(request) {
         cancha: cancha || null,
         lugar: lugar || null,
         horario: horario || null,
-        estado
+        estado,
+        wo_jugador_ids: woIdsArray
       })
       .select()
       .single()
@@ -256,10 +269,29 @@ export async function PUT(request) {
     if (cleanedData.jugador_b1_nombre === '') cleanedData.jugador_b1_nombre = null
     if (cleanedData.jugador_b2_nombre === '') cleanedData.jugador_b2_nombre = null
 
+    // Validar y normalizar wo_jugador_ids (solo jugadores con ID del partido)
+    if (cleanedData.wo_jugador_ids !== undefined) {
+      const jugadoresPartido = [
+        cleanedData.jugador_a1_id,
+        cleanedData.jugador_a2_id,
+        cleanedData.jugador_b1_id,
+        cleanedData.jugador_b2_id
+      ].filter(Boolean)
+      const woIdsArray = Array.isArray(cleanedData.wo_jugador_ids) ? cleanedData.wo_jugador_ids : []
+      const woIdsInvalidos = woIdsArray.filter(id => !jugadoresPartido.includes(id))
+      if (woIdsInvalidos.length > 0) {
+        return NextResponse.json(
+          { success: false, error: 'wo_jugador_ids solo puede contener IDs de jugadores del partido' },
+          { status: 400 }
+        )
+      }
+      cleanedData.wo_jugador_ids = woIdsArray
+    }
+
     // Obtener partido actual para verificar cambios que afecten el ranking
     const { data: partidoActual } = await supabase
       .from('circuito3gen_partidos')
-      .select('estado, etapa_id, division_id, jugador_a1_id, jugador_a2_id, jugador_b1_id, jugador_b2_id, jugador_a1_nombre, jugador_a2_nombre, jugador_b1_nombre, jugador_b2_nombre, equipo_ganador, games_equipo_a, games_equipo_b, sets_equipo_a, sets_equipo_b')
+      .select('estado, etapa_id, division_id, jugador_a1_id, jugador_a2_id, jugador_b1_id, jugador_b2_id, jugador_a1_nombre, jugador_a2_nombre, jugador_b1_nombre, jugador_b2_nombre, equipo_ganador, games_equipo_a, games_equipo_b, sets_equipo_a, sets_equipo_b, wo_jugador_ids')
       .eq('id', id)
       .single()
 
@@ -282,15 +314,21 @@ export async function PUT(request) {
       'games_equipo_a',
       'games_equipo_b',
       'sets_equipo_a',
-      'sets_equipo_b'
+      'sets_equipo_b',
+      'wo_jugador_ids'
     ]
     
     // Verificar si hay cambios en campos que afectan el ranking
     const hayCambiosEnPuntajes = partidoYaEstabaJugado && camposAfectanRanking.some(campo => {
       if (updateData[campo] !== undefined) {
-        // Comparar valores (manejar null/undefined)
         const valorAnterior = partidoActual?.[campo] ?? null
         const valorNuevo = updateData[campo] ?? null
+        // Comparación especial para arrays (wo_jugador_ids)
+        if (campo === 'wo_jugador_ids') {
+          const arrA = Array.isArray(valorAnterior) ? valorAnterior : []
+          const arrB = Array.isArray(valorNuevo) ? valorNuevo : []
+          return JSON.stringify([...arrA].sort()) !== JSON.stringify([...arrB].sort())
+        }
         return valorAnterior !== valorNuevo
       }
       return false

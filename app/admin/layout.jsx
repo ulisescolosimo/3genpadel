@@ -6,24 +6,76 @@ import { AuthProvider } from '@/components/AuthProvider'
 import { useAuth } from '@/components/AuthProvider'
 import { Spinner } from '@/components/ui/spinner'
 import AdminHeader from '@/components/AdminHeader'
+import { supabase } from '@/lib/supabase'
 
-// Layout EXCLUSIVO para el panel de admin
+// Layout EXCLUSIVO para el panel de admin - solo usuarios con rol admin pueden acceder
 export default function AdminLayout({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, impersonatedUser } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
+  const [verificandoAdmin, setVerificandoAdmin] = useState(true)
+  const [esAdmin, setEsAdmin] = useState(false)
 
   useEffect(() => {
-    console.log('Usuario actual:', user)
-    console.log('Estado de carga:', loading)
-    console.log('Ruta actual:', pathname)
+    const verificarAccesoAdmin = async () => {
+      // Página de login: permitir acceso sin verificar admin
+      if (pathname === '/admin/login') {
+        setVerificandoAdmin(false)
+        return
+      }
 
-    if (!loading && !user && pathname !== '/admin/login') {
-      router.push('/admin/login')
+      // Sin usuario autenticado: redirigir a login
+      if (!loading && !user) {
+        setVerificandoAdmin(false)
+        router.push('/admin/login')
+        return
+      }
+
+      // Si está impersonando, no permitir acceso al panel admin (está viendo como otro usuario)
+      if (impersonatedUser) {
+        setVerificandoAdmin(false)
+        setEsAdmin(false)
+        router.push('/perfil')
+        return
+      }
+
+      if (!user) return
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+
+        if (!token) {
+          setEsAdmin(false)
+          router.push('/admin/login')
+          return
+        }
+
+        const res = await fetch('/api/auth/check-admin', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+
+        if (!data.isAdmin) {
+          setEsAdmin(false)
+          router.push('/')
+          return
+        }
+
+        setEsAdmin(true)
+      } catch (err) {
+        console.error('Error verificando admin:', err)
+        setEsAdmin(false)
+        router.push('/admin/login')
+      } finally {
+        setVerificandoAdmin(false)
+      }
     }
-  }, [user, loading, pathname, router])
 
-  if (loading) {
+    verificarAccesoAdmin()
+  }, [user, loading, pathname, impersonatedUser, router])
+
+  if (loading || verificandoAdmin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <Spinner />
@@ -33,6 +85,11 @@ export default function AdminLayout({ children }) {
 
   // Si no hay usuario y no estamos en la página de login, no renderizamos nada
   if (!user && pathname !== '/admin/login') {
+    return null
+  }
+
+  // Si no es admin (y no estamos en login), no renderizar (ya se redirigió)
+  if (pathname !== '/admin/login' && !esAdmin) {
     return null
   }
 

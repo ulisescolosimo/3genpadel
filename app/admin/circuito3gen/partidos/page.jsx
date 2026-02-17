@@ -82,7 +82,8 @@ export default function PartidosPage() {
     sets_equipo_b: 0,
     games_equipo_a: 0,
     games_equipo_b: 0,
-    sets: [] // Array de sets: [{equipo_a: 6, equipo_b: 4}, ...]
+    sets: [], // Array de sets: [{equipo_a: 6, equipo_b: 4}, ...]
+    wo_jugador_ids: [] // IDs de jugadores que no se presentaron (WO individual)
   })
   const [jugadoresDisponibles, setJugadoresDisponibles] = useState([])
   const [busquedaJugador, setBusquedaJugador] = useState('')
@@ -412,7 +413,8 @@ export default function PartidosPage() {
         sets_equipo_b: partido.sets_equipo_b || 0,
         games_equipo_a: partido.games_equipo_a || 0,
         games_equipo_b: partido.games_equipo_b || 0,
-        sets: sets
+        sets: sets,
+        wo_jugador_ids: Array.isArray(partido.wo_jugador_ids) ? partido.wo_jugador_ids : []
       })
     } else {
       setEditingPartido(null)
@@ -449,7 +451,8 @@ export default function PartidosPage() {
         sets_equipo_b: 0,
         games_equipo_a: 0,
         games_equipo_b: 0,
-        sets: []
+        sets: [],
+        wo_jugador_ids: []
       })
     }
     setIsDialogOpen(true)
@@ -478,7 +481,8 @@ export default function PartidosPage() {
       sets_equipo_b: 0,
       games_equipo_a: 0,
       games_equipo_b: 0,
-      sets: []
+      sets: [],
+      wo_jugador_ids: []
     })
     setJugadorSeleccionado(null)
     setBusquedaJugador('')
@@ -903,12 +907,18 @@ export default function PartidosPage() {
                             {partido.jugador_a1_nombre && (
                               <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
                             )}
+                            {Array.isArray(partido.wo_jugador_ids) && partido.wo_jugador_ids.includes(partido.jugador_a1_id) && (
+                              <Badge variant="outline" className="ml-2 text-xs text-amber-400 border-amber-400">No se presentó</Badge>
+                            )}
                           </div>
                           <div className="text-gray-300">
                             <User className="w-3 h-3 inline mr-1" />
                             {obtenerJugadorNombre(partido.jugador_a2, partido.jugador_a2_nombre)}
                             {partido.jugador_a2_nombre && (
                               <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
+                            )}
+                            {Array.isArray(partido.wo_jugador_ids) && partido.wo_jugador_ids.includes(partido.jugador_a2_id) && (
+                              <Badge variant="outline" className="ml-2 text-xs text-amber-400 border-amber-400">No se presentó</Badge>
                             )}
                           </div>
                         </div>
@@ -930,12 +940,18 @@ export default function PartidosPage() {
                             {partido.jugador_b1_nombre && (
                               <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
                             )}
+                            {Array.isArray(partido.wo_jugador_ids) && partido.wo_jugador_ids.includes(partido.jugador_b1_id) && (
+                              <Badge variant="outline" className="ml-2 text-xs text-amber-400 border-amber-400">No se presentó</Badge>
+                            )}
                           </div>
                           <div className="text-gray-300">
                             <User className="w-3 h-3 inline mr-1" />
                             {obtenerJugadorNombre(partido.jugador_b2, partido.jugador_b2_nombre)}
                             {partido.jugador_b2_nombre && (
                               <Badge variant="outline" className="ml-2 text-xs">No registrado</Badge>
+                            )}
+                            {Array.isArray(partido.wo_jugador_ids) && partido.wo_jugador_ids.includes(partido.jugador_b2_id) && (
+                              <Badge variant="outline" className="ml-2 text-xs text-amber-400 border-amber-400">No se presentó</Badge>
                             )}
                           </div>
                         </div>
@@ -1586,6 +1602,46 @@ export default function PartidosPage() {
                         <SelectItem value="B" className="text-white hover:bg-gray-700">Equipo B</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* WO individual: jugador que no se presentó */}
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <Label className="text-amber-400 font-medium mb-2 block">WO individual</Label>
+                    <p className="text-gray-400 text-sm mb-3">Marcar jugadores que no se presentaron. No se les contará el partido jugado, pero sí a su compañero y rivales.</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { key: 'a1', id: formData.jugador_a1_id, label: obtenerJugadorNombre(jugadoresPartido.a1, formData.jugador_a1_nombre) },
+                        { key: 'a2', id: formData.jugador_a2_id, label: obtenerJugadorNombre(jugadoresPartido.a2, formData.jugador_a2_nombre) },
+                        { key: 'b1', id: formData.jugador_b1_id, label: obtenerJugadorNombre(jugadoresPartido.b1, formData.jugador_b1_nombre) },
+                        { key: 'b2', id: formData.jugador_b2_id, label: obtenerJugadorNombre(jugadoresPartido.b2, formData.jugador_b2_nombre) }
+                      ].filter(j => j.id).map(({ key, id, label }) => {
+                        const woIds = formData.wo_jugador_ids || []
+                        const isWo = woIds.includes(id)
+                        return (
+                          <label
+                            key={key}
+                            className="flex items-center gap-2 cursor-pointer text-sm text-gray-300 hover:text-white"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isWo}
+                              onChange={(e) => {
+                                const newWo = e.target.checked
+                                  ? [...woIds, id]
+                                  : woIds.filter(x => x !== id)
+                                setFormData({ ...formData, wo_jugador_ids: newWo })
+                              }}
+                              className="rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500"
+                            />
+                            <span className="truncate">{label}</span>
+                            {isWo && <span className="text-amber-400 text-xs">(WO)</span>}
+                          </label>
+                        )
+                      })}
+                    </div>
+                    {![formData.jugador_a1_id, formData.jugador_a2_id, formData.jugador_b1_id, formData.jugador_b2_id].some(Boolean) && (
+                      <p className="text-gray-500 text-xs mt-2">Completa los jugadores del partido para marcar WO individual.</p>
+                    )}
                   </div>
 
                   {/* Sets individuales con games */}
