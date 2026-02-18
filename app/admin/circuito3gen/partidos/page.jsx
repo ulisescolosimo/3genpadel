@@ -1169,7 +1169,6 @@ export default function PartidosPage() {
                     <SelectItem value="pendiente" className="text-white hover:bg-gray-700">Pendiente</SelectItem>
                     <SelectItem value="jugado" className="text-white hover:bg-gray-700">Jugado</SelectItem>
                     <SelectItem value="cancelado" className="text-white hover:bg-gray-700">Cancelado</SelectItem>
-                    <SelectItem value="WO" className="text-white hover:bg-gray-700">WO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
