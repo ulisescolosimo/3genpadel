@@ -683,7 +683,7 @@ export default function PartidosPage() {
       p.sets_equipo_b || 0,
       p.lugar === 'la_normanda' ? 'La normanda (Delgado 864)' : p.lugar === 'adr' ? 'ADR (Olleros 1515)' : '',
       p.cancha || '',
-      p.horario || ''
+      formatHorario(p.horario)
     ])
 
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
@@ -694,6 +694,9 @@ export default function PartidosPage() {
     a.download = `partidos_${getTodayArgentina()}.csv`
     a.click()
   }
+
+    // Horario sin segundos (HH:mm)
+  const formatHorario = (h) => (h && h.length >= 5 ? h.slice(0, 5) : h || '')
 
   const getEstadoBadge = (estado) => {
     const estados = {
@@ -875,7 +878,7 @@ export default function PartidosPage() {
                       {partido.horario && (
                         <span className="text-gray-400 text-sm flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {partido.horario}
+                          {formatHorario(partido.horario)}
                         </span>
                       )}
                       {(partido.lugar || partido.cancha) && (
