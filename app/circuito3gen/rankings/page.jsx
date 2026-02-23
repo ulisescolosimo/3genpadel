@@ -547,8 +547,8 @@ export default function RankingsPublicosPage() {
                     <span className="text-gray-300">Descenso ({zonasAscensoDescenso.jugadoresDescenso.length})</span>
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2">
-                    <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-900/30 opacity-75"></div>
-                    <span className="text-gray-300 text-xs md:text-sm">Inactivo</span>
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-700/50 border-l-4 border-gray-500"></div>
+                    <span className="text-gray-300 text-xs md:text-sm">No cumple mínimo</span>
                   </div>
                 </div>
               </CardContent>
@@ -638,25 +638,25 @@ export default function RankingsPublicosPage() {
                         // Verificar si es el usuario logueado
                         const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
                         
-                        // Determinar clase CSS según la zona
+                        // Determinar clase CSS según la zona (quien no cumple mínimo siempre en gris, distinto del descenso)
                         let zonaClass = ''
                         let zonaTitle = ''
                         
-                        if (esAscenso) {
+                        if (!cumpleMinimo) {
+                          zonaClass = 'bg-gray-700/50 hover:bg-gray-600/40 border-l-4 border-gray-500'
+                          zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                        } else if (esAscenso) {
                           zonaClass = 'bg-green-900/20 hover:bg-green-900/30 border-l-4 border-green-500'
                           zonaTitle = 'Zona de Ascenso'
                         } else if (esDescenso) {
                           zonaClass = 'bg-red-900/20 hover:bg-red-900/30 border-l-4 border-red-500'
-                          zonaTitle = 'Zona de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                          zonaTitle = 'Zona de Descenso'
                         } else if (esPlayoffAscenso) {
                           zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
                           zonaTitle = 'Zona de Playoff de Ascenso'
                         } else if (esPlayoffDescenso) {
                           zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
-                          zonaTitle = 'Zona de Playoff de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
-                        } else if (!cumpleMinimo) {
-                          zonaClass = 'hover:bg-gray-800/50'
-                          zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                          zonaTitle = 'Zona de Playoff de Descenso'
                         } else {
                           zonaClass = 'hover:bg-gray-800/50'
                         }
@@ -747,25 +747,25 @@ export default function RankingsPublicosPage() {
                     // Verificar si es el usuario logueado
                     const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
                     
-                    // Determinar clase CSS según la zona
+                    // Determinar clase CSS según la zona (quien no cumple mínimo siempre en gris, distinto del descenso)
                     let zonaClass = ''
                     let zonaTitle = ''
                     
-                    if (esAscenso) {
+                    if (!cumpleMinimo) {
+                      zonaClass = 'bg-gray-700/50 border-l-4 border-gray-500'
+                      zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                    } else if (esAscenso) {
                       zonaClass = 'bg-green-900/20 border-l-4 border-green-500'
                       zonaTitle = 'Zona de Ascenso'
                     } else if (esDescenso) {
                       zonaClass = 'bg-red-900/20 border-l-4 border-red-500'
-                      zonaTitle = 'Zona de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
+                      zonaTitle = 'Zona de Descenso'
                     } else if (esPlayoffAscenso) {
                       zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
                       zonaTitle = 'Zona de Playoff de Ascenso'
                     } else if (esPlayoffDescenso) {
                       zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
-                      zonaTitle = 'Zona de Playoff de Descenso' + (!cumpleMinimo ? ' (No cumple mínimo)' : '')
-                    } else if (!cumpleMinimo) {
-                      zonaClass = 'bg-gray-800/30'
-                      zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                      zonaTitle = 'Zona de Playoff de Descenso'
                     } else {
                       zonaClass = 'bg-gray-800/30'
                     }
