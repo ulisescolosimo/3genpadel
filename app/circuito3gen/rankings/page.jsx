@@ -547,7 +547,7 @@ export default function RankingsPublicosPage() {
                     <span className="text-gray-300">Descenso ({zonasAscensoDescenso.jugadoresDescenso.length})</span>
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2">
-                    <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-700/50 border-l-4 border-gray-500"></div>
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-slate-700/40 border-l-4 border-slate-500"></div>
                     <span className="text-gray-300 text-xs md:text-sm">No cumple mínimo</span>
                   </div>
                 </div>
@@ -643,7 +643,7 @@ export default function RankingsPublicosPage() {
                         let zonaTitle = ''
                         
                         if (!cumpleMinimo) {
-                          zonaClass = 'bg-gray-700/50 hover:bg-gray-600/40 border-l-4 border-gray-500'
+                          zonaClass = 'bg-slate-700/40 hover:bg-slate-600/35 border-l-4 border-slate-500'
                           zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
                         } else if (esAscenso) {
                           zonaClass = 'bg-green-900/20 hover:bg-green-900/30 border-l-4 border-green-500'
@@ -752,7 +752,7 @@ export default function RankingsPublicosPage() {
                     let zonaTitle = ''
                     
                     if (!cumpleMinimo) {
-                      zonaClass = 'bg-gray-700/50 border-l-4 border-gray-500'
+                      zonaClass = 'bg-slate-700/40 border-l-4 border-slate-500'
                       zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
                     } else if (esAscenso) {
                       zonaClass = 'bg-green-900/20 border-l-4 border-green-500'
