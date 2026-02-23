@@ -629,34 +629,52 @@ export default function RankingsPublicosPage() {
                         const partidosJugados = ranking.partidos_jugados || 0
                         const cumpleMinimo = partidosJugados >= minimo && minimo > 0
                         
-                        // Determinar en qué zona está el jugador
+                        // Determinar en qué zona está el jugador (listas precalculadas)
                         const esAscenso = zonasAscensoDescenso.jugadoresAscenso.some(j => j.usuario_id === ranking.usuario_id)
                         const esDescenso = zonasAscensoDescenso.jugadoresDescenso.some(j => j.usuario_id === ranking.usuario_id)
                         const esPlayoffAscenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.some(j => j.usuario_id === ranking.usuario_id)
                         const esPlayoffDescenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.some(j => j.usuario_id === ranking.usuario_id)
                         
+                        // Posición por rendimiento (orden de la tabla = por promedio), para decidir gris vs rojo cuando no cumple
+                        const totalJugadores = rankingsCompletos.length
+                        const posicionPorRendimiento = totalJugadores > 0 ? (rankingsCompletos.findIndex(r => r.usuario_id === ranking.usuario_id) + 1) || totalJugadores : 0
+                        const cuposAscenso = zonasAscensoDescenso.jugadoresAscenso.length
+                        const cuposDescenso = zonasAscensoDescenso.jugadoresDescenso.length
+                        const enZonaAscensoPorRendimiento = posicionPorRendimiento >= 1 && posicionPorRendimiento <= cuposAscenso
+                        const enZonaPlayoffAscensoPorRendimiento = posicionPorRendimiento > cuposAscenso && posicionPorRendimiento <= cuposAscenso + 2
+                        const enZonaDescensoPorRendimiento = posicionPorRendimiento > totalJugadores - cuposDescenso
+                        const enZonaPlayoffDescensoPorRendimiento = posicionPorRendimiento > totalJugadores - cuposDescenso - 2 && posicionPorRendimiento <= totalJugadores - cuposDescenso
+                        
                         // Verificar si es el usuario logueado
                         const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
                         
-                        // Determinar clase CSS según la zona (quien no cumple mínimo siempre en gris, distinto del descenso)
+                        // No cumple: gris si está en zona ascenso/playoff por rendimiento; rojo si está en descenso/repechaje por rendimiento
                         let zonaClass = ''
                         let zonaTitle = ''
                         
                         if (!cumpleMinimo) {
-                          zonaClass = 'bg-slate-700/40 hover:bg-slate-600/35 border-l-4 border-slate-500'
-                          zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
-                        } else if (esAscenso) {
-                          zonaClass = 'bg-green-900/20 hover:bg-green-900/30 border-l-4 border-green-500'
-                          zonaTitle = 'Zona de Ascenso'
+                          if (enZonaDescensoPorRendimiento) {
+                            zonaClass = 'bg-red-900/20 hover:bg-red-900/30 border-l-4 border-red-500'
+                            zonaTitle = 'Zona de Descenso (No cumple mínimo)'
+                          } else if (enZonaPlayoffDescensoPorRendimiento) {
+                            zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
+                            zonaTitle = 'Zona de Playoff de Descenso (No cumple mínimo)'
+                          } else {
+                            zonaClass = 'bg-slate-700/40 hover:bg-slate-600/35 border-l-4 border-slate-500'
+                            zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                          }
                         } else if (esDescenso) {
                           zonaClass = 'bg-red-900/20 hover:bg-red-900/30 border-l-4 border-red-500'
                           zonaTitle = 'Zona de Descenso'
-                        } else if (esPlayoffAscenso) {
-                          zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
-                          zonaTitle = 'Zona de Playoff de Ascenso'
                         } else if (esPlayoffDescenso) {
                           zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
                           zonaTitle = 'Zona de Playoff de Descenso'
+                        } else if (esAscenso) {
+                          zonaClass = 'bg-green-900/20 hover:bg-green-900/30 border-l-4 border-green-500'
+                          zonaTitle = 'Zona de Ascenso'
+                        } else if (esPlayoffAscenso) {
+                          zonaClass = 'bg-yellow-900/20 hover:bg-yellow-900/30 border-l-4 border-yellow-500'
+                          zonaTitle = 'Zona de Playoff de Ascenso'
                         } else {
                           zonaClass = 'hover:bg-gray-800/50'
                         }
@@ -738,34 +756,50 @@ export default function RankingsPublicosPage() {
                     const partidosJugados = ranking.partidos_jugados || 0
                     const cumpleMinimo = partidosJugados >= minimo && minimo > 0
                     
-                    // Determinar en qué zona está el jugador
+                    // Determinar en qué zona está el jugador (listas precalculadas)
                     const esAscenso = zonasAscensoDescenso.jugadoresAscenso.some(j => j.usuario_id === ranking.usuario_id)
                     const esDescenso = zonasAscensoDescenso.jugadoresDescenso.some(j => j.usuario_id === ranking.usuario_id)
                     const esPlayoffAscenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_ascenso?.some(j => j.usuario_id === ranking.usuario_id)
                     const esPlayoffDescenso = zonasAscensoDescenso.jugadoresPlayoff?.playoff_descenso?.some(j => j.usuario_id === ranking.usuario_id)
                     
+                    // Posición por rendimiento (orden de la tabla) para decidir gris vs rojo cuando no cumple
+                    const totalJugadores = rankingsCompletos.length
+                    const posicionPorRendimiento = totalJugadores > 0 ? (rankingsCompletos.findIndex(r => r.usuario_id === ranking.usuario_id) + 1) || totalJugadores : 0
+                    const cuposAscenso = zonasAscensoDescenso.jugadoresAscenso.length
+                    const cuposDescenso = zonasAscensoDescenso.jugadoresDescenso.length
+                    const enZonaDescensoPorRendimiento = posicionPorRendimiento > totalJugadores - cuposDescenso
+                    const enZonaPlayoffDescensoPorRendimiento = posicionPorRendimiento > totalJugadores - cuposDescenso - 2 && posicionPorRendimiento <= totalJugadores - cuposDescenso
+                    
                     // Verificar si es el usuario logueado
                     const esUsuarioLogueado = usuarioLogueado && ranking.usuario_id === usuarioLogueado.id
                     
-                    // Determinar clase CSS según la zona (quien no cumple mínimo siempre en gris, distinto del descenso)
+                    // No cumple: gris si está en zona ascenso/playoff por rendimiento; rojo si está en descenso/repechaje por rendimiento
                     let zonaClass = ''
                     let zonaTitle = ''
                     
                     if (!cumpleMinimo) {
-                      zonaClass = 'bg-slate-700/40 border-l-4 border-slate-500'
-                      zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
-                    } else if (esAscenso) {
-                      zonaClass = 'bg-green-900/20 border-l-4 border-green-500'
-                      zonaTitle = 'Zona de Ascenso'
+                      if (enZonaDescensoPorRendimiento) {
+                        zonaClass = 'bg-red-900/20 border-l-4 border-red-500'
+                        zonaTitle = 'Zona de Descenso (No cumple mínimo)'
+                      } else if (enZonaPlayoffDescensoPorRendimiento) {
+                        zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
+                        zonaTitle = 'Zona de Playoff de Descenso (No cumple mínimo)'
+                      } else {
+                        zonaClass = 'bg-slate-700/40 border-l-4 border-slate-500'
+                        zonaTitle = 'No cumple mínimo. Puede participar en descensos y playoffs de descenso.'
+                      }
                     } else if (esDescenso) {
                       zonaClass = 'bg-red-900/20 border-l-4 border-red-500'
                       zonaTitle = 'Zona de Descenso'
-                    } else if (esPlayoffAscenso) {
-                      zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
-                      zonaTitle = 'Zona de Playoff de Ascenso'
                     } else if (esPlayoffDescenso) {
                       zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
                       zonaTitle = 'Zona de Playoff de Descenso'
+                    } else if (esAscenso) {
+                      zonaClass = 'bg-green-900/20 border-l-4 border-green-500'
+                      zonaTitle = 'Zona de Ascenso'
+                    } else if (esPlayoffAscenso) {
+                      zonaClass = 'bg-yellow-900/20 border-l-4 border-yellow-500'
+                      zonaTitle = 'Zona de Playoff de Ascenso'
                     } else {
                       zonaClass = 'bg-gray-800/30'
                     }
