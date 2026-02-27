@@ -550,6 +550,17 @@ export default function RankingsPublicosPage() {
                     <div className="w-3 h-3 md:w-4 md:h-4 bg-slate-700/40 border-l-4 border-slate-500"></div>
                     <span className="text-gray-300 text-xs md:text-sm">No cumple mínimo</span>
                   </div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <span className="inline-block w-3 h-4 rounded-sm border border-gray-600 bg-amber-400" title="1 WO"></span>
+                    <span className="text-gray-300 text-xs md:text-sm">1 WO (advertencia)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <span className="inline-flex items-center gap-0.5">
+                      <span className="inline-block w-3 h-4 rounded-sm border border-gray-600 bg-red-500" />
+                      <span className="inline-block w-3 h-4 rounded-sm border border-gray-600 bg-red-500" />
+                    </span>
+                    <span className="text-gray-300 text-xs md:text-sm">2+ WO (sanción)</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -701,8 +712,31 @@ export default function RankingsPublicosPage() {
                               <div className="flex items-center gap-2">
                                 <User className={`w-4 h-4 ${esUsuarioLogueado ? 'text-[#E2FF1B]' : 'text-gray-400'}`} />
                                 <div>
-                                  <div className={`font-medium ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
+                                  <div className={`font-medium flex items-center gap-1.5 flex-wrap ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
                                     {obtenerNombreJugador(ranking.usuario)}
+                                    {(ranking.wo_count || 0) >= 1 && (
+                                      <TooltipProvider delayDuration={0}>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="inline-flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                              <span
+                                                className={`inline-block w-3 h-4 rounded-sm border border-gray-700 ${(ranking.wo_count || 0) >= 2 ? 'bg-red-500' : 'bg-amber-400'}`}
+                                                title={(ranking.wo_count || 0) >= 2 ? '2 o más WO - Sanción aplicada' : '1 WO - No presentado'}
+                                              />
+                                              {(ranking.wo_count || 0) >= 2 && (
+                                                <span className="inline-block w-3 h-4 rounded-sm border border-gray-700 bg-red-500" />
+                                              )}
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                                            <p>{(ranking.wo_count || 0) >= 2
+                                              ? `${ranking.wo_count} WO (no presentado). Sanción aplicada.`
+                                              : '1 WO (no presentado). A la segunda WO aplica sanción.'}
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
                                     {esUsuarioLogueado && (
                                       <Badge className="ml-2 bg-[#E2FF1B] text-black text-xs">
                                         Tú
@@ -832,8 +866,30 @@ export default function RankingsPublicosPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 min-w-0">
                                 <User className={`w-4 h-4 flex-shrink-0 ${esUsuarioLogueado ? 'text-[#E2FF1B]' : 'text-gray-400'}`} />
-                                <div className={`font-medium truncate ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
+                                <div className={`font-medium truncate flex items-center gap-1.5 flex-wrap ${esUsuarioLogueado ? 'text-[#E2FF1B] font-bold' : 'text-white'}`}>
                                   {obtenerNombreJugador(ranking.usuario)}
+                                  {(ranking.wo_count || 0) >= 1 && (
+                                    <TooltipProvider delayDuration={0}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="inline-flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                            <span
+                                              className={`inline-block w-3 h-4 rounded-sm border border-gray-700 ${(ranking.wo_count || 0) >= 2 ? 'bg-red-500' : 'bg-amber-400'}`}
+                                            />
+                                            {(ranking.wo_count || 0) >= 2 && (
+                                              <span className="inline-block w-3 h-4 rounded-sm border border-gray-700 bg-red-500" />
+                                            )}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gray-900 border-gray-700 text-white max-w-xs">
+                                          <p>{(ranking.wo_count || 0) >= 2
+                                            ? `${ranking.wo_count} WO (no presentado). Sanción aplicada.`
+                                            : '1 WO (no presentado). A la segunda WO aplica sanción.'}
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
                                 </div>
                                 {esUsuarioLogueado && (
                                   <Badge className="bg-[#E2FF1B] text-black text-xs flex-shrink-0 whitespace-nowrap">
