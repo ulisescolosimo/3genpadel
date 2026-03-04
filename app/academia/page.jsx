@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Users, Target, Award, Calendar, Star, BookOpen, Dumbbell, Zap, MapPin, Info } from 'lucide-react'
+import { Clock, Users, Target, Award, Calendar, Star, BookOpen, Dumbbell, Zap, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -10,6 +10,12 @@ export default function AcademiaPage() {
 
   const openWhatsApp = (turno) => {
     const message = encodeURIComponent(`Hola! Me gustaría inscribirme en la Academia 3gen Padel para el turno de ${turno.horario}. La ubicación es La Normanda en Delgado 864, Colegiales, CABA. ¿Podrían darme más información sobre disponibilidad y precios?`)
+    const whatsappUrl = `https://wa.me/5491157516215?text=${message}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  const openWhatsAppOlleros = () => {
+    const message = encodeURIComponent('Hola! Me gustaría inscribirme en la Academia 3gen Padel en Sede Olleros (Olleros 1515, Palermo). Turnos de Lunes a Viernes de 8:00 a 18:00 hs. ¿Podrían darme más información sobre disponibilidad y precios?')
     const whatsappUrl = `https://wa.me/5491157516215?text=${message}`
     window.open(whatsappUrl, '_blank')
   }
@@ -78,23 +84,14 @@ export default function AcademiaPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2FF1B]/20 to-transparent"></div>
         <div className="w-full md:container mx-auto relative z-10">
                       {/* Ubicación */}
-                      <div className="flex justify-center items-center gap-3 mb-6 md:mb-8 px-4">
+                      <div className="flex flex-wrap justify-center items-center gap-3 mb-6 md:mb-8 px-4">
               <div className="inline-flex items-center gap-3 px-4 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30">
                 <MapPin className="w-5 h-5 text-[#E2FF1B]" />
                 <span className="text-[#E2FF1B] font-semibold text-sm tracking-wider">Delgado 864, Colegiales</span>
               </div>
-              {/* Botón info con tooltip */}
-              <div className="group relative hidden md:block">
-                <button className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-full p-2 transition-all duration-300 hover:scale-110">
-                  <Info className="w-4 h-4 text-blue-400" />
-                </button>
-                {/* Tooltip */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none z-50">
-                  <div className="bg-blue-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg whitespace-nowrap text-sm font-medium border border-blue-400/30">
-                    Próximamente: Academia turno tarde - Sede Olleros
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-500 rotate-45 border-l border-t border-blue-400/30"></div>
-                  </div>
-                </div>
+              <div className="inline-flex items-center gap-3 px-4 py-3 bg-[#E2FF1B]/20 rounded-full border border-[#E2FF1B]/30">
+                <MapPin className="w-5 h-5 text-[#E2FF1B]" />
+                <span className="text-[#E2FF1B] font-semibold text-sm tracking-wider">Olleros 1515, Palermo</span>
               </div>
             </div>
           <div className="text-center max-w-6xl mx-auto">
@@ -224,6 +221,56 @@ export default function AcademiaPage() {
                 </p>
               </div>
 
+              {/* Sede Olleros */}
+              <div className="mb-8 md:mb-10">
+                <h3 className="text-lg md:text-xl font-bold text-[#E2FF1B] mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Sede Olleros — Olleros 1515, Palermo
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full md:col-span-2 lg:col-span-1">
+                    <CardHeader className="text-center pb-3">
+                      <div className="flex justify-center mb-3">
+                        <div className="p-3 rounded-full bg-[#E2FF1B]/20 border border-[#E2FF1B]/30">
+                          <Calendar className="w-6 h-6 text-[#E2FF1B]" />
+                        </div>
+                      </div>
+                      <CardTitle className="text-lg md:text-xl font-bold text-[#E2FF1B]">
+                        Lunes a Viernes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-2">
+                          <Clock className="w-4 h-4 text-[#E2FF1B]" />
+                          <span className="text-white font-medium text-sm md:text-base">Horario</span>
+                        </div>
+                        <p className="text-gray-300 text-sm md:text-base font-medium">
+                          8:00 - 18:00 hs
+                        </p>
+                      </div>
+                      <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#E2FF1B]/20 border border-[#E2FF1B]/30">
+                        <span className="text-[#E2FF1B] text-xs md:text-sm font-semibold">Turnos disponibles</span>
+                      </div>
+                      <div className="pt-2">
+                        <Button
+                          onClick={openWhatsAppOlleros}
+                          className="w-full bg-[#E2FF1B] text-black hover:bg-[#E2FF1B]/90 text-xs md:text-sm py-2.5 font-bold transition-all duration-300 hover:scale-105"
+                        >
+                          Inscribirse
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* La Normanda - Colegiales */}
+              <div>
+                <h3 className="text-lg md:text-xl font-bold text-[#E2FF1B] mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  La Normanda — Delgado 864, Colegiales
+                </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {turnos.map((turno) => (
                   <Card key={turno.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 h-full">
@@ -271,6 +318,7 @@ export default function AcademiaPage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
               </div>
 
               <div className="mt-8 md:mt-12 bg-gradient-to-r from-[#E2FF1B]/10 to-transparent p-6 md:p-8 rounded-2xl border border-[#E2FF1B]/20">

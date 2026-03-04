@@ -319,16 +319,16 @@ export default function Home() {
           </div>
 
           {/* Clases Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 items-stretch">
             {/* Clases Grupales */}
-            <div className="group relative">
-              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden">
+            <div className="group relative flex flex-col">
+              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden flex flex-col">
                 {/* Efecto de brillo animado */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#E2FF1B]/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
-                <div className="relative flex flex-col h-full">
+                <div className="relative flex flex-col h-full min-h-0">
                   {/* Header con icono mejorado */}
-                  <div className="flex items-start gap-4 mb-8">
+                  <div className="flex items-start gap-4 mb-6">
                     <div className="relative">
                       <div className="w-20 h-20 bg-gradient-to-br from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-2xl flex items-center justify-center shadow-lg">
                         <Users className="w-10 h-10 text-[#E2FF1B]" />
@@ -347,14 +347,14 @@ export default function Home() {
                   </div>
                   
                   {/* Contenido principal */}
-                  <div className="flex-grow space-y-6 mb-8">
+                  <div className="flex-grow min-h-0 flex flex-col mb-6">
                     <p className="text-slate-300 leading-relaxed text-base">
                       Mejorá tu técnica y juego en compañía de otros jugadores. 
                       Perfecto para aprender, practicar y divertirte.
                     </p>
                     
                     {/* Información destacada */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-6">
                       <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
@@ -382,36 +382,38 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {/* Botones mejorados */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                  <Link 
-                      href="/sede-olleros/entrenamientos-grupales"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
-                    >
-                      <span>Reservar Clase Grupal</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                    <Link 
-                      href="/sede-olleros/entrenamientos-grupales"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
-                    >
-                      <span>Conocé más</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
+                  {/* Botones alineados al fondo */}
+                  <div className="mt-auto flex flex-col gap-3 pt-2 border-t border-slate-700/50">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Link 
+                        href="/sede-olleros/entrenamientos-grupales"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                      >
+                        <span>Reservar Clase Grupal</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                      <Link 
+                        href="/sede-olleros/entrenamientos-grupales"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                      >
+                        <span>Conocé más</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Clases Privadas */}
-            <div className="group relative">
-              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden">
+            <div className="group relative flex flex-col">
+              <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-8 border border-slate-700/50 hover:border-[#E2FF1B]/40 transition-all duration-500 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#E2FF1B]/20 h-full overflow-hidden flex flex-col">
                 {/* Efecto de brillo animado */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#E2FF1B]/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
-                <div className="relative flex flex-col h-full">
+                <div className="relative flex flex-col h-full min-h-0">
                   {/* Header con icono mejorado */}
-                  <div className="flex items-start gap-4 mb-8">
+                  <div className="flex items-start gap-4 mb-6">
                     <div className="relative">
                       <div className="w-20 h-20 bg-gradient-to-br from-[#E2FF1B]/20 to-[#E2FF1B]/10 rounded-2xl flex items-center justify-center shadow-lg">
                         <Trophy className="w-10 h-10 text-[#E2FF1B]" />
@@ -430,14 +432,14 @@ export default function Home() {
                   </div>
                   
                   {/* Contenido principal */}
-                  <div className="flex-grow space-y-6 mb-8">
+                  <div className="flex-grow min-h-0 flex flex-col mb-6">
                     <p className="text-slate-300 leading-relaxed text-base">
                       Entrená con nuestros Head Coaches profesionales de primera división. 
                       Stefano Lorenzo e Ignacio Begher te van a ayudar a mejorar tu juego.
                     </p>
                     
                     {/* Información destacada */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-6">
                       <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-8 h-8 bg-[#E2FF1B]/20 rounded-lg flex items-center justify-center">
@@ -471,22 +473,24 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {/* Botones mejorados */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Link 
-                      href="/sede-olleros/clases-profesionales"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
-                    >
-                      <span>Reservar Clase Privada</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                    <Link 
-                      href="/sede-olleros/clases-profesionales"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
-                    >
-                      <span>Conocé más</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
+                  {/* Botones alineados al fondo */}
+                  <div className="mt-auto flex flex-col gap-3 pt-2 border-t border-slate-700/50">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Link 
+                        href="/sede-olleros/clases-profesionales"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black bg-[#E2FF1B] border border-transparent rounded-md hover:bg-[#E2FF1B]/90 focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                      >
+                        <span>Reservar Clase Privada</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                      <Link 
+                        href="/sede-olleros/clases-profesionales"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[#E2FF1B] bg-transparent border border-[#E2FF1B]/30 rounded-md hover:bg-[#E2FF1B]/5 hover:border-[#E2FF1B] focus:outline-none focus:ring-2 focus:ring-[#E2FF1B] focus:ring-offset-2 transition-colors duration-200"
+                      >
+                        <span>Conocé más</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
