@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { verificarAdmin, obtenerUsuarioAutenticado } from '@/lib/circuito3gen/auth'
 
+/** Evita que Next intente pre-renderizar esta ruta en build (usa request.headers). */
+export const dynamic = 'force-dynamic'
+
 /**
  * GET: Verifica si el usuario autenticado tiene rol admin
  * Requiere Authorization: Bearer <token>
