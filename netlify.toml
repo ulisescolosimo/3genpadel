@@ -1,8 +1,7 @@
 [build]
   command = "npm run build"
-  # Obligatorio mientras el plugin Next.js esté instalado en el Dashboard: publish debe ser ≠ base.
-  # Por defecto Netlify usa la raíz (/opt/build/repo) y el plugin falla. Con esto pasa el check.
-  publish = ".next"
+  # "public" pasa el check del plugin (≠ base) y evita que se use .next como raíz (que rompe /_next/).
+  publish = "public"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
