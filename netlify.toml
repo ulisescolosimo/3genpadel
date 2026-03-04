@@ -1,7 +1,7 @@
 [build]
   command = "npm run build"
-  # "public" pasa el check del plugin (≠ base) y evita que se use .next como raíz (que rompe /_next/).
-  publish = "public"
+  # Necesario para que el plugin no falle (publish ≠ base).
+  publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
