@@ -1,2 +1,9 @@
 [build]
   command = "npm run build"
+  # No pongas "publish" ni en netlify.toml ni en el Dashboard; lo gestiona el plugin.
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
