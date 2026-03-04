@@ -1,13 +1,15 @@
+# Next.js en Netlify
+# Con publish=.next la raíz del deploy es .next, así que los estáticos quedan en /static/.
+# Next pide /_next/static/ → reescribir para que funcionen.
+
 [build]
   command = "npm run build"
-  # Necesario para que el plugin no falle (publish ≠ base).
   publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
 
-# Con publish=.next los estáticos quedan en /static/, pero Next pide /_next/static/.
-# Esta reescritura hace que /_next/static/* sirva el contenido de /static/* (status 200 = rewrite).
+# Sirve /_next/static/* desde /static/* (mismo contenido cuando publish=.next)
 [[redirects]]
   from = "/_next/static/*"
   to = "/static/:splat"
