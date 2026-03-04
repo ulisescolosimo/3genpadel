@@ -363,8 +363,8 @@ export default function Home() {
                           <span className="font-semibold text-white">Horarios</span>
                         </div>
                         <div className="space-y-2 md:ml-11">
-                          <p className="text-sm text-slate-300 font-medium">Martes, Miércoles y Viernes</p>
-                          <p className="text-sm text-[#E2FF1B] font-bold">12:00 a 16:00 hs</p>
+                          <p className="text-sm text-slate-300 font-medium">Lunes a Viernes</p>
+                          <p className="text-sm text-[#E2FF1B] font-bold">8:00 a 18:00 hs</p>
                         </div>
                       </div>
 

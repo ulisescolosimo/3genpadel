@@ -99,11 +99,11 @@ export default function SedeOllerosPage() {
                   <ul className="space-y-1">
                     <li className="flex items-start text-gray-300 text-xs">
                       <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
-                      Martes, Miércoles y Viernes
+                      Lunes a Viernes
                     </li>
                     <li className="flex items-start text-gray-300 text-xs">
                       <div className="w-1.5 h-1.5 bg-[#E2FF1B] rounded-full mt-1.5 mr-2 flex-shrink-0" />
-                      12:00 a 16:00 hs
+                      8:00 a 18:00 hs
                     </li>
                   </ul>
                 </div>
