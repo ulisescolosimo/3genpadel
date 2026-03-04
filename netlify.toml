@@ -5,3 +5,11 @@
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
+
+# Con publish=.next los estáticos quedan en /static/, pero Next pide /_next/static/.
+# Esta reescritura hace que /_next/static/* sirva el contenido de /static/* (status 200 = rewrite).
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/static/:splat"
+  status = 200
+  force = true
