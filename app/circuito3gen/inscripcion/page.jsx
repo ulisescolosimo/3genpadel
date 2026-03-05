@@ -938,7 +938,7 @@ export default function InscripcionPage() {
                     </div>
                     <p className="text-sm text-gray-400 mt-2">
                       El monto de inscripción es de <span className="text-[#E2FF1B] font-semibold">$50.000</span> <span className="text-[#E2FF1B] font-semibold">por persona</span>. 
-                      Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">3genpadel</span>. 
+                      Transfiriendo al alias <span className="text-[#E2FF1B] font-semibold">circuito3gen</span>. 
                       Adjuntá el comprobante de transferencia o pago.
                     </p>
                   </div>
