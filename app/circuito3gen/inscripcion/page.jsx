@@ -871,7 +871,7 @@ export default function InscripcionPage() {
                   <div>
                     <Label className="text-gray-300 mb-2 block">
                       Comprobante de pago * 
-                      <span className="text-[#E2FF1B] ml-2 font-semibold">($50.000 por persona - Alias: 3genpadel)</span>
+                      <span className="text-[#E2FF1B] ml-2 font-semibold">($50.000 por persona - Alias: circuito3gen)</span>
                     </Label>
                     <div
                       onDragOver={handleDragOver}
