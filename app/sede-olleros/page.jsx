@@ -1,36 +1,45 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Star, Calendar, MapPin, Phone, Mail, Zap, Trophy, Users, BookOpen } from 'lucide-react'
+import { ArrowLeft, MapPin, Phone, Mail, Trophy, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+const SWIPE_THRESHOLD = 50
+
 export default function SedeOllerosPage() {
   const [selectedImage, setSelectedImage] = useState(0)
+  const [loadedImages, setLoadedImages] = useState(new Set([0]))
+  const touchStartX = useRef(0)
   
   const images = [
-    '305a8f1b-2a44-4ca8-a685-cbb3b8d2f8c0.JPG',
-    '5b30f465-a449-4849-8f01-2edc6f680395.JPG',
-    '5d681fda-92a2-4e30-aeb2-5d218dda6b0a.JPG',
-    '605d63a1-554b-4e2b-8d00-31c945dda5a9.JPG',
-    '67bf875f-af56-4279-a994-61a2fa6fb3e9.JPG',
-    '6a1e4c11-ef21-4f12-b2f1-f53aa1105848.JPG',
-    '88bc2c70-c85c-48aa-8813-19c289146082.JPG',
-    '8ff124ca-dadc-4de3-95fb-3c1f6aedcca6.JPG',
-    'a2bc5341-2e6e-4345-82be-ef6bb48936b0.JPG',
-    'b75656ae-ba9d-4839-8be3-cdfec7684fd7.JPG',
-    'd22c29d8-4262-4ed4-bdab-d1780cccd3dc.JPG',
+    'IMG_3830.JPG.jpeg',
+    'IMG_4447.JPG.jpeg',
+    'IMG_4448.JPG.jpeg',
+    'IMG_4449.JPG.jpeg',
+    'IMG_4450.JPG.jpeg',
+    'IMG_4451.JPG.jpeg',
+    'IMG_4452.JPG.jpeg',
+    'IMG_4453.JPG.jpeg',
+    'IMG_4454.JPG.jpeg',
+    'IMG_4456.JPG.jpeg',
+    'IMG_4458.JPG.jpeg',
+    'IMG_4460.JPG.jpeg',
+    'IMG_4462.JPG.jpeg',
+    'IMG_4469.JPG.jpeg',
+    'IMG_4471.JPG.jpeg',
+    'IMG_4473.JPG.jpeg',
+    'IMG_4474.JPG.jpeg',
+    '313f2b1d-55ca-4c7d-ab14-f0fb8c209f97.JPG',
     'e530bae5-e8d6-47ff-a98e-2aa46d51120c.JPG',
-    'ebef0cdf-cfee-49af-bc78-d7a2f5078534.JPG',
-    'f18dfe07-fc7f-4d38-bed4-a508b7c92b2b.JPG',
-    'IMG_8842.jpg',
-    '1000528683.jpg',
-    '1000528684.jpg',
-    '1000528686.jpg',
-    '1000528687.jpg',
   ]
+
+  const getImageSrc = (filename) => {
+    const inOlleros = ['313f2b1d-55ca-4c7d-ab14-f0fb8c209f97.JPG', 'e530bae5-e8d6-47ff-a98e-2aa46d51120c.JPG'].includes(filename)
+    return inOlleros ? `/images/olleros/${filename}` : `/images/galeria/${filename}`
+  }
 
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % images.length)
@@ -38,6 +47,21 @@ export default function SedeOllerosPage() {
 
   const prevImage = () => {
     setSelectedImage((prev) => (prev - 1 + images.length) % images.length)
+  }
+
+  const handleImageLoad = (index) => {
+    setLoadedImages((prev) => new Set([...prev, index]))
+  }
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e) => {
+    const endX = e.changedTouches[0].clientX
+    const delta = endX - touchStartX.current
+    if (delta < -SWIPE_THRESHOLD) nextImage()
+    else if (delta > SWIPE_THRESHOLD) prevImage()
   }
 
   const openWhatsApp = (mensaje) => {
@@ -173,34 +197,63 @@ export default function SedeOllerosPage() {
           <div>
             <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6">Galería de Imágenes</h3>
             
-            {/* Main Image */}
+            {/* Main Image con estado de carga + swipe */}
             <div className="relative mb-3 md:mb-4">
-              <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
+              <div
+                className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden touch-pan-y"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                {/* Precarga siguiente y anterior para cambio instantáneo */}
+                <div className="absolute inset-0 opacity-0 pointer-events-none" aria-hidden>
+                  {[selectedImage - 1, selectedImage + 1].map((i) => {
+                    const idx = (i + images.length) % images.length
+                    return (
+                      <Image
+                        key={`preload-${idx}`}
+                        src={getImageSrc(images[idx])}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        loading="eager"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    )
+                  })}
+                </div>
+                {/* Skeleton de carga */}
+                {!loadedImages.has(selectedImage) && (
+                  <div className="absolute inset-0 bg-gray-800 animate-pulse rounded-lg" aria-hidden />
+                )}
                 <Image
-                  src={`/images/olleros/${images[selectedImage]}`}
+                  src={getImageSrc(images[selectedImage])}
                   alt={`Sede Olleros - Imagen ${selectedImage + 1}`}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-opacity duration-300"
+                  style={{ opacity: loadedImages.has(selectedImage) ? 1 : 0 }}
                   priority
+                  onLoad={() => handleImageLoad(selectedImage)}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
               
-              {/* Navigation Buttons */}
+              {/* Navegación con flechas */}
               <button
                 onClick={prevImage}
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 md:p-2 rounded-full transition-colors"
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 md:p-2 rounded-full transition-colors z-10"
+                aria-label="Imagen anterior"
               >
                 <ArrowLeft className="h-3 w-3 md:h-4 md:w-4" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 md:p-2 rounded-full transition-colors"
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 md:p-2 rounded-full transition-colors z-10"
+                aria-label="Siguiente imagen"
               >
                 <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 rotate-180" />
               </button>
               
-              {/* Image Counter */}
-              <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
+              <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm z-10">
                 {selectedImage + 1} / {images.length}
               </div>
             </div>
