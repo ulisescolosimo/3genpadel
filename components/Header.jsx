@@ -281,14 +281,16 @@ export default function Header() {
                 Quiénes somos
               </Link>
 
-              {/* Sponsors */}
-              <Link 
-                href="/sponsors" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-              >
-                <Handshake className="w-4 h-4" />
-                Sponsors
-              </Link>
+              {/* Sponsors - oculto por ahora */}
+              {false && (
+                <Link 
+                  href="/sponsors" 
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                >
+                  <Handshake className="w-4 h-4" />
+                  Sponsors
+                </Link>
+              )}
 
               {/* Merchandising */}
               <Link 
@@ -596,15 +598,17 @@ export default function Header() {
                 Quiénes somos
               </Link>
 
-              {/* Sponsors */}
-              <Link 
-                href="/sponsors" 
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
-                onClick={closeMenu}
-              >
-                <Handshake className="w-4 h-4" />
-                Sponsors
-              </Link>
+              {/* Sponsors - oculto por ahora */}
+              {false && (
+                <Link 
+                  href="/sponsors" 
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[#E2FF1B] ${isActive('/sponsors') ? 'text-[#E2FF1B]' : 'text-white/70'}`}
+                  onClick={closeMenu}
+                >
+                  <Handshake className="w-4 h-4" />
+                  Sponsors
+                </Link>
+              )}
 
               {/* Merchandising */}
               <Link 
